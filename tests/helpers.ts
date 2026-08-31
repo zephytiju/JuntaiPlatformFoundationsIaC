@@ -55,6 +55,34 @@ export function foundationsInputs(): FoundationsInputs {
     gateway: { serviceType: "ClusterIP" },
     observability: { exportEndpoint: "https://otel.example.test:4317" },
     meridian: { engines: [structuredEngine()] },
+    account: {
+      composition: {
+        name: "account-composition",
+        mountPath: "/opt/juntai/composition",
+        items: { "composition.py": "composition.py" },
+      },
+      compositionFactory: "composition:create_app",
+    },
+    applicationMetadata: {
+      casdoorIssuer: "https://iam.example.test",
+      casdoorAudience: "juntai-platform",
+      casdoorPolicyEnforcerId: "admin/juntai-domain-authorization",
+      casdoorServiceClientId: "application-metadata",
+      cursorHmac: {
+        name: "application-metadata-cursor-hmac",
+        mountPath: "/var/run/application-metadata/secrets/cursor",
+        items: { "hmac-key": "cursor-hmac-key" },
+      },
+      policyReaderClientSecret: {
+        name: "application-metadata-policy-reader",
+        mountPath: "/var/run/application-metadata/secrets/policy-reader",
+        items: { "client-secret": "casdoor-policy-client-secret" },
+      },
+      kubernetesApiCidr: "192.0.2.10/32",
+      kubernetesWorkloadAudience: "juntai-platform",
+      kubernetesWorkloadIssuer: "https://kubernetes.default.svc",
+      workloadBindings: [],
+    },
     casdoor: {
       configuration: {
         name: "casdoor-configuration",

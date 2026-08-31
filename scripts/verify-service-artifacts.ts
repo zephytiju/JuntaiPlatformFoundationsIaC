@@ -2,7 +2,7 @@ import { resolveAndComposeServiceContracts } from "../src/contract-composition.j
 
 const { evidence } = await resolveAndComposeServiceContracts();
 if (
-  evidence.artifacts.some(
+  [...evidence.artifacts, ...evidence.releaseArtifacts].some(
     ({ expectedDigest, resolvedDigest }) => expectedDigest !== resolvedDigest,
   )
 ) {

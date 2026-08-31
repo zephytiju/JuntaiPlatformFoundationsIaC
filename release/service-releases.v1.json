@@ -28,6 +28,113 @@
       "artifacts": []
     },
     {
+      "id": "platform.account",
+      "release": {
+        "version": "2.1.4",
+        "image": "ghcr.io/zephytiju/juntai-account-service@sha256:26c7c5e2f109aeeb47157f45bd95f2df6e34b9de83085fe1bc32512f9c7cd084",
+        "imageDigest": "sha256:26c7c5e2f109aeeb47157f45bd95f2df6e34b9de83085fe1bc32512f9c7cd084",
+        "sourceCommit": "a3e1e2e12f31b16d6f01c10e47402688286bf476",
+        "manifests": [
+          {
+            "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/deployment-manifest.v1.json",
+            "digest": "sha256:5bde3a4a98f4da4e80f3aedc1eec1c6eb15e433828a630d1f31e7171d7857df2"
+          },
+          {
+            "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/release-manifest.v1.json",
+            "digest": "sha256:cfe43d7d3f71380d8d4e9089d7445a7fd5da815678dcba919b923eeba13b5c92"
+          },
+          {
+            "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/juntai-account-contracts-2.1.4.json",
+            "digest": "sha256:c4a79a209e925a10f0c931c711b3c1a9b443a3bcae4495aea467267af1316673"
+          }
+        ]
+      },
+      "deployment": {
+        "namespace": "juntai-platform",
+        "serviceName": "account",
+        "port": 8080,
+        "protocols": ["http"],
+        "gatewaySurface": "platform",
+        "routePrefix": "/api/platform.account/v1",
+        "storageBoundary": "in-process-Meridian-public-data-access-contracts-with-platform-composition",
+        "migration": "platform-registered-logical-resources; no production data migration",
+        "recovery": "disable-route-and-workload; retain-Meridian-managed-data"
+      },
+      "artifacts": [
+        {
+          "id": "account-openapi",
+          "format": "openapi",
+          "mediaType": "application/json",
+          "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/account-service.v1.openapi.json",
+          "digest": "sha256:56910abbac64d3c8a7065c001d7c69b291c59f0904355c2cc7dacb0f9ad58695",
+          "compatibility": {
+            "format": "openapi",
+            "documentVersion": "3.1",
+            "title": "Juntai Account Service",
+            "version": "1.0.0",
+            "requiredPaths": [
+              "/api/platform.account/v1/accounts/{accountId}",
+              "/api/platform.account/v1/accounts/{accountId}/profile"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "platform.application-metadata",
+      "release": {
+        "version": "3.0.0",
+        "image": "ghcr.io/zephytiju/juntai-application-metadata@sha256:66ccf5d5e0bb77564f7d5fd8bd3a7d673bbf4f0c5ce4f438e4e48eec0ef26872",
+        "imageDigest": "sha256:66ccf5d5e0bb77564f7d5fd8bd3a7d673bbf4f0c5ce4f438e4e48eec0ef26872",
+        "sourceCommit": "ba1ca5df9dbbc64e5c5c1d8a169db015791d38c9",
+        "manifests": [
+          {
+            "uri": "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.0.0/release-contract.v1.json",
+            "digest": "sha256:dd3b8ea5f5bd4fa84b48378bdaca0ffc34eacdc668326b9e5eaa0021c8ba0159"
+          },
+          {
+            "uri": "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.0.0/release-manifest.json",
+            "digest": "sha256:48c7dc966766e3f8e124bc30f7f76348b2121de5ee41132e71c26a29082437c1"
+          },
+          {
+            "uri": "https://raw.githubusercontent.com/zephytiju/JuntaiApplicationMetadata/ba1ca5df9dbbc64e5c5c1d8a169db015791d38c9/migrations/application-metadata.v2.json",
+            "digest": "sha256:a66d986e8b7e663b37275f1be39bb7cd6e87582abe315eca720c218ebe3f79a1"
+          }
+        ]
+      },
+      "deployment": {
+        "namespace": "juntai-platform",
+        "serviceName": "application-metadata",
+        "port": 8080,
+        "protocols": ["http"],
+        "gatewaySurface": "platform",
+        "routePrefix": "/api/platform/applications/v1",
+        "contractPathPrefix": "/v1",
+        "storageBoundary": "in-process-Meridian-structured-and-config-artifact-plugin",
+        "migration": "platform-managed-Meridian-logical-migration-juntai.application-metadata/1-to-2",
+        "recovery": "retain-v1-export-read-only-until-platform-cutover-acceptance"
+      },
+      "artifacts": [
+        {
+          "id": "application-metadata-openapi",
+          "format": "openapi",
+          "mediaType": "application/json",
+          "uri": "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.0.0/application-metadata.v1.json",
+          "digest": "sha256:04d80ef99114dcacb3fee9755eb96adc664d520d54a41b17cdbe1e18463f68eb",
+          "compatibility": {
+            "format": "openapi",
+            "documentVersion": "3.1",
+            "title": "Juntai Application Metadata",
+            "version": "3.0.0",
+            "requiredPaths": [
+              "/v1/applications",
+              "/v1/applications/{application_id}/versions"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "id": "platform.blueprint",
       "release": {
         "version": "3.0.0",

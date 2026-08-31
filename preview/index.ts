@@ -39,6 +39,34 @@ const result = await deployFoundations({
   inputs: {
     gateway: { serviceType: "ClusterIP" },
     observability: { exportEndpoint: "https://otel.preview.invalid:4317" },
+    account: {
+      composition: {
+        name: "account-composition",
+        mountPath: "/opt/juntai/composition",
+        items: { "composition.py": "composition.py" },
+      },
+      compositionFactory: "composition:create_app",
+    },
+    applicationMetadata: {
+      casdoorIssuer: "https://iam.preview.invalid",
+      casdoorAudience: "juntai-platform",
+      casdoorPolicyEnforcerId: "admin/juntai-domain-authorization",
+      casdoorServiceClientId: "application-metadata",
+      cursorHmac: {
+        name: "application-metadata-cursor-hmac",
+        mountPath: "/var/run/application-metadata/secrets/cursor",
+        items: { "hmac-key": "cursor-hmac-key" },
+      },
+      policyReaderClientSecret: {
+        name: "application-metadata-policy-reader",
+        mountPath: "/var/run/application-metadata/secrets/policy-reader",
+        items: { "client-secret": "casdoor-policy-client-secret" },
+      },
+      kubernetesApiCidr: "192.0.2.10/32",
+      kubernetesWorkloadAudience: "juntai-platform",
+      kubernetesWorkloadIssuer: "https://kubernetes.default.svc",
+      workloadBindings: [],
+    },
     meridian: {
       engines: [
         {

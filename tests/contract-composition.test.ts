@@ -176,6 +176,7 @@ describe("service contract composition", () => {
       "grpc",
     ]);
     expect(composed.evidence.artifacts).toHaveLength(2);
+    expect(composed.evidence.releaseArtifacts).toHaveLength(0);
     expect(composed.evidence.compositionDigest).toMatch(
       /^sha256:[0-9a-f]{64}$/,
     );
@@ -193,6 +194,45 @@ describe("service contract composition", () => {
       fetcher: async () => Uint8Array.from(bytes),
     });
     expect(ci.evidence).toEqual(local.evidence);
+  });
+
+  it("includes immutable service release artifacts in preflight evidence", async () => {
+    const contractBytes = openApiBytes("widgets");
+    const releaseBytes = new TextEncoder().encode('{"release":"1.0.0"}');
+    const service = openApiService("widgets", contractBytes);
+    const releaseArtifact = {
+      uri: "https://example.test/releases/download/v1.0.0/release.json",
+      digest: sha256(releaseBytes),
+    } as const;
+    const declaration = catalog([
+      {
+        ...service,
+        release: { ...service.release, manifests: [releaseArtifact] },
+      },
+    ]);
+    const composed = await resolveAndComposeServiceContracts({
+      catalog: declaration,
+      fetcher: async (artifact) =>
+        artifact.uri === releaseArtifact.uri ? releaseBytes : contractBytes,
+    });
+    expect(composed.evidence.releaseArtifacts).toEqual([
+      {
+        serviceId: "widgets",
+        artifactId: "widgets-release-artifact-1",
+        uri: releaseArtifact.uri,
+        expectedDigest: releaseArtifact.digest,
+        resolvedDigest: releaseArtifact.digest,
+      },
+    ]);
+    await expect(
+      resolveAndComposeServiceContracts({
+        catalog: declaration,
+        fetcher: async (artifact) =>
+          artifact.uri === releaseArtifact.uri
+            ? new TextEncoder().encode("changed")
+            : contractBytes,
+      }),
+    ).rejects.toThrow(/digest mismatch/);
   });
 
   it("rejects mismatched, incompatible, externally referenced, and conflicting contracts", async () => {

@@ -7,6 +7,7 @@ import {
   defaultValidationPolicy,
   getEngineProfile,
   type EngineBinding,
+  type MeridianResourceRequirementV1,
 } from "@zephytiju/meridian-storage-constructs";
 import { childMigration } from "./adoption.js";
 import type {
@@ -18,6 +19,10 @@ import type {
 
 const BLUEPRINT_SCHEMA_FINGERPRINT =
   "sha256:0a1d34129ed514fc0e7b227c6d23fbff61f025de209d0ebeedd0cf618a6bd26d";
+const ACCOUNT_SCHEMA_FINGERPRINT =
+  "sha256:c4a79a209e925a10f0c931c711b3c1a9b443a3bcae4495aea467267af1316673";
+const APPLICATION_METADATA_SCHEMA_FINGERPRINT =
+  "sha256:a66d986e8b7e663b37275f1be39bb7cd6e87582abe315eca720c218ebe3f79a1";
 const MERIDIAN_CORE_FINGERPRINT =
   "sha256:6b8ebb70ee1a8467a96d668878a8eebf826c1c4b63b3832ae70f2c630a8ef4a1";
 const CATALOG_FINGERPRINTS = Object.freeze({
@@ -31,6 +36,80 @@ const CATALOG_FINGERPRINTS = Object.freeze({
   streaming:
     "sha256:8fa802d1f4d69082b1bb2643856f82db9159ebe92fcd819aa529c143cd8d51eb",
 } as const);
+
+function structuredResource(args: {
+  readonly namespace: string;
+  readonly name: string;
+  readonly providerId: string;
+  readonly package: string;
+  readonly version: string;
+  readonly fingerprint: string;
+  readonly methods: readonly string[];
+  readonly transaction?: boolean;
+}): MeridianResourceRequirementV1 {
+  const operations = args.methods.map((method) => ({
+    contract: `meridian.structured.${method}`,
+    version: "1.0.0",
+    guarantees: [
+      "bound-parameters",
+      "scope-injected",
+      "single-binding",
+      "strong-consistency",
+      ...(["delete", "patch", "put"].includes(method)
+        ? ["conditional-mutation", "read-committed"]
+        : []),
+    ],
+  }));
+  return {
+    selector: {
+      catalog: "structured",
+      namespace: args.namespace,
+      name: args.name,
+    },
+    schemas: [
+      {
+        providerId: args.providerId,
+        package: args.package,
+        version: args.version,
+        fingerprint: args.fingerprint,
+      },
+    ],
+    operations: [
+      ...operations,
+      ...(args.transaction === true
+        ? [
+            {
+              contract: "meridian.transaction",
+              version: "1.0.0",
+              guarantees: ["atomic", "no-dirty-reads", "read-committed"],
+            },
+          ]
+        : []),
+    ],
+    guarantees: { required: [] },
+    limits: { values: {} },
+    dataClass: "internal",
+    labels: {
+      owner: args.providerId,
+      "juntai.dev/co-location": args.namespace,
+    },
+  };
+}
+
+const accountResources = [
+  ["accounts", ["get", "put", "patch", "query"]],
+  ["profiles", ["get", "put", "patch", "query"]],
+  ["integration-bindings", ["get", "put", "query"]],
+  ["mutation-receipts", ["get", "put"]],
+  ["mutation-outbox", ["get", "put", "patch", "query"]],
+] as const;
+
+const applicationMetadataResources = [
+  ["applications", ["get", "patch", "put", "query"]],
+  ["versions", ["get", "patch", "put", "query"]],
+  ["contributions", ["delete", "get", "put", "query"]],
+  ["idempotency", ["delete", "get", "put"]],
+] as const;
 
 function externalEngine(
   selection: MeridianEngineSelection,
@@ -137,9 +216,12 @@ export function createMeridianRuntime(args: {
     );
   }
   const structuredProfile = getEngineProfile(structured.profileId);
-  if (!structuredProfile.catalogs.includes("structured")) {
+  if (
+    !structuredProfile.catalogs.includes("structured") ||
+    !structuredProfile.catalogs.includes("evidence")
+  ) {
     throw new Error(
-      "the Meridian 'structured' binding must select a released structured profile",
+      "the Meridian 'structured' binding must select a released structured and evidence profile",
     );
   }
   const engines = args.inputs.engines.map((engine) =>
@@ -160,6 +242,18 @@ export function createMeridianRuntime(args: {
       })),
       schemaProviders: [
         {
+          id: "platform-account",
+          package: "juntai-account-service",
+          contract: "1.0.0",
+          requiredFingerprint: ACCOUNT_SCHEMA_FINGERPRINT,
+        },
+        {
+          id: "juntai.application-metadata",
+          package: "juntai-application-metadata",
+          contract: "1.0.0",
+          requiredFingerprint: APPLICATION_METADATA_SCHEMA_FINGERPRINT,
+        },
+        {
           id: "platform-blueprint",
           package: "juntai-blueprint-marketplace",
           contract: "1.0.0",
@@ -167,6 +261,73 @@ export function createMeridianRuntime(args: {
         },
       ],
       resources: [
+        ...accountResources.map(([name, methods]) =>
+          structuredResource({
+            namespace: "platform.account",
+            name,
+            providerId: "platform-account",
+            package: "juntai-account-service",
+            version: "2.1.4",
+            fingerprint: ACCOUNT_SCHEMA_FINGERPRINT,
+            methods,
+            transaction: true,
+          }),
+        ),
+        {
+          selector: {
+            catalog: "evidence",
+            namespace: "platform.account",
+            name: "audit",
+          },
+          schemas: [
+            {
+              providerId: "platform-account",
+              package: "juntai-account-service",
+              version: "2.1.4",
+              fingerprint: ACCOUNT_SCHEMA_FINGERPRINT,
+            },
+          ],
+          operations: [
+            {
+              contract: "meridian.evidence.append",
+              version: "1.0.0",
+              guarantees: [
+                "append-only",
+                "bound-parameters",
+                "read-committed",
+                "scope-injected",
+                "transactional-with-structured",
+              ],
+            },
+            {
+              contract: "meridian.evidence.query",
+              version: "1.0.0",
+              guarantees: [
+                "bound-parameters",
+                "scope-injected",
+                "strong-consistency",
+              ],
+            },
+          ],
+          guarantees: {
+            required: [],
+          },
+          limits: { values: {} },
+          dataClass: "internal",
+          labels: { owner: "platform-account" },
+        },
+        ...applicationMetadataResources.map(([name, methods]) =>
+          structuredResource({
+            namespace: "application-metadata",
+            name,
+            providerId: "juntai.application-metadata",
+            package: "juntai-application-metadata",
+            version: "2.0.0",
+            fingerprint: APPLICATION_METADATA_SCHEMA_FINGERPRINT,
+            methods,
+            transaction: true,
+          }),
+        ),
         {
           selector: {
             catalog: "structured",
@@ -196,6 +357,45 @@ export function createMeridianRuntime(args: {
       ],
       engines,
       placements: [
+        {
+          id: "place-platform-account",
+          selector: {
+            resources: [
+              ...accountResources.map(([name]) => ({
+                catalog: "structured" as const,
+                namespace: "platform.account",
+                name,
+              })),
+              {
+                catalog: "evidence" as const,
+                namespace: "platform.account",
+                name: "audit",
+              },
+            ],
+            catalog: null,
+            labels: {},
+          },
+          bindingId: "structured",
+          extensions: {
+            coLocationGroup: "platform.account.profile-mutation.v1",
+          },
+        },
+        {
+          id: "place-application-metadata",
+          selector: {
+            resources: applicationMetadataResources.map(([name]) => ({
+              catalog: "structured" as const,
+              namespace: "application-metadata",
+              name,
+            })),
+            catalog: null,
+            labels: {},
+          },
+          bindingId: "structured",
+          extensions: {
+            logicalMigration: "juntai.application-metadata/1-to-2",
+          },
+        },
         {
           id: "place-platform-blueprints",
           selector: {

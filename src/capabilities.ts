@@ -26,6 +26,6 @@ export const ObservabilityGatewayCapability = Object.freeze({
 
 export const FoundationServicesCapability = Object.freeze({
   id: "juntai.platform.foundation-services",
-  version: "1.0.0",
+  version: "1.1.0",
   multiplexed: false,
 }) satisfies CapabilityKey<FoundationServicesOutput>;

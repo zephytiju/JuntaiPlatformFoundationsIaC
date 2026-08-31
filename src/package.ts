@@ -1,4 +1,6 @@
 import * as k8s from "@pulumi/kubernetes";
+import { createAccount } from "./account.js";
+import { createApplicationMetadata } from "./application-metadata.js";
 import type { ArtifactFetcher } from "./artifacts.js";
 import { createBlueprint } from "./blueprint.js";
 import {
@@ -52,12 +54,31 @@ export async function deployFoundations(
   const blueprintRoute = preflight.contracts.routes.find(
     ({ serviceId }) => serviceId === "platform.blueprint",
   );
+  const accountRoute = preflight.contracts.routes.find(
+    ({ serviceId }) => serviceId === "platform.account",
+  );
+  const applicationMetadataRoute = preflight.contracts.routes.find(
+    ({ serviceId }) => serviceId === "platform.application-metadata",
+  );
   if (
     context.inputs.blueprint.enabled !== false &&
     blueprintRoute === undefined
   ) {
     throw new Error(
       "verified Blueprint contract did not produce its deployment route",
+    );
+  }
+  if (context.inputs.account.enabled !== false && accountRoute === undefined) {
+    throw new Error(
+      "verified Account contract did not produce its deployment route",
+    );
+  }
+  if (
+    context.inputs.applicationMetadata.enabled !== false &&
+    applicationMetadataRoute === undefined
+  ) {
+    throw new Error(
+      "verified Application Metadata contract did not produce its deployment route",
     );
   }
   const namespaces = new FoundationNamespaceSet("foundations", {
@@ -106,7 +127,34 @@ export async function deployFoundations(
     adoption: context.inputs.adoption,
     ...(blueprintRoute === undefined ? {} : { route: blueprintRoute }),
   });
+  const account = createAccount({
+    provider,
+    namespace: namespaces.resources["juntai-platform"].metadata.name,
+    stage: context.target.environment,
+    inputs: context.inputs.account,
+    gatewaySet,
+    meridianRuntime: meridian.runtime,
+    observability: observabilityGateway,
+    adoption: context.inputs.adoption,
+    ...(accountRoute === undefined ? {} : { route: accountRoute }),
+  });
+  const applicationMetadata = createApplicationMetadata({
+    provider,
+    namespace: namespaces.resources["juntai-platform"].metadata.name,
+    stage: context.target.environment,
+    inputs: context.inputs.applicationMetadata,
+    gatewaySet,
+    casdoor,
+    meridianRuntime: meridian.runtime,
+    observability: observabilityGateway,
+    adoption: context.inputs.adoption,
+    ...(applicationMetadataRoute === undefined
+      ? {}
+      : { route: applicationMetadataRoute }),
+  });
   const foundationServices: FoundationServicesOutput = Object.freeze({
+    ...(account === undefined ? {} : { account }),
+    ...(applicationMetadata === undefined ? {} : { applicationMetadata }),
     casdoor,
     ...(blueprint === undefined ? {} : { blueprint }),
   });

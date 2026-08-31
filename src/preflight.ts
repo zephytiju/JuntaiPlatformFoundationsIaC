@@ -27,6 +27,10 @@ export const resolveFoundationPreflight: FoundationPreflightResolver = async (
 ) => {
   const selectedServiceIds = [
     "foundation.iam",
+    ...(inputs.account.enabled === false ? [] : ["platform.account"]),
+    ...(inputs.applicationMetadata.enabled === false
+      ? []
+      : ["platform.application-metadata"]),
     ...(inputs.blueprint.enabled === false ? [] : ["platform.blueprint"]),
   ];
   const [gatewayApiYaml, envoyGatewayYaml, contracts] = await Promise.all([
