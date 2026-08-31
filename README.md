@@ -6,7 +6,7 @@
 
 ## Owned resources
 
-- Shared namespaces, Gateway API v1.5.1, Envoy Gateway v1.8.3, GatewayClass, and the four platform gateway surfaces.
+- Shared namespaces, Gateway API v1.5.1, Envoy Gateway v1.8.3, GatewayClass, and the four platform gateway surfaces. The package validates and partitions the two digest-pinned upstream payloads before Pulumi registration: Gateway API standard owns the exact ten overlaps and Envoy Gateway owns its thirty remaining documents.
 - OpenTelemetry Collector gateway v0.153.0 with durable queueing, bounded resources, TLS/authorization references, and no inline secret bytes.
 - Official unmodified Casdoor 3.125.0, its workload identity, exact public/private routes, public-API bootstrap Job, and idempotent reconciliation schedule. The gated `client_credentials` application is deliberately absent.
 - Account 2.1.4, including its immutable multi-architecture image, platform-supplied composition factory, workload identity, platform route, observability binding, and five co-located Meridian structured resources plus transactional audit evidence.
@@ -21,14 +21,14 @@ Private GitHub release assets use `JUNTAI_GITHUB_ARTIFACT_TOKEN` (falling back t
 
 ## npm package contract
 
-`JuntaiPlatformInfrastructure` consumes this package as an exact direct dependency in `package.json` and commits the registry-generated `package-lock.json`. `npm ci` is the only installation path. The npm tarball contains the compiled Pulumi entrypoint, TypeScript declarations, package descriptor, contribution, construct lock, service releases, adoption inventory, and operating guidance. It contains no source checkout loader, GitHub archive downloader, or staging path.
+`JuntaiPlatformInfrastructure` consumes this package as an exact direct dependency in `package.json` and commits the registry-generated `package-lock.json`. `npm ci` is the only installation path. The npm tarball contains the compiled Pulumi entrypoint, TypeScript declarations, package descriptor, contribution, construct lock, service releases, adoption inventory, [Gateway ownership inventory](release/gateway-manifest-ownership.v1.json), [Envoy legacy migration mapping](release/envoy-legacy-migration.v1.json), and operating guidance. It contains no source checkout loader, GitHub archive downloader, or staging path.
 
 GitHub and OCI coordinates in the package contract are reserved for immutable service artifacts that this package owns and verifies during Pulumi execution. They are not a distribution mechanism for first-party IaC package code.
 
 Install the exact release and commit the resulting lockfile:
 
 ```bash
-npm install --save-exact @zephytiju/platform-foundations-iac@1.2.0
+npm install --save-exact @zephytiju/platform-foundations-iac@1.2.1
 npm ci
 ```
 

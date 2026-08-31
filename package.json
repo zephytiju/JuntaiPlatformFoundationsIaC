@@ -1,6 +1,6 @@
 {
   "name": "@zephytiju/platform-foundations-iac",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Pulumi-owned Juntai shared platform foundations package",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,6 +12,8 @@
       "default": "./dist/index.js"
     },
     "./manifest": "./release/manifest.v1.json",
+    "./gateway-manifest-ownership": "./release/gateway-manifest-ownership.v1.json",
+    "./envoy-legacy-migration": "./release/envoy-legacy-migration.v1.json",
     "./package.json": "./package.json"
   },
   "files": [

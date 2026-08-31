@@ -7,12 +7,17 @@ import {
   resolveAndComposeServiceContracts,
   type ContractCompositionResult,
 } from "./contract-composition.js";
+import {
+  partitionGatewayManifests,
+  type GatewayManifestOwnership,
+} from "./gateway-manifests.js";
 import { ENVOY_GATEWAY_MANIFEST, GATEWAY_API_MANIFEST } from "./release.js";
 import type { FoundationsInputs } from "./types.js";
 
 export interface FoundationPreflight {
   readonly gatewayApiYaml: string;
   readonly envoyGatewayYaml: string;
+  readonly gatewayManifestOwnership: readonly GatewayManifestOwnership[];
   readonly contracts: ContractCompositionResult;
 }
 
@@ -33,10 +38,21 @@ export const resolveFoundationPreflight: FoundationPreflightResolver = async (
       : ["platform.application-metadata"]),
     ...(inputs.blueprint.enabled === false ? [] : ["platform.blueprint"]),
   ];
-  const [gatewayApiYaml, envoyGatewayYaml, contracts] = await Promise.all([
-    fetchVerifiedText(GATEWAY_API_MANIFEST, fetcher),
-    fetchVerifiedText(ENVOY_GATEWAY_MANIFEST, fetcher),
-    resolveAndComposeServiceContracts({ selectedServiceIds, fetcher }),
-  ]);
-  return Object.freeze({ gatewayApiYaml, envoyGatewayYaml, contracts });
+  const [gatewayApiPayload, envoyGatewayPayload, contracts] = await Promise.all(
+    [
+      fetchVerifiedText(GATEWAY_API_MANIFEST, fetcher),
+      fetchVerifiedText(ENVOY_GATEWAY_MANIFEST, fetcher),
+      resolveAndComposeServiceContracts({ selectedServiceIds, fetcher }),
+    ],
+  );
+  const gatewayManifests = partitionGatewayManifests(
+    gatewayApiPayload,
+    envoyGatewayPayload,
+  );
+  return Object.freeze({
+    gatewayApiYaml: gatewayManifests.gatewayApiYaml,
+    envoyGatewayYaml: gatewayManifests.envoyGatewayYaml,
+    gatewayManifestOwnership: gatewayManifests.ownership,
+    contracts,
+  });
 };

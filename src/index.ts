@@ -4,6 +4,8 @@ export type { DeploymentDependencies } from "./package.js";
 export * from "./capabilities.js";
 export * from "./artifacts.js";
 export * from "./contract-composition.js";
+export * from "./envoy-migration.js";
+export * from "./gateway-manifests.js";
 export * from "./preflight.js";
 export * from "./release.js";
 export * from "./service-contracts.js";

@@ -1,0 +1,215 @@
+{
+  "schemaVersion": "juntai.platform/envoy-legacy-migration/v1",
+  "package": "juntai.platform.substrate@1.2.1",
+  "baseline": "platform-infrastructure-v1.9.0",
+  "replacementPayload": {
+    "uri": "https://github.com/envoyproxy/gateway/releases/download/v1.8.3/install.yaml",
+    "digest": "sha256:37a62afe9bb07d87e86c5c2cff32f046f17397cb4fca9f2a741165826212d781"
+  },
+  "lifecycle": {
+    "cutoverDisposition": "retain-unmanaged",
+    "retainedThrough": "Task 08 verification",
+    "minimumHealthyHoursBeforeCleanup": 24,
+    "cleanupRequires": [
+      "no live object references a legacy identity",
+      "certificate generation completed successfully",
+      "replacement RBAC is equivalent",
+      "legacy UID and relevant spec match post-cutover evidence"
+    ],
+    "rollback": "Stop remaining batches and recreate only deleted legacy identities from preserved manifests when any health or reference check fails."
+  },
+  "mappings": [
+    {
+      "legacy": {
+        "apiVersion": "v1",
+        "kind": "ServiceAccount",
+        "namespace": "envoy-gateway-system",
+        "name": "envoy-gateway-certgen"
+      },
+      "replacement": {
+        "apiVersion": "v1",
+        "kind": "ServiceAccount",
+        "namespace": "envoy-gateway-system",
+        "name": "eg-gateway-helm-certgen"
+      }
+    },
+    {
+      "legacy": {
+        "apiVersion": "batch/v1",
+        "kind": "Job",
+        "namespace": "envoy-gateway-system",
+        "name": "envoy-gateway-certgen"
+      },
+      "replacement": {
+        "apiVersion": "batch/v1",
+        "kind": "Job",
+        "namespace": "envoy-gateway-system",
+        "name": "eg-gateway-helm-certgen"
+      }
+    },
+    {
+      "legacy": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "ClusterRole",
+        "namespace": null,
+        "name": "envoy-gateway-certgen"
+      },
+      "replacement": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "ClusterRole",
+        "namespace": null,
+        "name": "eg-gateway-helm-certgen:envoy-gateway-system"
+      }
+    },
+    {
+      "legacy": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "ClusterRole",
+        "namespace": null,
+        "name": "envoy-gateway"
+      },
+      "replacement": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "ClusterRole",
+        "namespace": null,
+        "name": "eg-gateway-helm-envoy-gateway-role"
+      }
+    },
+    {
+      "legacy": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "ClusterRoleBinding",
+        "namespace": null,
+        "name": "envoy-gateway-certgen"
+      },
+      "replacement": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "ClusterRoleBinding",
+        "namespace": null,
+        "name": "eg-gateway-helm-certgen:envoy-gateway-system"
+      }
+    },
+    {
+      "legacy": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "ClusterRoleBinding",
+        "namespace": null,
+        "name": "envoy-gateway"
+      },
+      "replacement": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "ClusterRoleBinding",
+        "namespace": null,
+        "name": "eg-gateway-helm-envoy-gateway-rolebinding"
+      }
+    },
+    {
+      "legacy": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "Role",
+        "namespace": "envoy-gateway-system",
+        "name": "envoy-gateway-certgen"
+      },
+      "replacement": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "Role",
+        "namespace": "envoy-gateway-system",
+        "name": "eg-gateway-helm-certgen"
+      }
+    },
+    {
+      "legacy": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "Role",
+        "namespace": "envoy-gateway-system",
+        "name": "envoy-gateway-infra-manager"
+      },
+      "replacement": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "Role",
+        "namespace": "envoy-gateway-system",
+        "name": "eg-gateway-helm-infra-manager"
+      }
+    },
+    {
+      "legacy": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "Role",
+        "namespace": "envoy-gateway-system",
+        "name": "envoy-gateway-leader-election"
+      },
+      "replacement": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "Role",
+        "namespace": "envoy-gateway-system",
+        "name": "eg-gateway-helm-leader-election-role"
+      }
+    },
+    {
+      "legacy": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "RoleBinding",
+        "namespace": "envoy-gateway-system",
+        "name": "envoy-gateway-certgen"
+      },
+      "replacement": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "RoleBinding",
+        "namespace": "envoy-gateway-system",
+        "name": "eg-gateway-helm-certgen"
+      }
+    },
+    {
+      "legacy": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "RoleBinding",
+        "namespace": "envoy-gateway-system",
+        "name": "envoy-gateway-infra-manager"
+      },
+      "replacement": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "RoleBinding",
+        "namespace": "envoy-gateway-system",
+        "name": "eg-gateway-helm-infra-manager"
+      }
+    },
+    {
+      "legacy": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "RoleBinding",
+        "namespace": "envoy-gateway-system",
+        "name": "envoy-gateway-leader-election"
+      },
+      "replacement": {
+        "apiVersion": "rbac.authorization.k8s.io/v1",
+        "kind": "RoleBinding",
+        "namespace": "envoy-gateway-system",
+        "name": "eg-gateway-helm-leader-election-rolebinding"
+      }
+    }
+  ],
+  "guardedDeletionBatches": [
+    ["Job/envoy-gateway-system/envoy-gateway-certgen"],
+    [
+      "RoleBinding/envoy-gateway-system/envoy-gateway-certgen",
+      "RoleBinding/envoy-gateway-system/envoy-gateway-infra-manager",
+      "RoleBinding/envoy-gateway-system/envoy-gateway-leader-election",
+      "ClusterRoleBinding/_cluster/envoy-gateway-certgen",
+      "ClusterRoleBinding/_cluster/envoy-gateway"
+    ],
+    [
+      "Role/envoy-gateway-system/envoy-gateway-certgen",
+      "Role/envoy-gateway-system/envoy-gateway-infra-manager",
+      "Role/envoy-gateway-system/envoy-gateway-leader-election",
+      "ClusterRole/_cluster/envoy-gateway-certgen",
+      "ClusterRole/_cluster/envoy-gateway"
+    ],
+    ["ServiceAccount/envoy-gateway-system/envoy-gateway-certgen"]
+  ],
+  "verifyAfterEachBatch": [
+    "Envoy Gateway health",
+    "admission behavior",
+    "Gateway reconciliation",
+    "certificate validity"
+  ]
+}

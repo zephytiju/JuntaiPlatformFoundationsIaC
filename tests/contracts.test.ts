@@ -24,7 +24,7 @@ describe("package boundary", () => {
   it("implements the released thin-Core contract", () => {
     expect(foundationsPackage).toMatchObject({
       id: "juntai.platform.substrate",
-      version: "1.2.0",
+      version: "1.2.1",
       compatibility: {
         coreContract: "^1.1.0",
         capabilityContracts: "^1.0.0",

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "juntai.platform/gateway-manifest-ownership/v1",
+  "package": "juntai.platform.substrate@1.2.1",
+  "identityTuple": ["apiVersion", "kind", "namespace", "name"],
+  "payloads": [
+    {
+      "id": "gateway-api-standard",
+      "uri": "https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/standard-install.yaml",
+      "digest": "sha256:751002b3b91a87f7ae3bd2517c79a47a8d7ed6702901808a1cf9bd97d284f9b8",
+      "inputResources": 10,
+      "registeredResources": 10
+    },
+    {
+      "id": "envoy-gateway-install",
+      "uri": "https://github.com/envoyproxy/gateway/releases/download/v1.8.3/install.yaml",
+      "digest": "sha256:37a62afe9bb07d87e86c5c2cff32f046f17397cb4fca9f2a741165826212d781",
+      "inputResources": 40,
+      "registeredResources": 30
+    }
+  ],
+  "overlap": {
+    "count": 10,
+    "owner": "gateway-api-standard",
+    "differentDefinitions": [
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||backendtlspolicies.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||gatewayclasses.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||gateways.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||grpcroutes.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||httproutes.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||listenersets.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||referencegrants.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||tlsroutes.gateway.networking.k8s.io"
+    ],
+    "equivalentDefinitions": [
+      "admissionregistration.k8s.io/v1|ValidatingAdmissionPolicy||safe-upgrades.gateway.networking.k8s.io",
+      "admissionregistration.k8s.io/v1|ValidatingAdmissionPolicyBinding||safe-upgrades.gateway.networking.k8s.io"
+    ]
+  },
+  "owners": {
+    "gateway-api-standard": [
+      "admissionregistration.k8s.io/v1|ValidatingAdmissionPolicy||safe-upgrades.gateway.networking.k8s.io",
+      "admissionregistration.k8s.io/v1|ValidatingAdmissionPolicyBinding||safe-upgrades.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||backendtlspolicies.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||gatewayclasses.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||gateways.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||grpcroutes.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||httproutes.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||listenersets.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||referencegrants.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||tlsroutes.gateway.networking.k8s.io"
+    ],
+    "envoy-gateway-install": [
+      "admissionregistration.k8s.io/v1|MutatingWebhookConfiguration||envoy-gateway-topology-injector.envoy-gateway-system",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||backends.gateway.envoyproxy.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||backendtrafficpolicies.gateway.envoyproxy.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||clienttrafficpolicies.gateway.envoyproxy.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||envoyextensionpolicies.gateway.envoyproxy.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||envoypatchpolicies.gateway.envoyproxy.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||envoyproxies.gateway.envoyproxy.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||httproutefilters.gateway.envoyproxy.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||securitypolicies.gateway.envoyproxy.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||tcproutes.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||udproutes.gateway.networking.k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||xbackendtrafficpolicies.gateway.networking.x-k8s.io",
+      "apiextensions.k8s.io/v1|CustomResourceDefinition||xmeshes.gateway.networking.x-k8s.io",
+      "apps/v1|Deployment|envoy-gateway-system|envoy-gateway",
+      "batch/v1|Job|envoy-gateway-system|eg-gateway-helm-certgen",
+      "rbac.authorization.k8s.io/v1|ClusterRole||eg-gateway-helm-certgen:envoy-gateway-system",
+      "rbac.authorization.k8s.io/v1|ClusterRole||eg-gateway-helm-envoy-gateway-role",
+      "rbac.authorization.k8s.io/v1|ClusterRoleBinding||eg-gateway-helm-certgen:envoy-gateway-system",
+      "rbac.authorization.k8s.io/v1|ClusterRoleBinding||eg-gateway-helm-envoy-gateway-rolebinding",
+      "rbac.authorization.k8s.io/v1|Role|envoy-gateway-system|eg-gateway-helm-certgen",
+      "rbac.authorization.k8s.io/v1|Role|envoy-gateway-system|eg-gateway-helm-infra-manager",
+      "rbac.authorization.k8s.io/v1|Role|envoy-gateway-system|eg-gateway-helm-leader-election-role",
+      "rbac.authorization.k8s.io/v1|RoleBinding|envoy-gateway-system|eg-gateway-helm-certgen",
+      "rbac.authorization.k8s.io/v1|RoleBinding|envoy-gateway-system|eg-gateway-helm-infra-manager",
+      "rbac.authorization.k8s.io/v1|RoleBinding|envoy-gateway-system|eg-gateway-helm-leader-election-rolebinding",
+      "v1|ConfigMap|envoy-gateway-system|envoy-gateway-config",
+      "v1|Namespace||envoy-gateway-system",
+      "v1|ServiceAccount|envoy-gateway-system|eg-gateway-helm-certgen",
+      "v1|ServiceAccount|envoy-gateway-system|envoy-gateway",
+      "v1|Service|envoy-gateway-system|envoy-gateway"
+    ]
+  }
+}

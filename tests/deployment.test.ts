@@ -81,6 +81,7 @@ const preflight: FoundationPreflightResolver = async (inputs) => {
   return Object.freeze({
     gatewayApiYaml: verifiedYaml,
     envoyGatewayYaml: verifiedYaml,
+    gatewayManifestOwnership: Object.freeze([]),
     contracts: Object.freeze({
       aggregateOpenApi: Object.freeze({}),
       protobufServices: Object.freeze([]),
