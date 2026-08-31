@@ -15,7 +15,7 @@
 
 No fetched OpenAPI, Protobuf, MCP, CRD, or upstream install document is stored in this repository or npm tarball. Exact GitHub release and OCI manifest coordinates are fetched, SHA-256 verified, compatibility checked, and composed only in memory during Pulumi execution before resource registration. Local and CI execution use the same coordinates and digests; only environment-provided authentication may differ.
 
-Private GitHub release assets use `JUNTAI_GITHUB_ARTIFACT_TOKEN` (falling back to `GH_TOKEN`). Private OCI layers use `JUNTAI_OCI_ARTIFACT_TOKEN` and may fall back to the GitHub token for GHCR. Credentials select authorization only; they never alter artifact coordinates, digests, composition evidence, or Pulumi inputs.
+Private GitHub release assets use `JUNTAI_GITHUB_ARTIFACT_TOKEN` (falling back to `GH_TOKEN`). CI mints a short-lived, contents-read GitHub App installation token from `JUNTAI_CI_APP_ID` and `JUNTAI_CI_APP_PRIVATE_KEY`, then exposes it as `JUNTAI_GITHUB_ARTIFACT_TOKEN` only to verification and preview steps. Private OCI layers use `JUNTAI_OCI_ARTIFACT_TOKEN` and may fall back to the GitHub token for GHCR. Credentials select authorization only; they never alter artifact coordinates, digests, composition evidence, or Pulumi inputs.
 
 ## npm package contract
 
