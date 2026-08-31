@@ -1,0 +1,7 @@
+name: juntai-platform-foundations-preview
+runtime:
+  name: nodejs
+  options:
+    typescript: false
+main: ../dist/preview/index.mjs
+description: Fresh-stack render preview for the independently released Foundations IaC package

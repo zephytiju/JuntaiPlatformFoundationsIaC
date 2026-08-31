@@ -1,0 +1,6 @@
+name: juntai-platform-foundations-iac
+runtime:
+  name: nodejs
+  options:
+    typescript: false
+description: Package-owned Juntai shared platform foundations; invoked by the thin Core composer

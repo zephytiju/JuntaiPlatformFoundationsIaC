@@ -1,0 +1,6 @@
+JuntaiPlatformFoundationsIaC
+Copyright 2026 Juntai contributors
+
+This product includes Pulumi, Kubernetes provider, Envoy Gateway, Kubernetes Gateway API,
+OpenTelemetry Collector, Casdoor, JuntaiPlatformConstructs, and Meridian construct metadata.
+Each upstream component remains subject to its own license and notice terms.

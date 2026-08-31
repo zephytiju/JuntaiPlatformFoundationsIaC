@@ -1,0 +1,77 @@
+name: Release immutable Foundations IaC package
+
+on:
+  push:
+    tags: ["foundations-iac-v*"]
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.14.0
+          cache: npm
+      - name: Verify exact release identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p 'require("./package.json").version')"
+          test "${GITHUB_REF_NAME}" = "foundations-iac-v${version}"
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+          git merge-base --is-ancestor "${GITHUB_SHA}" refs/remotes/origin/main
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - name: Build source-bound release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_date_epoch="$(git show -s --format=%ct "${GITHUB_SHA}")"
+          FOUNDATIONS_SOURCE_REVISION="${GITHUB_SHA}" SOURCE_DATE_EPOCH="${source_date_epoch}" npm run package:verify
+          mkdir -p dist/release-assets
+          cp dist/foundations-package/platform-iac-package.v1.tar.gz dist/release-assets/
+          cp dist/foundations-package/platform-iac-package.v1.tar.gz.sha256 dist/release-assets/
+          cp release/manifest.v1.json dist/release-assets/iac-package-manifest.v1.json
+          cp release/adoption-inventory.v1.json dist/release-assets/
+          cp release/service-releases.v1.json dist/release-assets/
+          cp dist/foundations-package/platform-iac-package.v1/SBOM.spdx.json dist/release-assets/release.spdx.json
+          cp dist/foundations-package/platform-iac-package.v1/provenance.intoto.jsonl dist/release-assets/release.intoto.jsonl
+          (
+            cd dist/release-assets
+            find . -maxdepth 1 -type f ! -name SHA256SUMS -print | sed 's#^./##' | LC_ALL=C sort | xargs sha256sum > SHA256SUMS
+            sha256sum --check SHA256SUMS
+          )
+      - name: Sign and verify every release asset with keyless Sigstore
+        uses: sigstore/gh-action-sigstore-python@790bc6befb9d733738f18d8f895854b453640ec9 # v3.5.0
+        with:
+          inputs: dist/release-assets/*
+          verify: true
+          verify-cert-identity: https://github.com/${{ github.repository }}/.github/workflows/release.yml@refs/tags/${{ github.ref_name }}
+          verify-oidc-issuer: https://token.actions.githubusercontent.com
+          release-signing-artifacts: false
+      - name: Stage immutable release atomically
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "${GITHUB_REF_NAME}"
+          dist/release-assets/*
+          --draft
+          --verify-tag
+          --title "Juntai Platform Foundations IaC $(node -p 'require("./package.json").version')"
+          --notes "Package-owned shared infrastructure and foundation services for the thin JuntaiPlatformInfrastructure composer."
+      - name: Publish, lock, and verify immutable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release edit "${GITHUB_REF_NAME}" --draft=false
+          gh release view "${GITHUB_REF_NAME}" --json isImmutable --jq '.isImmutable' | grep -x true
