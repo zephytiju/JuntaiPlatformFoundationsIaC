@@ -9,7 +9,8 @@ All package-managed custom resources default to Pulumi `protect: true`. Existing
 3. Populate aliases and exact import IDs for every existing physical resource. Never use discovery results as implicit selection.
 4. Run a refresh-only preview, then a normal preview. Both must report zero deletes and zero replacements.
 5. Verify that every Kubernetes resource is protected and that Gateway, Account, Application Metadata, and Blueprint artifacts were fetched from the recorded immutable coordinates.
-6. Apply only after the reviewed preview matches the adoption inventory. Record the stack update permalink and state checkpoint digest.
+6. Compare the registered Gateway identities with the [single-owner inventory](../release/gateway-manifest-ownership.v1.json). Preserve the twelve identities in the [Envoy migration mapping](../release/envoy-legacy-migration.v1.json) as unmanaged physical resources through Task 08 verification.
+7. Apply only after the reviewed preview matches the adoption inventory. Record the stack update permalink and state checkpoint digest.
 
 ## Rollback procedure
 

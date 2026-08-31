@@ -11,6 +11,15 @@ import {
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { FOUNDATION_SERVICE_CATALOG } from "../src/service-contracts.js";
+import { ENVOY_LEGACY_MIGRATION_MAPPINGS } from "../src/envoy-migration.js";
+import {
+  GATEWAY_MANIFEST_OWNERSHIP,
+  physicalResourceKey,
+} from "../src/gateway-manifests.js";
+import {
+  ENVOY_GATEWAY_MANIFEST,
+  GATEWAY_API_MANIFEST,
+} from "../src/release.js";
 import foundationsPackage from "../src/package.js";
 
 interface PackedFile {
@@ -48,6 +57,35 @@ const adoptionInventory = JSON.parse(
     "utf8",
   ),
 ) as Record<string, unknown>;
+const gatewayManifestOwnership = JSON.parse(
+  await readFile(
+    resolve(repository, "release/gateway-manifest-ownership.v1.json"),
+    "utf8",
+  ),
+) as {
+  readonly schemaVersion: string;
+  readonly package: string;
+  readonly payloads: readonly Record<string, unknown>[];
+  readonly owners: Readonly<Record<string, readonly string[]>>;
+};
+const envoyLegacyMigration = JSON.parse(
+  await readFile(
+    resolve(repository, "release/envoy-legacy-migration.v1.json"),
+    "utf8",
+  ),
+) as {
+  readonly schemaVersion: string;
+  readonly package: string;
+  readonly replacementPayload: Record<string, unknown>;
+  readonly lifecycle: {
+    readonly retainedThrough?: string;
+    readonly minimumHealthyHoursBeforeCleanup?: number;
+    readonly cleanupRequires?: readonly string[];
+  };
+  readonly mappings: readonly Record<string, unknown>[];
+  readonly guardedDeletionBatches: readonly (readonly string[])[];
+  readonly verifyAfterEachBatch: readonly string[];
+};
 const manifestKeys = [
   "compatibility",
   "entrypoint",
@@ -101,6 +139,82 @@ if (
     adoptionInventory.resourceKeys.length
 ) {
   throw new Error("adoption inventory identity or resource keys are invalid");
+}
+const packageIdentity = `${foundationsPackage.id}@${foundationsPackage.version}`;
+if (
+  gatewayManifestOwnership.schemaVersion !==
+    "juntai.platform/gateway-manifest-ownership/v1" ||
+  gatewayManifestOwnership.package !== packageIdentity
+) {
+  throw new Error("Gateway manifest ownership inventory identity is invalid");
+}
+deepStrictEqual(gatewayManifestOwnership.payloads, [
+  {
+    id: "gateway-api-standard",
+    ...GATEWAY_API_MANIFEST,
+    inputResources: 10,
+    registeredResources: 10,
+  },
+  {
+    id: "envoy-gateway-install",
+    ...ENVOY_GATEWAY_MANIFEST,
+    inputResources: 40,
+    registeredResources: 30,
+  },
+]);
+for (const owner of [
+  "gateway-api-standard",
+  "envoy-gateway-install",
+] as const) {
+  const expected = GATEWAY_MANIFEST_OWNERSHIP.filter(
+    (entry) => entry.owner === owner,
+  )
+    .map(physicalResourceKey)
+    .sort();
+  deepStrictEqual(
+    [...(gatewayManifestOwnership.owners[owner] ?? [])].sort(),
+    expected,
+    `${owner} release inventory differs from the runtime partition`,
+  );
+}
+if (
+  envoyLegacyMigration.schemaVersion !==
+    "juntai.platform/envoy-legacy-migration/v1" ||
+  envoyLegacyMigration.package !== packageIdentity ||
+  envoyLegacyMigration.lifecycle.retainedThrough !== "Task 08 verification" ||
+  envoyLegacyMigration.lifecycle.minimumHealthyHoursBeforeCleanup !== 24 ||
+  (envoyLegacyMigration.lifecycle.cleanupRequires?.length ?? 0) !== 4 ||
+  envoyLegacyMigration.guardedDeletionBatches.length !== 4 ||
+  envoyLegacyMigration.verifyAfterEachBatch.length !== 4
+) {
+  throw new Error("Envoy legacy migration policy is incomplete");
+}
+deepStrictEqual(
+  envoyLegacyMigration.replacementPayload,
+  ENVOY_GATEWAY_MANIFEST,
+);
+deepStrictEqual(
+  envoyLegacyMigration.mappings,
+  ENVOY_LEGACY_MIGRATION_MAPPINGS,
+  "Envoy legacy-to-replacement mapping differs from the package declaration",
+);
+const legacyKeys = ENVOY_LEGACY_MIGRATION_MAPPINGS.map(({ legacy }) =>
+  physicalResourceKey(legacy),
+);
+const replacementKeys = ENVOY_LEGACY_MIGRATION_MAPPINGS.map(({ replacement }) =>
+  physicalResourceKey(replacement),
+);
+const envoyOwnedKeys = new Set(
+  GATEWAY_MANIFEST_OWNERSHIP.filter(
+    ({ owner }) => owner === "envoy-gateway-install",
+  ).map(physicalResourceKey),
+);
+if (
+  new Set(legacyKeys).size !== 12 ||
+  new Set(replacementKeys).size !== 12 ||
+  replacementKeys.some((key) => !envoyOwnedKeys.has(key))
+) {
+  throw new Error("Envoy migration mappings are not exact and package-owned");
 }
 if (
   JSON.stringify(serviceReleases) !== JSON.stringify(FOUNDATION_SERVICE_CATALOG)
@@ -166,6 +280,8 @@ try {
     "release/adoption-inventory.v1.json",
     "release/construct-lock.v1.json",
     "release/contribution.v1.json",
+    "release/envoy-legacy-migration.v1.json",
+    "release/gateway-manifest-ownership.v1.json",
     "release/manifest.v1.json",
     "release/service-releases.v1.json",
   ];
