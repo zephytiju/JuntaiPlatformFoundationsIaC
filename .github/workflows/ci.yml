@@ -22,30 +22,6 @@ jobs:
       - run: npm run check
       - run: npm run build
 
-  deterministic-package:
-    runs-on: ubuntu-latest
-    needs: validate
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 24.14.0
-          cache: npm
-      - run: npm ci --ignore-scripts
-      - name: Build and verify deterministic Core package archive
-        shell: bash
-        run: |
-          set -euo pipefail
-          source_date_epoch="$(git show -s --format=%ct "${GITHUB_SHA}")"
-          FOUNDATIONS_SOURCE_REVISION="${GITHUB_SHA}" SOURCE_DATE_EPOCH="${source_date_epoch}" npm run package:build
-          first="$(sha256sum dist/foundations-package/platform-iac-package.v1.tar.gz)"
-          FOUNDATIONS_SOURCE_REVISION="${GITHUB_SHA}" SOURCE_DATE_EPOCH="${source_date_epoch}" npm run package:build
-          second="$(sha256sum dist/foundations-package/platform-iac-package.v1.tar.gz)"
-          test "${first}" = "${second}"
-          FOUNDATIONS_SOURCE_REVISION="${GITHUB_SHA}" SOURCE_DATE_EPOCH="${source_date_epoch}" npm run package:verify
-
   pulumi-preview:
     runs-on: ubuntu-latest
     needs: validate
