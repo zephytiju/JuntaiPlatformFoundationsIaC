@@ -170,13 +170,22 @@ function isOciManifest(value: unknown): value is OciManifest {
 
 function environmentCredentials(): ArtifactCredentials {
   return {
-    githubToken:
-      process.env.JUNTAI_GITHUB_ARTIFACT_TOKEN ?? process.env.GH_TOKEN,
-    ociToken:
-      process.env.JUNTAI_OCI_ARTIFACT_TOKEN ??
-      process.env.JUNTAI_GITHUB_ARTIFACT_TOKEN ??
+    githubToken: firstCredential(
+      process.env.JUNTAI_GITHUB_ARTIFACT_TOKEN,
       process.env.GH_TOKEN,
+    ),
+    ociToken: firstCredential(
+      process.env.JUNTAI_OCI_ARTIFACT_TOKEN,
+      process.env.JUNTAI_GITHUB_ARTIFACT_TOKEN,
+      process.env.GH_TOKEN,
+    ),
   };
+}
+
+function firstCredential(...values: readonly (string | undefined)[]) {
+  return values.find(
+    (value): value is string => value !== undefined && value.trim().length > 0,
+  );
 }
 
 function bearerHeaders(token: string | undefined): Record<string, string> {
@@ -213,7 +222,11 @@ export class ArtifactResolver {
   readonly #fetch: typeof fetch;
 
   public constructor(options: ArtifactResolverOptions = {}) {
-    this.#credentials = options.credentials ?? environmentCredentials();
+    const credentials = options.credentials ?? environmentCredentials();
+    this.#credentials = {
+      githubToken: firstCredential(credentials.githubToken),
+      ociToken: firstCredential(credentials.ociToken),
+    };
     this.#fetch = options.fetch ?? globalThis.fetch;
   }
 
@@ -240,6 +253,15 @@ export class ArtifactResolver {
             redirect: "follow",
           })
         : await this.#fetchPrivateGitHubAsset(artifact, github, githubToken);
+    if (
+      github !== undefined &&
+      githubToken === undefined &&
+      response.status === 404
+    ) {
+      throw new ArtifactVerificationError(
+        `GitHub release artifact '${artifact.uri}' is inaccessible; configure JUNTAI_GITHUB_ARTIFACT_TOKEN for private assets`,
+      );
+    }
     return verifyDigest(artifact, await responseBytes(response, artifact.uri));
   }
 

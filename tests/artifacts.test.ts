@@ -84,6 +84,20 @@ describe("immutable artifact verification", () => {
     ]);
   });
 
+  it("ignores empty CI secrets and reports inaccessible private assets", async () => {
+    process.env.JUNTAI_GITHUB_ARTIFACT_TOKEN = "";
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("missing", { status: 404 })),
+    );
+    await expect(
+      fetchVerifiedArtifact({
+        uri: "https://github.com/example/private/releases/download/v1.0.0/a.json",
+        digest: `sha256:${"0".repeat(64)}`,
+      }),
+    ).rejects.toThrow(/configure JUNTAI_GITHUB_ARTIFACT_TOKEN/);
+  });
+
   it("resolves one exact OCI manifest layer and verifies both digests", async () => {
     const blob = new TextEncoder().encode("descriptor-set");
     const blobDigest = sha256(blob);
