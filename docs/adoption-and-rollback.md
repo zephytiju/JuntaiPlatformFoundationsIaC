@@ -4,7 +4,7 @@ All package-managed custom resources default to Pulumi `protect: true`. Existing
 
 ## Adoption procedure
 
-1. Pin the exact `@juntai/platform-foundations-iac` version in Core's `package.json`, commit the registry-resolved `package-lock.json`, and install it with `npm ci`.
+1. Pin the exact `@zephytiju/platform-foundations-iac` version in Core's `package.json`, commit the registry-resolved `package-lock.json`, and install it with `npm ci`.
 2. Export the current Core state and record the old URNs and provider IDs.
 3. Populate aliases and exact import IDs for every existing physical resource. Never use discovery results as implicit selection.
 4. Run a refresh-only preview, then a normal preview. Both must report zero deletes and zero replacements.

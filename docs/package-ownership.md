@@ -14,7 +14,7 @@ JuntaiPlatformFoundationsIaC and each domain package
 
 Core owns exact direct npm dependency selection, provider construction, target context, graph ordering, invocation, state continuity, and opaque output aggregation. It installs committed registry locks with `npm ci`; it does not download or stage first-party IaC source archives. Foundations owns every resource declared by this repository. A domain package owns its domain resources and consumes Foundations capabilities without modifying Foundations resources.
 
-The same rule applies to release metadata. This package pins Casdoor, Blueprint, Envoy Gateway, Gateway API, OpenTelemetry, and construct releases. Blueprint's OpenAPI document and upstream Gateway manifests are fetched from immutable GitHub/OCI service coordinates and digest-verified at execution. Core selects the exact `@juntai/platform-foundations-iac` npm version; it never fetches or interprets those package-owned service artifacts.
+The same rule applies to release metadata. This package pins Casdoor, Blueprint, Envoy Gateway, Gateway API, OpenTelemetry, and construct releases. Blueprint's OpenAPI document and upstream Gateway manifests are fetched from immutable GitHub/OCI service coordinates and digest-verified at execution. Core selects the exact `@zephytiju/platform-foundations-iac` npm version; it never fetches or interprets those package-owned service artifacts.
 
 ## Migration boundary
 
