@@ -2,6 +2,8 @@
 
 All package-managed custom resources default to Pulumi `protect: true`. Existing resources are adopted by passing exact entries in `FoundationsInputs.adoption`, keyed by [the release inventory](../release/adoption-inventory.v1.json). A rule may provide an exact Pulumi import ID, aliases for a prior logical identity, `retainOnDelete`, and an explicit protection override.
 
+The Core v1.9.0 cutover also selects the package-owned `core-v1.9.0-uid-preserving` compatibility profile in the normal opaque Foundations input. Unlike the one-shot `adoption` map, this profile remains selected after import options are removed. It applies `ignoreChanges: ["*"]` only to the exact 37 imported type/logical-name identities in the [compatibility release artifact](../release/legacy-adoption-compatibility.v1.json). This is an explicit ownership-only migration contract: it preserves the reviewed live input shapes, immutable configuration bytes, server-assigned Service identities, Gateway listener list-map keys, and the complete physical UID set through Task 08 verification. Removing the profile is a separate reviewed rollout and must satisfy every gate in that artifact.
+
 ## Adoption procedure
 
 1. Pin the exact `@zephytiju/platform-foundations-iac` version in Core's `package.json`, commit the registry-resolved `package-lock.json`, and install it with `npm ci`.

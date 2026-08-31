@@ -1,6 +1,6 @@
 {
   "schemaVersion": "juntai.platform/package-adoption-inventory/v1",
-  "package": "juntai.platform.substrate@1.2.1",
+  "package": "juntai.platform.substrate@1.2.2",
   "defaultSafety": {
     "protect": true,
     "requireNoDelete": true,

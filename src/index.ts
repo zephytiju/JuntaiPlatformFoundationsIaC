@@ -6,6 +6,7 @@ export * from "./artifacts.js";
 export * from "./contract-composition.js";
 export * from "./envoy-migration.js";
 export * from "./gateway-manifests.js";
+export * from "./legacy-adoption-compatibility.js";
 export * from "./preflight.js";
 export * from "./release.js";
 export * from "./service-contracts.js";

@@ -42,6 +42,11 @@ export interface AdoptionRule {
 
 export type AdoptionMap = Readonly<Record<string, AdoptionRule>>;
 
+export interface LegacyAdoptionCompatibility {
+  readonly profile: "core-v1.9.0-uid-preserving";
+  readonly retainedThrough: "task-08-verification";
+}
+
 export interface GatewayInputs {
   readonly gatewayClassName?: "juntai-platform";
   readonly serviceType?: "ClusterIP" | "LoadBalancer";
@@ -148,6 +153,7 @@ export interface FoundationsInputs extends Readonly<Record<string, unknown>> {
   readonly blueprint: BlueprintInputs;
   readonly casdoor: CasdoorInputs;
   readonly gateway: GatewayInputs;
+  readonly legacyAdoptionCompatibility?: LegacyAdoptionCompatibility;
   readonly meridian: MeridianInputs;
   readonly observability: ObservabilityInputs;
 }

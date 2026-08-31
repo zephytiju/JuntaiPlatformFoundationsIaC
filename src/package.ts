@@ -12,6 +12,7 @@ import {
 import { createCasdoor } from "./casdoor.js";
 import type { PackageContext, PlatformIacPackage } from "./contract.js";
 import { createGatewaySet } from "./gateway.js";
+import { registerLegacyAdoptionCompatibility } from "./legacy-adoption-compatibility.js";
 import { createMeridianRuntime } from "./meridian.js";
 import { FoundationNamespaceSet } from "./namespaces.js";
 import { createObservabilityGateway } from "./observability.js";
@@ -51,6 +52,9 @@ export async function deployFoundations(
   const preflight = await (
     dependencies.preflight ?? resolveFoundationPreflight
   )(context.inputs, dependencies.fetcher);
+  registerLegacyAdoptionCompatibility(
+    context.inputs.legacyAdoptionCompatibility,
+  );
   const blueprintRoute = preflight.contracts.routes.find(
     ({ serviceId }) => serviceId === "platform.blueprint",
   );
