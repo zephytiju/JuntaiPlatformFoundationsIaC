@@ -1,8 +1,6 @@
 import * as k8s from "@pulumi/kubernetes";
 import * as pulumi from "@pulumi/pulumi";
 import { adoptionOptions } from "./adoption.js";
-import { fetchVerifiedText, type ArtifactFetcher } from "./artifacts.js";
-import { ENVOY_GATEWAY_MANIFEST, GATEWAY_API_MANIFEST } from "./release.js";
 import type { AdoptionMap, GatewayInputs, GatewaySetOutput } from "./types.js";
 
 const GATEWAY_NAMES = Object.freeze({
@@ -42,34 +40,27 @@ function listener(
   };
 }
 
-export async function createGatewaySet(args: {
+export function createGatewaySet(args: {
   readonly provider: k8s.Provider;
   readonly namespace: pulumi.Input<string>;
   readonly inputs: GatewayInputs;
   readonly adoption?: AdoptionMap;
   readonly dependsOn?: readonly pulumi.Resource[];
-  readonly fetcher?: ArtifactFetcher;
-}): Promise<GatewaySetOutput> {
-  const gatewayApiYaml = await fetchVerifiedText(
-    GATEWAY_API_MANIFEST,
-    args.fetcher,
-  );
-  const envoyGatewayYaml = await fetchVerifiedText(
-    ENVOY_GATEWAY_MANIFEST,
-    args.fetcher,
-  );
-  const gatewayApi = new k8s.yaml.ConfigGroup(
+  readonly gatewayApiYaml: string;
+  readonly envoyGatewayYaml: string;
+}): GatewaySetOutput {
+  const gatewayApi = new k8s.yaml.v2.ConfigGroup(
     "gateway-api-v1-5-1",
-    { yaml: gatewayApiYaml },
+    { yaml: args.gatewayApiYaml },
     {
       provider: args.provider,
       protect: true,
       dependsOn: args.dependsOn === undefined ? undefined : [...args.dependsOn],
     },
   );
-  const envoyGateway = new k8s.yaml.ConfigGroup(
+  const envoyGateway = new k8s.yaml.v2.ConfigGroup(
     "envoy-gateway-v1-8-3",
-    { yaml: envoyGatewayYaml },
+    { yaml: args.envoyGatewayYaml },
     {
       provider: args.provider,
       protect: true,

@@ -1,5 +1,6 @@
 import type * as k8s from "@pulumi/kubernetes";
 import type * as pulumi from "@pulumi/pulumi";
+import type { ContractCompositionEvidence } from "./contract-composition.js";
 import type {
   AclPolicyRef,
   MigrationStateV1,
@@ -149,6 +150,7 @@ export interface ObservabilityGatewayOutput {
 }
 
 export interface FoundationsOutputs extends Readonly<Record<string, unknown>> {
+  readonly contractComposition: ContractCompositionEvidence;
   readonly foundationServices: FoundationServicesOutput;
   readonly gatewaySet: GatewaySetOutput;
   readonly meridianRuntime: MeridianRuntimeOutput;

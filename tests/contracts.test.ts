@@ -8,6 +8,10 @@ import {
   CASDOOR_IMAGE,
   releaseInputs,
 } from "../src/release.js";
+import {
+  FOUNDATION_SERVICE_CATALOG,
+  serviceDeclaration,
+} from "../src/service-contracts.js";
 import { validateFoundationsInputs } from "../src/validation.js";
 import { foundationsInputs } from "./helpers.js";
 
@@ -15,7 +19,7 @@ describe("package boundary", () => {
   it("implements the released thin-Core contract", () => {
     expect(foundationsPackage).toMatchObject({
       id: "juntai.platform.substrate",
-      version: "1.0.2",
+      version: "1.1.0",
       compatibility: {
         coreContract: "^1.1.0",
         capabilityContracts: "^1.0.0",
@@ -41,6 +45,24 @@ describe("package boundary", () => {
     );
     expect(BLUEPRINT_IMAGE).toContain("@sha256:");
     expect(BLUEPRINT_OPENAPI.uri).toContain("/v3.0.0/");
+    expect(serviceDeclaration("platform.blueprint")).toMatchObject({
+      release: { version: "3.0.0", image: BLUEPRINT_IMAGE },
+      deployment: {
+        namespace: "juntai-platform",
+        routePrefix: "/api/blueprints/v1",
+      },
+      artifacts: [
+        {
+          id: "blueprint-openapi",
+          uri: BLUEPRINT_OPENAPI.uri,
+          digest: BLUEPRINT_OPENAPI.digest,
+        },
+      ],
+    });
+    expect(FOUNDATION_SERVICE_CATALOG.contractResolution).toContain(
+      "never-vendor",
+    );
+    expect(() => serviceDeclaration("missing")).toThrow(/unknown/);
   });
 
   it("omits the gated client_credentials application from Casdoor bootstrap", () => {

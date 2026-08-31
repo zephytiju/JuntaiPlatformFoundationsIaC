@@ -1,5 +1,5 @@
 import * as k8s from "@pulumi/kubernetes";
-import { fetchVerifiedArtifact, type ArtifactFetcher } from "./artifacts.js";
+import type { ArtifactFetcher } from "./artifacts.js";
 import { createBlueprint } from "./blueprint.js";
 import {
   FoundationServicesCapability,
@@ -13,6 +13,10 @@ import { createGatewaySet } from "./gateway.js";
 import { createMeridianRuntime } from "./meridian.js";
 import { FoundationNamespaceSet } from "./namespaces.js";
 import { createObservabilityGateway } from "./observability.js";
+import {
+  resolveFoundationPreflight,
+  type FoundationPreflightResolver,
+} from "./preflight.js";
 import {
   FOUNDATIONS_PACKAGE_ID,
   FOUNDATIONS_PACKAGE_VERSION,
@@ -28,6 +32,7 @@ import { validateFoundationsInputs } from "./validation.js";
 
 export interface DeploymentDependencies {
   readonly fetcher?: ArtifactFetcher;
+  readonly preflight?: FoundationPreflightResolver;
 }
 
 export async function deployFoundations(
@@ -41,19 +46,33 @@ export async function deployFoundations(
       "juntai.platform.substrate requires the Core-owned Kubernetes provider",
     );
   }
-  const fetcher = dependencies.fetcher ?? fetchVerifiedArtifact;
+  const preflight = await (
+    dependencies.preflight ?? resolveFoundationPreflight
+  )(context.inputs, dependencies.fetcher);
+  const blueprintRoute = preflight.contracts.routes.find(
+    ({ serviceId }) => serviceId === "platform.blueprint",
+  );
+  if (
+    context.inputs.blueprint.enabled !== false &&
+    blueprintRoute === undefined
+  ) {
+    throw new Error(
+      "verified Blueprint contract did not produce its deployment route",
+    );
+  }
   const namespaces = new FoundationNamespaceSet("foundations", {
     provider,
     adoption: context.inputs.adoption,
   });
   const namespaceResources = Object.values(namespaces.resources);
-  const gatewaySet = await createGatewaySet({
+  const gatewaySet = createGatewaySet({
     provider,
     namespace: namespaces.resources["juntai-gateway"].metadata.name,
     inputs: context.inputs.gateway,
     adoption: context.inputs.adoption,
     dependsOn: namespaceResources,
-    fetcher,
+    gatewayApiYaml: preflight.gatewayApiYaml,
+    envoyGatewayYaml: preflight.envoyGatewayYaml,
   });
   const meridian = createMeridianRuntime({
     provider,
@@ -77,7 +96,7 @@ export async function deployFoundations(
     gatewaySet,
     adoption: context.inputs.adoption,
   });
-  const blueprint = await createBlueprint({
+  const blueprint = createBlueprint({
     provider,
     namespace: namespaces.resources["juntai-platform"].metadata.name,
     inputs: context.inputs.blueprint,
@@ -85,7 +104,7 @@ export async function deployFoundations(
     meridianRuntime: meridian.runtime,
     observability: observabilityGateway,
     adoption: context.inputs.adoption,
-    fetcher,
+    ...(blueprintRoute === undefined ? {} : { route: blueprintRoute }),
   });
   const foundationServices: FoundationServicesOutput = Object.freeze({
     casdoor,
@@ -103,6 +122,7 @@ export async function deployFoundations(
   );
   return Object.freeze({
     outputs: Object.freeze({
+      contractComposition: preflight.contracts.evidence,
       foundationServices,
       gatewaySet,
       meridianRuntime: meridian.output,

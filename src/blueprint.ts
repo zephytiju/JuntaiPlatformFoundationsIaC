@@ -9,8 +9,8 @@ import {
   literalValue,
 } from "@zephytiju/juntai-platform-constructs";
 import { childMigration } from "./adoption.js";
-import { verifyBlueprintOpenApi, type ArtifactFetcher } from "./artifacts.js";
-import { BLUEPRINT_IMAGE, BLUEPRINT_OPENAPI } from "./release.js";
+import type { ContractRouteInput } from "./contract-composition.js";
+import { BLUEPRINT_IMAGE } from "./release.js";
 import type {
   AdoptionMap,
   BlueprintInputs,
@@ -30,7 +30,7 @@ function secretFile(reference: BlueprintInputs["cursorHmac"]): {
   return { kind: "secret", ...reference, readOnly: true };
 }
 
-export async function createBlueprint(args: {
+export function createBlueprint(args: {
   readonly provider: k8s.Provider;
   readonly namespace: pulumi.Input<string>;
   readonly inputs: BlueprintInputs;
@@ -38,10 +38,12 @@ export async function createBlueprint(args: {
   readonly meridianRuntime: MeridianRuntimeConfig;
   readonly observability: ObservabilityGatewayOutput;
   readonly adoption?: AdoptionMap;
-  readonly fetcher?: ArtifactFetcher;
-}): Promise<FoundationsServiceOutput | undefined> {
+  readonly route?: ContractRouteInput;
+}): FoundationsServiceOutput | undefined {
   if (args.inputs.enabled === false) return undefined;
-  await verifyBlueprintOpenApi(BLUEPRINT_OPENAPI, args.fetcher);
+  if (args.route === undefined) {
+    throw new Error("Blueprint deployment requires a verified contract route");
+  }
   const identity = new WorkloadIdentity("blueprint", {
     namespace: args.namespace,
     provider: args.provider,
@@ -178,7 +180,7 @@ export async function createBlueprint(args: {
       name: args.gatewaySet.gateways.platform,
     },
     service: { name: service.service.metadata.name, port: 8080 },
-    pathPrefix: "/api/blueprints/v1",
+    pathPrefix: args.route.pathPrefix,
     resourceMigration: childMigration(args.adoption, "blueprint/route"),
   });
   return Object.freeze({

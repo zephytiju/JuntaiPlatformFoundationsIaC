@@ -2,7 +2,8 @@ import * as k8s from "@pulumi/kubernetes";
 import * as pulumi from "@pulumi/pulumi";
 import { beforeAll, describe, expect, it } from "vitest";
 import { deployFoundations } from "../src/package.js";
-import type { ArtifactFetcher } from "../src/artifacts.js";
+import type { ContractRouteInput } from "../src/contract-composition.js";
+import type { FoundationPreflightResolver } from "../src/preflight.js";
 import { capabilities, foundationsInputs, secrets } from "./helpers.js";
 import type { FoundationsInputs } from "../src/types.js";
 
@@ -33,19 +34,38 @@ beforeAll(() => {
   );
 });
 
-const fetcher: ArtifactFetcher = async (artifact) => {
-  if (artifact.uri.endsWith(".json")) {
-    return new TextEncoder().encode(
-      JSON.stringify({
-        openapi: "3.1.0",
-        info: { title: "Juntai Blueprint Service", version: "3.0.0" },
-        paths: { "/api/blueprints/v1/assets": {} },
-      }),
-    );
-  }
-  return new TextEncoder().encode(
-    "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: verified-upstream\n  namespace: default\n",
-  );
+const verifiedYaml =
+  "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: verified-upstream\n  namespace: default\n";
+
+const blueprintRoute: ContractRouteInput = Object.freeze({
+  serviceId: "platform.blueprint",
+  gatewaySurface: "platform",
+  pathPrefix: "/api/blueprints/v1",
+  paths: ["/api/blueprints/v1/assets"],
+  operationIds: ["platform_blueprint__listAssets"],
+});
+
+const preflight: FoundationPreflightResolver = async (inputs) => {
+  const routes = inputs.blueprint.enabled === false ? [] : [blueprintRoute];
+  const evidence = Object.freeze({
+    schemaVersion:
+      "juntai.platform/foundation-contract-composition/v1" as const,
+    compositionDigest: `sha256:${"e".repeat(64)}` as const,
+    artifacts: Object.freeze([]),
+    routes: Object.freeze(routes),
+    bindings: Object.freeze([]),
+  });
+  return Object.freeze({
+    gatewayApiYaml: verifiedYaml,
+    envoyGatewayYaml: verifiedYaml,
+    contracts: Object.freeze({
+      aggregateOpenApi: Object.freeze({}),
+      protobufServices: Object.freeze([]),
+      routes: evidence.routes,
+      bindings: evidence.bindings,
+      evidence,
+    }),
+  });
 };
 
 describe("Pulumi composition", () => {
@@ -73,7 +93,7 @@ describe("Pulumi composition", () => {
           capabilities: capabilityState.consumer,
           secrets: secrets(),
         },
-        { fetcher },
+        { preflight },
       );
       return result.outputs;
     });
@@ -157,5 +177,37 @@ describe("Pulumi composition", () => {
     expect(JSON.stringify(result.registered)).toContain(
       "OTEL_EXPORTER_AUTHORIZATION",
     );
+  });
+
+  it("fails preflight before registering any package-owned resource", async () => {
+    resources.length = 0;
+    await pulumi.runtime.runInPulumiStack(async () => {
+      const provider = new k8s.Provider("preflight-cluster", {
+        kubeconfig: "apiVersion: v1",
+      });
+      const before = resources.length;
+      const rejectedPreflight: FoundationPreflightResolver = () =>
+        Promise.reject(new Error("contract digest mismatch"));
+      await expect(
+        deployFoundations(
+          {
+            target: {
+              organization: "juntai",
+              project: "platform",
+              stack: "development-local",
+              environment: "development-local",
+              configuration: {},
+            },
+            providers: { kubernetes: provider },
+            inputs: foundationsInputs(),
+            capabilities: capabilities().consumer,
+            secrets: secrets(),
+          },
+          { preflight: rejectedPreflight },
+        ),
+      ).rejects.toThrow(/contract digest mismatch/);
+      expect(resources).toHaveLength(before);
+      return {};
+    });
   });
 });
