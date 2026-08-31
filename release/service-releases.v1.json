@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "juntai.platform/foundation-service-releases/v1",
+  "contractResolution": "fetch-and-sha256-verify-at-execution; never vendor",
+  "services": [
+    {
+      "id": "foundation.iam",
+      "implementation": "Casdoor",
+      "version": "3.125.0",
+      "distribution": "official-unmodified",
+      "image": "docker.io/casbin/casdoor@sha256:d7658640aba370495e59dc1464756d2ae7ec66576203b9de0040e9cc37793607",
+      "sourceCommit": "8bb6c391480b2ac9ea04d3e2b5d3c7ab12115b1f",
+      "releaseTagCommit": "7d2ad5faba830a74fabba914921a8d47a5b511d0",
+      "bootstrap": "supported-public-api",
+      "migration": "official-Casdoor-schema-through-release-configuration",
+      "recovery": "scheduled-idempotent-desired-state-reconciliation"
+    },
+    {
+      "id": "platform.blueprint",
+      "version": "3.0.0",
+      "image": "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:5bfbcdd4073e3b0c16730904691310d8ccd6b913a2a525d3263d52535578fcdc",
+      "sourceCommit": "0da9bf43a6323f00ba7dc292847a600924f7f15a",
+      "openapi": {
+        "uri": "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.0.0/blueprint-service.v1.json",
+        "sha256": "0a1d34129ed514fc0e7b227c6d23fbff61f025de209d0ebeedd0cf618a6bd26d"
+      },
+      "storageBoundary": "in-process-Meridian-config-artifact-plugin",
+      "migration": "not-required-by-3.0.0-release-contract",
+      "recovery": "Meridian-binding-owned"
+    }
+  ]
+}

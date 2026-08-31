@@ -1,0 +1,43 @@
+{
+  "name": "@juntai/platform-foundations-iac",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pulumi-owned Juntai shared platform foundations package",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "npm@11.9.0",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:preview": "esbuild preview/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/preview/index.mjs",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run package:verify",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "package:build": "node --import tsx scripts/build-package.ts",
+    "package:verify": "node --import tsx scripts/verify-package.ts",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@pulumi/kubernetes": "4.33.0",
+    "@pulumi/pulumi": "3.257.0",
+    "@zephytiju/juntai-platform-constructs": "1.0.0",
+    "@zephytiju/meridian-storage-constructs": "1.0.0",
+    "yaml": "2.9.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/node": "24.13.3",
+    "@vitest/coverage-v8": "3.2.7",
+    "esbuild": "0.28.2",
+    "eslint": "9.39.5",
+    "prettier": "3.9.6",
+    "tsx": "4.23.12",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.67.0",
+    "vitest": "3.2.7"
+  }
+}

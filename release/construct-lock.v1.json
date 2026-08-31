@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "juntai.platform/construct-lock/v1",
+  "libraries": [
+    {
+      "id": "juntai.platform.constructs",
+      "package": "@zephytiju/juntai-platform-constructs",
+      "version": "1.0.0",
+      "artifact": "https://registry.npmjs.org/@zephytiju/juntai-platform-constructs/-/juntai-platform-constructs-1.0.0.tgz",
+      "sha256": "62412821373d48922a0beeb24b644dd061e4f8d37e692287e7ac731ebfb431e2"
+    },
+    {
+      "id": "juntai.platform.constructs.meridian",
+      "package": "@zephytiju/meridian-storage-constructs",
+      "version": "1.0.0",
+      "artifact": "https://registry.npmjs.org/@zephytiju/meridian-storage-constructs/-/meridian-storage-constructs-1.0.0.tgz",
+      "sha256": "7b853db0e745863517245378a10fc7651ed8f515e763ea8d95258b65aee5dbd5"
+    }
+  ]
+}
