@@ -12,6 +12,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { FOUNDATION_SERVICE_CATALOG } from "../src/service-contracts.js";
 import { ENVOY_LEGACY_MIGRATION_MAPPINGS } from "../src/envoy-migration.js";
+import { LEGACY_CORE_V1_9_ADOPTION_RESOURCES } from "../src/legacy-adoption-compatibility.js";
 import {
   GATEWAY_MANIFEST_OWNERSHIP,
   physicalResourceKey,
@@ -86,6 +87,26 @@ const envoyLegacyMigration = JSON.parse(
   readonly guardedDeletionBatches: readonly (readonly string[])[];
   readonly verifyAfterEachBatch: readonly string[];
 };
+const legacyAdoptionCompatibility = JSON.parse(
+  await readFile(
+    resolve(repository, "release/legacy-adoption-compatibility.v1.json"),
+    "utf8",
+  ),
+) as {
+  readonly schemaVersion: string;
+  readonly package: string;
+  readonly profile: string;
+  readonly behavior: {
+    readonly propertyPaths: readonly string[];
+    readonly physicalDeletion: boolean;
+    readonly physicalReplacement: boolean;
+  };
+  readonly lifecycle: {
+    readonly retainedThrough: string;
+    readonly removalRequires: readonly string[];
+  };
+  readonly resources: readonly Record<string, unknown>[];
+};
 const manifestKeys = [
   "compatibility",
   "entrypoint",
@@ -141,6 +162,26 @@ if (
   throw new Error("adoption inventory identity or resource keys are invalid");
 }
 const packageIdentity = `${foundationsPackage.id}@${foundationsPackage.version}`;
+if (
+  legacyAdoptionCompatibility.schemaVersion !==
+    "juntai.platform/legacy-adoption-compatibility/v1" ||
+  legacyAdoptionCompatibility.package !== packageIdentity ||
+  legacyAdoptionCompatibility.profile !== "core-v1.9.0-uid-preserving" ||
+  legacyAdoptionCompatibility.behavior.physicalDeletion ||
+  legacyAdoptionCompatibility.behavior.physicalReplacement ||
+  JSON.stringify(legacyAdoptionCompatibility.behavior.propertyPaths) !==
+    JSON.stringify(["*"]) ||
+  legacyAdoptionCompatibility.lifecycle.retainedThrough !==
+    "Task 08 verification" ||
+  legacyAdoptionCompatibility.lifecycle.removalRequires.length !== 4
+) {
+  throw new Error("legacy adoption compatibility lifecycle is incomplete");
+}
+deepStrictEqual(
+  legacyAdoptionCompatibility.resources,
+  LEGACY_CORE_V1_9_ADOPTION_RESOURCES,
+  "legacy adoption compatibility resources differ from runtime scope",
+);
 if (
   gatewayManifestOwnership.schemaVersion !==
     "juntai.platform/gateway-manifest-ownership/v1" ||
@@ -282,6 +323,7 @@ try {
     "release/contribution.v1.json",
     "release/envoy-legacy-migration.v1.json",
     "release/gateway-manifest-ownership.v1.json",
+    "release/legacy-adoption-compatibility.v1.json",
     "release/manifest.v1.json",
     "release/service-releases.v1.json",
   ];

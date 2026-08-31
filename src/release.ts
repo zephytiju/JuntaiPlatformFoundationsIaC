@@ -1,6 +1,6 @@
 import type { ImmutableReleaseInput } from "./contract.js";
 
-export const FOUNDATIONS_PACKAGE_VERSION = "1.2.1" as const;
+export const FOUNDATIONS_PACKAGE_VERSION = "1.2.2" as const;
 export const FOUNDATIONS_PACKAGE_ID = "juntai.platform.substrate" as const;
 
 export const CASDOOR_IMAGE =

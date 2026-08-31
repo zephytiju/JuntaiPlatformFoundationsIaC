@@ -117,6 +117,17 @@ function assertIpv4Cidr(label: string, value: string): void {
 
 export function validateFoundationsInputs(inputs: FoundationsInputs): void {
   rejectSecretMaterial(inputs);
+  if (
+    inputs.legacyAdoptionCompatibility !== undefined &&
+    (inputs.legacyAdoptionCompatibility.profile !==
+      "core-v1.9.0-uid-preserving" ||
+      inputs.legacyAdoptionCompatibility.retainedThrough !==
+        "task-08-verification")
+  ) {
+    throw new Error(
+      "legacy adoption compatibility must use the exact Core v1.9.0 UID-preserving lifecycle",
+    );
+  }
   assertFileReference("Casdoor configuration", inputs.casdoor.configuration, [
     "app.conf",
   ]);
