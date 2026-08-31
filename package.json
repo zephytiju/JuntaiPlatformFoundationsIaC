@@ -1,6 +1,6 @@
 {
   "name": "@zephytiju/platform-foundations-iac",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Pulumi-owned Juntai shared platform foundations package",
   "type": "module",
   "main": "./dist/index.js",
@@ -34,6 +34,7 @@
   },
   "packageManager": "npm@11.9.0",
   "scripts": {
+    "artifacts:verify": "node --import tsx scripts/verify-service-artifacts.ts",
     "build": "node --import tsx scripts/build.ts",
     "build:preview": "esbuild preview/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/preview/index.mjs",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run npm:verify",

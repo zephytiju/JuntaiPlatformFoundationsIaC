@@ -9,11 +9,13 @@
 - Shared namespaces, Gateway API v1.5.1, Envoy Gateway v1.8.3, GatewayClass, and the four platform gateway surfaces.
 - OpenTelemetry Collector gateway v0.153.0 with durable queueing, bounded resources, TLS/authorization references, and no inline secret bytes.
 - Official unmodified Casdoor 3.125.0, its workload identity, exact public/private routes, public-API bootstrap Job, and idempotent reconciliation schedule. The gated `client_credentials` application is deliberately absent.
-- Blueprint 3.0.0, including the package-owned release pin, deployment, identity, route, policy, immutable OpenAPI verification, observability binding, and Meridian runtime reference.
+- Blueprint 3.0.0, including the package-owned release and deployment declarations, identity, route, policy, immutable OpenAPI composition, observability binding, and Meridian runtime reference.
 - Deployment-selected data engines only through `@zephytiju/meridian-storage-constructs@1.0.0`. KES and Kingbase are rejected.
 - State adoption aliases/imports, protected-by-default resources, and rollback metadata.
 
-No fetched OpenAPI, Protobuf, MCP, CRD, or upstream install document is stored in this repository or npm tarball. HTTPS release artifacts are fetched and SHA-256 verified during Pulumi execution before resource registration.
+No fetched OpenAPI, Protobuf, MCP, CRD, or upstream install document is stored in this repository or npm tarball. Exact GitHub release and OCI manifest coordinates are fetched, SHA-256 verified, compatibility checked, and composed only in memory during Pulumi execution before resource registration. Local and CI execution use the same coordinates and digests; only environment-provided authentication may differ.
+
+Private GitHub release assets use `JUNTAI_GITHUB_ARTIFACT_TOKEN` (falling back to `GH_TOKEN`). CI mints a short-lived, contents-read GitHub App installation token from `JUNTAI_CI_APP_ID` and `JUNTAI_CI_APP_PRIVATE_KEY`, then exposes it as `JUNTAI_GITHUB_ARTIFACT_TOKEN` only to verification and preview steps. Private OCI layers use `JUNTAI_OCI_ARTIFACT_TOKEN` and may fall back to the GitHub token for GHCR. Credentials select authorization only; they never alter artifact coordinates, digests, composition evidence, or Pulumi inputs.
 
 ## npm package contract
 
@@ -24,7 +26,7 @@ GitHub and OCI coordinates in the package contract are reserved for immutable se
 Install the exact release and commit the resulting lockfile:
 
 ```bash
-npm install --save-exact @zephytiju/platform-foundations-iac@1.0.2
+npm install --save-exact @zephytiju/platform-foundations-iac@1.1.0
 npm ci
 ```
 

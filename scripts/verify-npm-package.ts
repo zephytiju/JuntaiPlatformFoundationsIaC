@@ -9,6 +9,7 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { FOUNDATION_SERVICE_CATALOG } from "../src/service-contracts.js";
 
 interface PackedFile {
   readonly path: string;
@@ -30,6 +31,12 @@ const packageJson = JSON.parse(
 const manifest = JSON.parse(
   await readFile(resolve(repository, "release/manifest.v1.json"), "utf8"),
 ) as Record<string, unknown>;
+const serviceReleases = JSON.parse(
+  await readFile(
+    resolve(repository, "release/service-releases.v1.json"),
+    "utf8",
+  ),
+) as Record<string, unknown>;
 const manifestKeys = [
   "compatibility",
   "entrypoint",
@@ -50,6 +57,13 @@ if (
   manifest.entrypoint !== "dist/index.js"
 ) {
   throw new Error("npm package descriptor is not the canonical v1 contract");
+}
+if (
+  JSON.stringify(serviceReleases) !== JSON.stringify(FOUNDATION_SERVICE_CATALOG)
+) {
+  throw new Error(
+    "packaged service release catalog differs from the Pulumi TypeScript declaration",
+  );
 }
 const temporary = await mkdtemp(join(tmpdir(), "juntai-foundations-npm-"));
 const npmEnvironment = {
@@ -117,6 +131,17 @@ try {
       throw new Error(`npm package contains forbidden source path '${path}'`);
     }
   }
+  for (const path of files) {
+    if (
+      (/(?:^|\/)(?:openapi|protobuf)(?:\/|\.)/i.test(path) ||
+        /(?:^|\/)contracts?\//i.test(path)) &&
+      path !== "release/service-releases.v1.json"
+    ) {
+      throw new Error(
+        `npm package contains vendored service contract '${path}'`,
+      );
+    }
+  }
 
   const tarball = resolve(temporary, result.filename);
   const consumer = resolve(temporary, "consumer");
@@ -158,11 +183,13 @@ try {
   );
   await writeFile(
     resolve(consumer, "verify.mts"),
-    `import foundationsPackage, { FOUNDATIONS_PACKAGE_VERSION } from "${packageJson.name}";\n\n` +
+    `import foundationsPackage, { FOUNDATION_SERVICE_CATALOG, FOUNDATIONS_PACKAGE_VERSION, resolveAndComposeServiceContracts } from "${packageJson.name}";\n\n` +
       `if (foundationsPackage.id !== "juntai.platform.substrate") throw new Error("unexpected package id");\n` +
       `if (foundationsPackage.version !== FOUNDATIONS_PACKAGE_VERSION) throw new Error("version mismatch");\n` +
       `if (foundationsPackage.version !== "${packageJson.version}") throw new Error("unexpected package version");\n` +
-      `if (typeof foundationsPackage.deploy !== "function") throw new Error("missing Pulumi entrypoint");\n`,
+      `if (typeof foundationsPackage.deploy !== "function") throw new Error("missing Pulumi entrypoint");\n` +
+      `if (FOUNDATION_SERVICE_CATALOG.services.length < 2) throw new Error("missing service declarations");\n` +
+      `if (typeof resolveAndComposeServiceContracts !== "function") throw new Error("missing contract resolver");\n`,
   );
 
   run("npm", ["install", "--package-lock-only", "--ignore-scripts"], consumer);
