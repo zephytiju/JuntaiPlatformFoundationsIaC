@@ -23,6 +23,16 @@ export interface SecretFileReference {
   readonly mountPath: string;
 }
 
+export interface ConfigFileReference {
+  readonly name: string;
+  readonly items: Readonly<Record<string, string>>;
+  readonly mountPath: string;
+}
+
+export type RuntimeFileReference =
+  | ({ readonly kind: "configMap" } & ConfigFileReference)
+  | ({ readonly kind: "secret" } & SecretFileReference);
+
 export interface AdoptionRule {
   readonly aliases?: readonly pulumi.Alias[];
   readonly import?: string;
@@ -100,8 +110,41 @@ export interface BlueprintInputs {
   readonly replicas?: number;
 }
 
+export interface AccountInputs {
+  readonly enabled?: boolean;
+  readonly composition: ConfigFileReference;
+  readonly compositionFactory: `${string}:${string}`;
+  readonly runtimeReferences?: readonly RuntimeFileReference[];
+  readonly replicas?: number;
+}
+
+export interface ApplicationMetadataWorkloadBinding {
+  readonly namespace: string;
+  readonly serviceAccount: string;
+  readonly tenantId: string;
+  readonly workloadId: string;
+}
+
+export interface ApplicationMetadataInputs {
+  readonly enabled?: boolean;
+  readonly casdoorIssuer: string;
+  readonly casdoorAudience: string;
+  readonly casdoorPolicyEnforcerId: `${string}/${string}`;
+  readonly casdoorServiceClientId: string;
+  readonly cursorHmac: SecretFileReference;
+  readonly policyReaderClientSecret: SecretFileReference;
+  readonly kubernetesApiServer?: string;
+  readonly kubernetesApiCidr: string;
+  readonly kubernetesWorkloadAudience: string;
+  readonly kubernetesWorkloadIssuer: string;
+  readonly workloadBindings: readonly ApplicationMetadataWorkloadBinding[];
+  readonly replicas?: number;
+}
+
 export interface FoundationsInputs extends Readonly<Record<string, unknown>> {
+  readonly account: AccountInputs;
   readonly adoption?: AdoptionMap;
+  readonly applicationMetadata: ApplicationMetadataInputs;
   readonly blueprint: BlueprintInputs;
   readonly casdoor: CasdoorInputs;
   readonly gateway: GatewayInputs;
@@ -135,11 +178,21 @@ export interface MeridianRuntimeOutput {
 
 export interface FoundationsServiceOutput {
   readonly endpoint: pulumi.Output<string>;
+  readonly gatewaySurface: "internal" | "operator" | "platform" | "public";
+  readonly imageDigest: `sha256:${string}`;
   readonly namespace: pulumi.Output<string>;
+  readonly observabilityServiceName: string;
+  readonly readinessPath: `/${string}`;
+  readonly recovery: string;
+  readonly releaseVersion: string;
+  readonly routePrefix: `/${string}`;
+  readonly serviceId: string;
   readonly serviceName: pulumi.Output<string>;
 }
 
 export interface FoundationServicesOutput {
+  readonly account?: FoundationsServiceOutput;
+  readonly applicationMetadata?: FoundationsServiceOutput;
   readonly blueprint?: FoundationsServiceOutput;
   readonly casdoor: FoundationsServiceOutput;
 }

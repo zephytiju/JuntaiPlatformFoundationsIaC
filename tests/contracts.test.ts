@@ -3,6 +3,11 @@ import foundationsPackage from "../src/package.js";
 import { casdoorDesiredState } from "../src/casdoor.js";
 import { collectorConfiguration } from "../src/observability.js";
 import {
+  ACCOUNT_IMAGE,
+  ACCOUNT_OPENAPI,
+  APPLICATION_METADATA_IMAGE,
+  APPLICATION_METADATA_MIGRATION,
+  APPLICATION_METADATA_OPENAPI,
   BLUEPRINT_IMAGE,
   BLUEPRINT_OPENAPI,
   CASDOOR_IMAGE,
@@ -19,7 +24,7 @@ describe("package boundary", () => {
   it("implements the released thin-Core contract", () => {
     expect(foundationsPackage).toMatchObject({
       id: "juntai.platform.substrate",
-      version: "1.1.0",
+      version: "1.2.0",
       compatibility: {
         coreContract: "^1.1.0",
         capabilityContracts: "^1.0.0",
@@ -39,12 +44,36 @@ describe("package boundary", () => {
     expect(JSON.stringify(releaseInputs)).not.toMatch(/\b(?:kes|kingbase)\b/i);
   });
 
-  it("pins official Casdoor and Meridian-native Blueprint releases", () => {
+  it("pins the complete deployable foundation release inventory", () => {
     expect(CASDOOR_IMAGE).toMatch(
       /^docker\.io\/casbin\/casdoor@sha256:[0-9a-f]{64}$/,
     );
     expect(BLUEPRINT_IMAGE).toContain("@sha256:");
     expect(BLUEPRINT_OPENAPI.uri).toContain("/v3.0.0/");
+    expect(ACCOUNT_IMAGE).toContain("@sha256:");
+    expect(ACCOUNT_OPENAPI.uri).toContain("/account-service-v2.1.4/");
+    expect(APPLICATION_METADATA_IMAGE).toContain("@sha256:");
+    expect(APPLICATION_METADATA_OPENAPI.uri).toContain("/v3.0.0/");
+    expect(APPLICATION_METADATA_MIGRATION.uri).toContain(
+      "ba1ca5df9dbbc64e5c5c1d8a169db015791d38c9",
+    );
+    expect(FOUNDATION_SERVICE_CATALOG.services.map(({ id }) => id)).toEqual([
+      "foundation.iam",
+      "platform.account",
+      "platform.application-metadata",
+      "platform.blueprint",
+    ]);
+    expect(serviceDeclaration("platform.account")).toMatchObject({
+      release: { version: "2.1.4", image: ACCOUNT_IMAGE },
+      deployment: { routePrefix: "/api/platform.account/v1" },
+    });
+    expect(serviceDeclaration("platform.application-metadata")).toMatchObject({
+      release: { version: "3.0.0", image: APPLICATION_METADATA_IMAGE },
+      deployment: {
+        routePrefix: "/api/platform/applications/v1",
+        contractPathPrefix: "/v1",
+      },
+    });
     expect(serviceDeclaration("platform.blueprint")).toMatchObject({
       release: { version: "3.0.0", image: BLUEPRINT_IMAGE },
       deployment: {
@@ -100,6 +129,24 @@ describe("package boundary", () => {
         },
       }),
     ).toThrow(/must not expose KES/);
+    expect(() =>
+      validateFoundationsInputs({
+        ...valid,
+        account: {
+          ...valid.account,
+          compositionFactory: "not-a-factory" as `${string}:${string}`,
+        },
+      }),
+    ).toThrow(/module:function/);
+    expect(() =>
+      validateFoundationsInputs({
+        ...valid,
+        applicationMetadata: {
+          ...valid.applicationMetadata,
+          kubernetesApiCidr: "0.0.0.0/0",
+        },
+      }),
+    ).toThrow(/bounded IPv4 CIDR/);
   });
 
   it("renders bounded durable Collector configuration", () => {

@@ -28,6 +28,14 @@ export interface ResolvedContractEvidence {
   readonly resolvedDigest: Sha256Digest;
 }
 
+export interface ResolvedReleaseEvidence {
+  readonly serviceId: string;
+  readonly artifactId: string;
+  readonly uri: string;
+  readonly expectedDigest: Sha256Digest;
+  readonly resolvedDigest: Sha256Digest;
+}
+
 export interface ContractRouteInput {
   readonly serviceId: string;
   readonly gatewaySurface: "internal" | "operator" | "platform" | "public";
@@ -48,6 +56,7 @@ export interface ContractCompositionEvidence {
   readonly schemaVersion: "juntai.platform/foundation-contract-composition/v1";
   readonly compositionDigest: Sha256Digest;
   readonly artifacts: readonly ResolvedContractEvidence[];
+  readonly releaseArtifacts: readonly ResolvedReleaseEvidence[];
   readonly routes: readonly ContractRouteInput[];
   readonly bindings: readonly ContractBindingInput[];
 }
@@ -131,6 +140,9 @@ function validateCatalog(
       throw new ArtifactVerificationError(
         `service '${service.id}' image is not pinned to its declared digest`,
       );
+    }
+    for (const manifest of service.release.manifests ?? []) {
+      validateArtifactDeclaration(manifest);
     }
     if (
       service.deployment.protocols.includes("http") &&
@@ -332,23 +344,36 @@ function composeOpenApi(documents: readonly ParsedOpenApi[]): {
     const namespace = namespaceFor(document.service.id);
     const routePrefix = document.service.deployment.routePrefix;
     const gatewaySurface = document.service.deployment.gatewaySurface;
+    const contractPathPrefix =
+      document.service.deployment.contractPathPrefix ?? routePrefix;
     if (routePrefix === undefined || gatewaySurface === undefined) {
       throw new ArtifactVerificationError(
         `OpenAPI service '${document.service.id}' has no HTTP route declaration`,
       );
     }
+    if (contractPathPrefix === undefined) {
+      throw new ArtifactVerificationError(
+        `OpenAPI service '${document.service.id}' has no contract path prefix`,
+      );
+    }
     const routePaths: string[] = [];
     const operationIds = new Set<string>();
     for (const [path, pathValue] of Object.entries(document.paths)) {
-      if (paths[path] !== undefined) {
+      const beneathContractPrefix =
+        path === contractPathPrefix ||
+        path.startsWith(`${contractPathPrefix}/`);
+      const publicPath = beneathContractPrefix
+        ? `${routePrefix}${path.slice(contractPathPrefix.length)}`
+        : path;
+      if (paths[publicPath] !== undefined) {
         throw new ArtifactVerificationError(
-          `OpenAPI path '${path}' is declared by more than one foundation service`,
+          `OpenAPI path '${publicPath}' is declared by more than one foundation service`,
         );
       }
       const transformed = transformOpenApi(pathValue, namespace);
-      paths[path] = transformed;
-      if (path.startsWith(routePrefix)) {
-        routePaths.push(path);
+      paths[publicPath] = transformed;
+      if (beneathContractPrefix) {
+        routePaths.push(publicPath);
         collectOperationIds(transformed, operationIds);
       }
     }
@@ -552,15 +577,31 @@ export async function resolveAndComposeServiceContracts(
   );
   const services = validateCatalog(catalog, selectedServiceIds);
   const fetcher = options.fetcher ?? fetchVerifiedArtifact;
-  const resolved = await Promise.all(
-    services.flatMap((service) =>
-      service.artifacts.map(async (artifact): Promise<ResolvedContract> => ({
-        service,
-        artifact,
-        bytes: await resolveVerifiedBytes(artifact, fetcher),
-      })),
+  const [resolved, releaseArtifacts] = await Promise.all([
+    Promise.all(
+      services.flatMap((service) =>
+        service.artifacts.map(async (artifact): Promise<ResolvedContract> => ({
+          service,
+          artifact,
+          bytes: await resolveVerifiedBytes(artifact, fetcher),
+        })),
+      ),
     ),
-  );
+    Promise.all(
+      services.flatMap((service) =>
+        (service.release.manifests ?? []).map(async (artifact, index) => {
+          const bytes = await resolveVerifiedBytes(artifact, fetcher);
+          return Object.freeze({
+            serviceId: service.id,
+            artifactId: `${service.id}-release-artifact-${index + 1}`,
+            uri: artifact.uri,
+            expectedDigest: artifact.digest,
+            resolvedDigest: sha256(bytes),
+          });
+        }),
+      ),
+    ),
+  ]);
   const openApi = composeOpenApi(
     resolved
       .filter(({ artifact }) => artifact.format === "openapi")
@@ -603,6 +644,7 @@ export async function resolveAndComposeServiceContracts(
   const digestInput = {
     aggregateOpenApi: openApi.aggregateOpenApi ?? null,
     artifacts: artifactEvidence,
+    releaseArtifacts,
     bindings,
     protobufServices: [...protobufServices].sort(),
     routes: openApi.routes,
@@ -611,6 +653,7 @@ export async function resolveAndComposeServiceContracts(
     schemaVersion: "juntai.platform/foundation-contract-composition/v1",
     compositionDigest: sha256(canonicalJson(digestInput)),
     artifacts: artifactEvidence,
+    releaseArtifacts: Object.freeze(releaseArtifacts),
     routes: openApi.routes,
     bindings,
   });

@@ -36,6 +36,13 @@ interface GitHubReleaseCoordinate {
   readonly assetName: string;
 }
 
+interface GitHubRawCoordinate {
+  readonly owner: string;
+  readonly repository: string;
+  readonly commit: string;
+  readonly path: string;
+}
+
 interface OciDescriptor {
   readonly digest: Sha256Digest;
   readonly mediaType: string;
@@ -101,6 +108,38 @@ function validateHttpsCoordinate(uri: string): void {
       );
     }
   }
+  if (
+    coordinate.hostname === "raw.githubusercontent.com" &&
+    parseGitHubRawCoordinate(uri) === undefined
+  ) {
+    throw new ArtifactVerificationError(
+      `GitHub source artifact '${uri}' must pin an exact commit and path`,
+    );
+  }
+}
+
+function parseGitHubRawCoordinate(
+  uri: string,
+): GitHubRawCoordinate | undefined {
+  const coordinate = new URL(uri);
+  const match = coordinate.pathname.match(
+    /^\/([^/]+)\/([^/]+)\/([0-9a-f]{40})\/(.+)$/,
+  );
+  if (
+    coordinate.hostname !== "raw.githubusercontent.com" ||
+    match?.[1] === undefined ||
+    match[2] === undefined ||
+    match[3] === undefined ||
+    match[4] === undefined
+  ) {
+    return undefined;
+  }
+  return {
+    owner: match[1],
+    repository: match[2],
+    commit: match[3],
+    path: match[4],
+  };
 }
 
 function parseGitHubReleaseCoordinate(
@@ -240,7 +279,14 @@ export class ArtifactResolver {
   async #resolveHttps(artifact: VerifiedArtifact): Promise<Uint8Array> {
     const coordinate = new URL(artifact.uri);
     const github = parseGitHubReleaseCoordinate(artifact.uri);
+    const githubRaw = parseGitHubRawCoordinate(artifact.uri);
     const githubToken = this.#credentials.githubToken;
+    if (githubRaw !== undefined && githubToken !== undefined) {
+      return verifyDigest(
+        artifact,
+        await this.#fetchPrivateGitHubSource(artifact, githubRaw, githubToken),
+      );
+    }
     const response =
       github === undefined || githubToken === undefined
         ? await this.#fetch(artifact.uri, {
@@ -263,6 +309,51 @@ export class ArtifactResolver {
       );
     }
     return verifyDigest(artifact, await responseBytes(response, artifact.uri));
+  }
+
+  async #fetchPrivateGitHubSource(
+    artifact: VerifiedArtifact,
+    coordinate: GitHubRawCoordinate,
+    token: string,
+  ): Promise<Uint8Array> {
+    const encodedPath = coordinate.path
+      .split("/")
+      .map(encodeURIComponent)
+      .join("/");
+    const sourceUri = `https://api.github.com/repos/${encodeURIComponent(coordinate.owner)}/${encodeURIComponent(coordinate.repository)}/contents/${encodedPath}?ref=${coordinate.commit}`;
+    const response = await this.#fetch(sourceUri, {
+      headers: {
+        Accept: "application/vnd.github+json",
+        ...bearerHeaders(token),
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      redirect: "follow",
+    });
+    const metadataBytes = await responseBytes(response, sourceUri);
+    let metadata: unknown;
+    try {
+      metadata = JSON.parse(new TextDecoder().decode(metadataBytes)) as unknown;
+    } catch (error) {
+      throw new ArtifactVerificationError(
+        `GitHub source '${artifact.uri}' returned invalid metadata: ${String(error)}`,
+      );
+    }
+    if (
+      !isObjectRecord(metadata) ||
+      metadata.type !== "file" ||
+      metadata.encoding !== "base64" ||
+      typeof metadata.content !== "string" ||
+      metadata.path !== coordinate.path ||
+      metadata.html_url !==
+        `https://github.com/${coordinate.owner}/${coordinate.repository}/blob/${coordinate.commit}/${coordinate.path}`
+    ) {
+      throw new ArtifactVerificationError(
+        `GitHub source '${artifact.uri}' returned invalid file metadata`,
+      );
+    }
+    return new Uint8Array(
+      Buffer.from(metadata.content.replaceAll("\n", ""), "base64"),
+    );
   }
 
   async #fetchPrivateGitHubAsset(

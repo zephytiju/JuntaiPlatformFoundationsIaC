@@ -84,6 +84,40 @@ describe("immutable artifact verification", () => {
     ]);
   });
 
+  it("resolves private source files through an exact GitHub commit", async () => {
+    const bytes = new TextEncoder().encode("immutable migration");
+    const commit = "a".repeat(40);
+    const artifact = {
+      uri: `https://raw.githubusercontent.com/example/private/${commit}/migrations/v2.json`,
+      digest: sha256(bytes),
+    } as const;
+    const resolverFetch = vi.fn(async (input: Parameters<typeof fetch>[0]) => {
+      const uri =
+        typeof input === "string"
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      expect(uri).toContain(`/contents/migrations/v2.json?ref=${commit}`);
+      return new Response(
+        JSON.stringify({
+          type: "file",
+          encoding: "base64",
+          content: Buffer.from(bytes).toString("base64"),
+          path: "migrations/v2.json",
+          html_url: `https://github.com/example/private/blob/${commit}/migrations/v2.json`,
+        }),
+        { status: 200 },
+      );
+    });
+    const resolver = new ArtifactResolver({
+      credentials: { githubToken: "read-token" },
+      fetch: resolverFetch,
+    });
+    await expect(resolver.resolve(artifact)).resolves.toEqual(bytes);
+    expect(resolverFetch).toHaveBeenCalledOnce();
+  });
+
   it("ignores empty CI secrets and reports inaccessible private assets", async () => {
     process.env.JUNTAI_GITHUB_ARTIFACT_TOKEN = "";
     vi.stubGlobal(
@@ -155,6 +189,10 @@ describe("immutable artifact verification", () => {
       },
       {
         uri: "https://example.test/release.json?version=latest",
+        digest: `sha256:${"0".repeat(64)}` as const,
+      },
+      {
+        uri: "https://raw.githubusercontent.com/example/project/main/a.json",
         digest: `sha256:${"0".repeat(64)}` as const,
       },
       {

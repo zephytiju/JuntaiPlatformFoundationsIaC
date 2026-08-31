@@ -9,6 +9,8 @@
 - Shared namespaces, Gateway API v1.5.1, Envoy Gateway v1.8.3, GatewayClass, and the four platform gateway surfaces.
 - OpenTelemetry Collector gateway v0.153.0 with durable queueing, bounded resources, TLS/authorization references, and no inline secret bytes.
 - Official unmodified Casdoor 3.125.0, its workload identity, exact public/private routes, public-API bootstrap Job, and idempotent reconciliation schedule. The gated `client_credentials` application is deliberately absent.
+- Account 2.1.4, including its immutable multi-architecture image, platform-supplied composition factory, workload identity, platform route, observability binding, and five co-located Meridian structured resources plus transactional audit evidence.
+- Application Metadata 3.0.0, including projected workload and TokenReview identities, platform-prefix rewrite, immutable workload-binding configuration, four Meridian logical resources, and the platform-managed `juntai.application-metadata/1-to-2` migration.
 - Blueprint 3.0.0, including the package-owned release and deployment declarations, identity, route, policy, immutable OpenAPI composition, observability binding, and Meridian runtime reference.
 - Deployment-selected data engines only through `@zephytiju/meridian-storage-constructs@1.0.0`. KES and Kingbase are rejected.
 - State adoption aliases/imports, protected-by-default resources, and rollback metadata.
@@ -26,7 +28,7 @@ GitHub and OCI coordinates in the package contract are reserved for immutable se
 Install the exact release and commit the resulting lockfile:
 
 ```bash
-npm install --save-exact @zephytiju/platform-foundations-iac@1.1.0
+npm install --save-exact @zephytiju/platform-foundations-iac@1.2.0
 npm ci
 ```
 
@@ -35,7 +37,7 @@ The package requires Core contract `^1.1.0` and provides:
 - `juntai.platform.gateway-set@1.0.0`
 - `juntai.platform.meridian-runtime@1.0.0`
 - `juntai.platform.observability-gateway@1.0.0`
-- `juntai.platform.foundation-services@1.0.0`
+- `juntai.platform.foundation-services@1.1.0`
 
 ## Development
 
@@ -45,4 +47,4 @@ npm run check
 npm pack --dry-run
 ```
 
-See [adoption and rollback](docs/adoption-and-rollback.md) and [package ownership](docs/package-ownership.md).
+See [foundation service deployments](docs/foundation-services.md), [adoption and rollback](docs/adoption-and-rollback.md), and [package ownership](docs/package-ownership.md).

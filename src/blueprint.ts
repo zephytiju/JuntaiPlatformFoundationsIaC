@@ -11,6 +11,7 @@ import {
 import { childMigration } from "./adoption.js";
 import type { ContractRouteInput } from "./contract-composition.js";
 import { BLUEPRINT_IMAGE } from "./release.js";
+import { serviceDeclaration } from "./service-contracts.js";
 import type {
   AdoptionMap,
   BlueprintInputs,
@@ -19,6 +20,8 @@ import type {
   ObservabilityGatewayOutput,
 } from "./types.js";
 import type { MeridianRuntimeConfig } from "@zephytiju/juntai-platform-constructs";
+
+const declaration = serviceDeclaration("platform.blueprint");
 
 function secretFile(reference: BlueprintInputs["cursorHmac"]): {
   readonly kind: "secret";
@@ -185,7 +188,15 @@ export function createBlueprint(args: {
   });
   return Object.freeze({
     endpoint: service.internalEndpoint,
+    gatewaySurface: "platform",
+    imageDigest: declaration.release.imageDigest,
     namespace: service.service.metadata.namespace,
+    observabilityServiceName: "platform-blueprint",
+    readinessPath: "/health/ready",
+    recovery: declaration.deployment.recovery,
+    releaseVersion: declaration.release.version,
+    routePrefix: args.route.pathPrefix,
+    serviceId: declaration.id,
     serviceName: service.service.metadata.name,
   });
 }

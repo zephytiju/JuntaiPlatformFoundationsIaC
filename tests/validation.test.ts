@@ -61,4 +61,30 @@ describe("Foundations input validation", () => {
       }),
     ).toThrow(/requires deployment-selected Meridian Engines/);
   });
+
+  it("rejects ambiguous Application Metadata workload authority", () => {
+    const base = foundationsInputs();
+    expect(() =>
+      validateFoundationsInputs({
+        ...base,
+        applicationMetadata: {
+          ...base.applicationMetadata,
+          workloadBindings: [
+            {
+              namespace: "juntai-platform",
+              serviceAccount: "release-controller",
+              tenantId: "tenant-a",
+              workloadId: "release-controller-a",
+            },
+            {
+              namespace: "juntai-platform",
+              serviceAccount: "release-controller",
+              tenantId: "tenant-b",
+              workloadId: "release-controller-b",
+            },
+          ],
+        },
+      }),
+    ).toThrow(/must be unique/);
+  });
 });

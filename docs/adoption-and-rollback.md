@@ -8,7 +8,7 @@ All package-managed custom resources default to Pulumi `protect: true`. Existing
 2. Export the current Core state and record the old URNs and provider IDs.
 3. Populate aliases and exact import IDs for every existing physical resource. Never use discovery results as implicit selection.
 4. Run a refresh-only preview, then a normal preview. Both must report zero deletes and zero replacements.
-5. Verify that every Kubernetes resource is protected and that Gateway/Blueprint contracts were fetched from the recorded immutable coordinates.
+5. Verify that every Kubernetes resource is protected and that Gateway, Account, Application Metadata, and Blueprint artifacts were fetched from the recorded immutable coordinates.
 6. Apply only after the reviewed preview matches the adoption inventory. Record the stack update permalink and state checkpoint digest.
 
 ## Rollback procedure
@@ -19,6 +19,8 @@ Before applying, retain the prior Core selection, registry tarball integrity fro
 2. Restore the prior exact npm dependency and lockfile without editing or republishing the old release.
 3. Restore prior aliases/imports and run refresh-only plus normal preview.
 4. Require zero deletes and zero replacements. A replacement is a blocker, not an accepted rollback step.
-5. Apply the prior selection and verify Casdoor desired-state convergence, Blueprint health, Gateway routes, OTel export, and Meridian binding fingerprints.
+5. Apply the prior selection and verify Casdoor desired-state convergence; Account, Application Metadata, and Blueprint health; all Gateway routes and the Application Metadata prefix rewrite; OTel export; workload-token projection; and Meridian binding fingerprints.
+
+Account rollback disables its route and workload while retaining all Meridian logical resources. Application Metadata rollback retains the v1 export read-only until target counts, exact-reference resolution, handoff digests, and rejected-record evidence have passed cutover acceptance. Neither rollback deletes or reverses physical data.
 
 If state restoration is required, use the recorded Pulumi checkpoint only after validating stack identity and provider coordinates. Never delete a physical resource to make adoption succeed.

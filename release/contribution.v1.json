@@ -2,10 +2,10 @@
   "schemaVersion": "juntai.platform/package-contribution/v1",
   "package": {
     "id": "juntai.platform.substrate",
-    "version": "1.1.0"
+    "version": "1.2.0"
   },
   "capabilities": [
-    "juntai.platform.foundation-services@1.0.0",
+    "juntai.platform.foundation-services@1.1.0",
     "juntai.platform.gateway-set@1.0.0",
     "juntai.platform.meridian-runtime@1.0.0",
     "juntai.platform.observability-gateway@1.0.0"
@@ -19,6 +19,8 @@
     "juntai-platform"
   ],
   "secretRequirements": [
+    "application-metadata-cursor-hmac",
+    "application-metadata-policy-reader",
     "blueprint-cursor-hmac",
     "blueprint-policy-reader",
     "casdoor-bootstrap-credentials",

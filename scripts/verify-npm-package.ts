@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { deepStrictEqual } from "node:assert";
 import {
   copyFile,
   mkdir,
@@ -10,6 +11,7 @@ import {
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { FOUNDATION_SERVICE_CATALOG } from "../src/service-contracts.js";
+import foundationsPackage from "../src/package.js";
 
 interface PackedFile {
   readonly path: string;
@@ -37,6 +39,15 @@ const serviceReleases = JSON.parse(
     "utf8",
   ),
 ) as Record<string, unknown>;
+const contribution = JSON.parse(
+  await readFile(resolve(repository, "release/contribution.v1.json"), "utf8"),
+) as Record<string, unknown>;
+const adoptionInventory = JSON.parse(
+  await readFile(
+    resolve(repository, "release/adoption-inventory.v1.json"),
+    "utf8",
+  ),
+) as Record<string, unknown>;
 const manifestKeys = [
   "compatibility",
   "entrypoint",
@@ -57,6 +68,39 @@ if (
   manifest.entrypoint !== "dist/index.js"
 ) {
   throw new Error("npm package descriptor is not the canonical v1 contract");
+}
+deepStrictEqual(manifest, {
+  schemaVersion: "juntai.platform/iac-package-contract/v1",
+  id: foundationsPackage.id,
+  version: foundationsPackage.version,
+  targetProfiles: foundationsPackage.targetProfiles,
+  owners: foundationsPackage.owners,
+  compatibility: foundationsPackage.compatibility,
+  releaseInputs: foundationsPackage.releaseInputs,
+  requires: foundationsPackage.requires,
+  provides: foundationsPackage.provides,
+  entrypoint: "dist/index.js",
+});
+deepStrictEqual(
+  contribution.package,
+  { id: foundationsPackage.id, version: foundationsPackage.version },
+  "package contribution identity differs from the runtime contract",
+);
+deepStrictEqual(
+  contribution.capabilities,
+  foundationsPackage.provides
+    .map(({ id, version }) => `${id}@${version}`)
+    .sort(),
+  "package contribution capabilities differ from the runtime contract",
+);
+if (
+  adoptionInventory.package !==
+    `${foundationsPackage.id}@${foundationsPackage.version}` ||
+  !Array.isArray(adoptionInventory.resourceKeys) ||
+  new Set(adoptionInventory.resourceKeys).size !==
+    adoptionInventory.resourceKeys.length
+) {
+  throw new Error("adoption inventory identity or resource keys are invalid");
 }
 if (
   JSON.stringify(serviceReleases) !== JSON.stringify(FOUNDATION_SERVICE_CATALOG)
@@ -114,7 +158,10 @@ try {
     "README.md",
     "dist/index.d.ts",
     "dist/index.js",
+    "docs/adoption-and-rollback.md",
+    "docs/foundation-services.md",
     "docs/npm-release.md",
+    "docs/package-ownership.md",
     "package.json",
     "release/adoption-inventory.v1.json",
     "release/construct-lock.v1.json",
@@ -188,7 +235,7 @@ try {
       `if (foundationsPackage.version !== FOUNDATIONS_PACKAGE_VERSION) throw new Error("version mismatch");\n` +
       `if (foundationsPackage.version !== "${packageJson.version}") throw new Error("unexpected package version");\n` +
       `if (typeof foundationsPackage.deploy !== "function") throw new Error("missing Pulumi entrypoint");\n` +
-      `if (FOUNDATION_SERVICE_CATALOG.services.length < 2) throw new Error("missing service declarations");\n` +
+      `if (FOUNDATION_SERVICE_CATALOG.services.length !== 4) throw new Error("missing service declarations");\n` +
       `if (typeof resolveAndComposeServiceContracts !== "function") throw new Error("missing contract resolver");\n`,
   );
 

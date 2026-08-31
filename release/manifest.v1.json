@@ -1,7 +1,7 @@
 {
   "schemaVersion": "juntai.platform/iac-package-contract/v1",
   "id": "juntai.platform.substrate",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "targetProfiles": [
     "development",
     "development-local",
@@ -18,6 +18,56 @@
     }
   },
   "releaseInputs": [
+    {
+      "id": "account-contract-bundle",
+      "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/juntai-account-contracts-2.1.4.json",
+      "digest": "sha256:c4a79a209e925a10f0c931c711b3c1a9b443a3bcae4495aea467267af1316673"
+    },
+    {
+      "id": "account-deployment-manifest",
+      "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/deployment-manifest.v1.json",
+      "digest": "sha256:5bde3a4a98f4da4e80f3aedc1eec1c6eb15e433828a630d1f31e7171d7857df2"
+    },
+    {
+      "id": "account-image",
+      "uri": "ghcr.io/zephytiju/juntai-account-service@sha256:26c7c5e2f109aeeb47157f45bd95f2df6e34b9de83085fe1bc32512f9c7cd084",
+      "digest": "sha256:26c7c5e2f109aeeb47157f45bd95f2df6e34b9de83085fe1bc32512f9c7cd084"
+    },
+    {
+      "id": "account-openapi",
+      "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/account-service.v1.openapi.json",
+      "digest": "sha256:56910abbac64d3c8a7065c001d7c69b291c59f0904355c2cc7dacb0f9ad58695"
+    },
+    {
+      "id": "account-release-manifest",
+      "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/release-manifest.v1.json",
+      "digest": "sha256:cfe43d7d3f71380d8d4e9089d7445a7fd5da815678dcba919b923eeba13b5c92"
+    },
+    {
+      "id": "application-metadata-image",
+      "uri": "ghcr.io/zephytiju/juntai-application-metadata@sha256:66ccf5d5e0bb77564f7d5fd8bd3a7d673bbf4f0c5ce4f438e4e48eec0ef26872",
+      "digest": "sha256:66ccf5d5e0bb77564f7d5fd8bd3a7d673bbf4f0c5ce4f438e4e48eec0ef26872"
+    },
+    {
+      "id": "application-metadata-logical-migration",
+      "uri": "https://raw.githubusercontent.com/zephytiju/JuntaiApplicationMetadata/ba1ca5df9dbbc64e5c5c1d8a169db015791d38c9/migrations/application-metadata.v2.json",
+      "digest": "sha256:a66d986e8b7e663b37275f1be39bb7cd6e87582abe315eca720c218ebe3f79a1"
+    },
+    {
+      "id": "application-metadata-openapi",
+      "uri": "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.0.0/application-metadata.v1.json",
+      "digest": "sha256:04d80ef99114dcacb3fee9755eb96adc664d520d54a41b17cdbe1e18463f68eb"
+    },
+    {
+      "id": "application-metadata-release-contract",
+      "uri": "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.0.0/release-contract.v1.json",
+      "digest": "sha256:dd3b8ea5f5bd4fa84b48378bdaca0ffc34eacdc668326b9e5eaa0021c8ba0159"
+    },
+    {
+      "id": "application-metadata-release-manifest",
+      "uri": "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.0.0/release-manifest.json",
+      "digest": "sha256:48c7dc966766e3f8e124bc30f7f76348b2121de5ee41132e71c26a29082437c1"
+    },
     {
       "id": "blueprint-image",
       "uri": "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:5bfbcdd4073e3b0c16730904691310d8ccd6b913a2a525d3263d52535578fcdc",
@@ -83,7 +133,7 @@
     },
     {
       "id": "juntai.platform.foundation-services",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "multiplexed": false
     }
   ],

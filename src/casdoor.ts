@@ -11,12 +11,15 @@ import {
 import { adoptionOptions, childMigration } from "./adoption.js";
 import { sha256 } from "./artifacts.js";
 import { CASDOOR_BOOTSTRAP_IMAGE, CASDOOR_IMAGE } from "./release.js";
+import { serviceDeclaration } from "./service-contracts.js";
 import type {
   AdoptionMap,
   CasdoorInputs,
   FoundationsServiceOutput,
   GatewaySetOutput,
 } from "./types.js";
+
+const declaration = serviceDeclaration("foundation.iam");
 
 interface CasdoorDesiredObject {
   readonly kind:
@@ -441,7 +444,15 @@ export function createCasdoor(args: {
   });
   return Object.freeze({
     endpoint: service.apiEndpoint,
+    gatewaySurface: "public",
+    imageDigest: declaration.release.imageDigest,
     namespace: service.service.service.metadata.namespace,
+    observabilityServiceName: "foundation-iam",
+    readinessPath: "/api/health",
+    recovery: declaration.deployment.recovery,
+    releaseVersion: declaration.release.version,
+    routePrefix: "/api/identity",
+    serviceId: declaration.id,
     serviceName: service.service.service.metadata.name,
   });
 }
