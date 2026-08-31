@@ -24,7 +24,7 @@ GitHub and OCI coordinates in the package contract are reserved for immutable se
 Install the exact release and commit the resulting lockfile:
 
 ```bash
-npm install --save-exact @zephytiju/platform-foundations-iac@1.0.1
+npm install --save-exact @zephytiju/platform-foundations-iac@1.0.2
 npm ci
 ```
 

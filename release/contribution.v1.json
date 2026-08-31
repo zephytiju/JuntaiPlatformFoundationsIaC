@@ -2,7 +2,7 @@
   "schemaVersion": "juntai.platform/package-contribution/v1",
   "package": {
     "id": "juntai.platform.substrate",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "capabilities": [
     "juntai.platform.foundation-services@1.0.0",
