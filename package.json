@@ -1,22 +1,47 @@
 {
   "name": "@juntai/platform-foundations-iac",
-  "version": "1.0.0",
-  "private": true,
+  "version": "1.0.1",
   "description": "Pulumi-owned Juntai shared platform foundations package",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./manifest": "./release/manifest.v1.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "release",
+    "NOTICE",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zephytiju/JuntaiPlatformFoundationsIaC.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "engines": {
     "node": ">=22"
   },
   "packageManager": "npm@11.9.0",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "node --import tsx scripts/build.ts",
     "build:preview": "esbuild preview/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/preview/index.mjs",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run package:verify",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test:coverage && npm run npm:verify",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
-    "package:build": "node --import tsx scripts/build-package.ts",
-    "package:verify": "node --import tsx scripts/verify-package.ts",
+    "npm:verify": "node --import tsx scripts/verify-npm-package.ts",
+    "prepack": "npm run build",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc -p tsconfig.json --noEmit"

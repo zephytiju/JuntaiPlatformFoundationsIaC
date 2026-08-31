@@ -4,7 +4,7 @@ All package-managed custom resources default to Pulumi `protect: true`. Existing
 
 ## Adoption procedure
 
-1. Pin the immutable `platform-iac-package.v1.tar.gz` release and SHA-256 in Core.
+1. Pin the exact `@juntai/platform-foundations-iac` version in Core's `package.json`, commit the registry-resolved `package-lock.json`, and install it with `npm ci`.
 2. Export the current Core state and record the old URNs and provider IDs.
 3. Populate aliases and exact import IDs for every existing physical resource. Never use discovery results as implicit selection.
 4. Run a refresh-only preview, then a normal preview. Both must report zero deletes and zero replacements.
@@ -13,10 +13,10 @@ All package-managed custom resources default to Pulumi `protect: true`. Existing
 
 ## Rollback procedure
 
-Before applying, retain the prior Core selection, package archive, archive digest, state checkpoint, and exported adoption map. To roll back:
+Before applying, retain the prior Core selection, registry tarball integrity from `package-lock.json`, state checkpoint, and exported adoption map. To roll back:
 
 1. Stop if a package-owned operation reports an irreversible external data change.
-2. Restore the prior immutable package selection without editing the old release.
+2. Restore the prior exact npm dependency and lockfile without editing or republishing the old release.
 3. Restore prior aliases/imports and run refresh-only plus normal preview.
 4. Require zero deletes and zero replacements. A replacement is a blocker, not an accepted rollback step.
 5. Apply the prior selection and verify Casdoor desired-state convergence, Blueprint health, Gateway routes, OTel export, and Meridian binding fingerprints.

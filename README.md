@@ -1,6 +1,6 @@
 # JuntaiPlatformFoundationsIaC
 
-`JuntaiPlatformFoundationsIaC` is the independently released Pulumi package that owns Juntai shared infrastructure and approved foundation services. Its Core package identity remains `juntai.platform.substrate` for state continuity.
+`JuntaiPlatformFoundationsIaC` is published to npm as `@juntai/platform-foundations-iac`. It owns Juntai shared infrastructure and approved foundation services. Its Core package identity remains `juntai.platform.substrate` for state continuity.
 
 `JuntaiPlatformInfrastructure` is intentionally only the thin infrastructure Core. It selects immutable package versions, supplies provider and target context, validates the dependency graph, invokes each package, preserves state, and aggregates opaque typed outputs. It does not declare or interpret Kubernetes resources, service releases, contracts, routes, data engines, migrations, or recovery operations.
 
@@ -13,11 +13,20 @@
 - Deployment-selected data engines only through `@zephytiju/meridian-storage-constructs@1.0.0`. KES and Kingbase are rejected.
 - State adoption aliases/imports, protected-by-default resources, and rollback metadata.
 
-No fetched OpenAPI, Protobuf, MCP, CRD, or upstream install document is stored in this repository or release archive. HTTPS release artifacts are fetched and SHA-256 verified during Pulumi execution before resource registration.
+No fetched OpenAPI, Protobuf, MCP, CRD, or upstream install document is stored in this repository or npm tarball. HTTPS release artifacts are fetched and SHA-256 verified during Pulumi execution before resource registration.
 
-## Package contract
+## npm package contract
 
-The deterministic release asset is `platform-iac-package.v1.tar.gz`. It contains the bundled `dist/runtime/package.mjs`, package descriptor, contribution, construct lock, service releases, adoption inventory, SBOM, provenance, and checksums. Pulumi and Kubernetes providers remain external; reusable constructs are bundled at their reviewed exact versions.
+`JuntaiPlatformInfrastructure` consumes this package as an exact direct dependency in `package.json` and commits the registry-generated `package-lock.json`. `npm ci` is the only installation path. The npm tarball contains the compiled Pulumi entrypoint, TypeScript declarations, package descriptor, contribution, construct lock, service releases, adoption inventory, and operating guidance. It contains no source checkout loader, GitHub archive downloader, or staging path.
+
+GitHub and OCI coordinates in the package contract are reserved for immutable service artifacts that this package owns and verifies during Pulumi execution. They are not a distribution mechanism for first-party IaC package code.
+
+Install the exact release and commit the resulting lockfile:
+
+```bash
+npm install --save-exact @juntai/platform-foundations-iac@1.0.1
+npm ci
+```
 
 The package requires Core contract `^1.1.0` and provides:
 
@@ -31,7 +40,7 @@ The package requires Core contract `^1.1.0` and provides:
 ```bash
 npm ci --ignore-scripts
 npm run check
-SOURCE_DATE_EPOCH=0 FOUNDATIONS_SOURCE_REVISION=$(git rev-parse HEAD) npm run package:build
+npm pack --dry-run
 ```
 
 See [adoption and rollback](docs/adoption-and-rollback.md) and [package ownership](docs/package-ownership.md).

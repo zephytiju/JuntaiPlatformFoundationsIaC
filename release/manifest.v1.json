@@ -1,7 +1,7 @@
 {
   "schemaVersion": "juntai.platform/iac-package-contract/v1",
   "id": "juntai.platform.substrate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "targetProfiles": [
     "development",
     "development-local",
@@ -87,5 +87,5 @@
       "multiplexed": false
     }
   ],
-  "entrypoint": "dist/runtime/package.mjs"
+  "entrypoint": "dist/index.js"
 }

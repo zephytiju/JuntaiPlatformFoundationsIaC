@@ -36,7 +36,7 @@ export async function deployFoundations(
 ): Promise<{ readonly outputs: FoundationsOutputs }> {
   validateFoundationsInputs(context.inputs);
   const provider = context.providers.kubernetes;
-  if (!(provider instanceof k8s.Provider)) {
+  if (!k8s.Provider.isInstance(provider)) {
     throw new Error(
       "juntai.platform.substrate requires the Core-owned Kubernetes provider",
     );
