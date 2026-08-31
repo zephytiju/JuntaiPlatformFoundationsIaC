@@ -97,7 +97,7 @@ const legacyAdoptionCompatibility = JSON.parse(
   readonly package: string;
   readonly profile: string;
   readonly behavior: {
-    readonly propertyPaths: readonly string[];
+    readonly propertySelection: string;
     readonly physicalDeletion: boolean;
     readonly physicalReplacement: boolean;
   };
@@ -169,8 +169,8 @@ if (
   legacyAdoptionCompatibility.profile !== "core-v1.9.0-uid-preserving" ||
   legacyAdoptionCompatibility.behavior.physicalDeletion ||
   legacyAdoptionCompatibility.behavior.physicalReplacement ||
-  JSON.stringify(legacyAdoptionCompatibility.behavior.propertyPaths) !==
-    JSON.stringify(["*"]) ||
+  legacyAdoptionCompatibility.behavior.propertySelection !==
+    "all-registered-top-level-inputs-in-code-unit-order" ||
   legacyAdoptionCompatibility.lifecycle.retainedThrough !==
     "Task 08 verification" ||
   legacyAdoptionCompatibility.lifecycle.removalRequires.length !== 4

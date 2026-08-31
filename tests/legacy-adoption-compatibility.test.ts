@@ -20,12 +20,13 @@ describe("Core v1.9.0 UID-preserving adoption compatibility", () => {
     const transformed = legacyAdoptionCompatibilityOptions(
       "kubernetes:gateway.networking.k8s.io/v1:Gateway",
       "gateway-operator",
+      { apiVersion: "gateway.networking.k8s.io/v1", kind: "Gateway", spec: {} },
       { protect: true, retainOnDelete: true },
     );
     expect(transformed).toMatchObject({
       protect: true,
       retainOnDelete: true,
-      ignoreChanges: ["*"],
+      ignoreChanges: ["apiVersion", "kind", "spec"],
     });
   });
 
@@ -34,6 +35,7 @@ describe("Core v1.9.0 UID-preserving adoption compatibility", () => {
       legacyAdoptionCompatibilityOptions(
         "kubernetes:apps/v1:Deployment",
         "account-deployment",
+        { apiVersion: "apps/v1", kind: "Deployment", spec: {} },
         { protect: true },
       ),
     ).toBeUndefined();

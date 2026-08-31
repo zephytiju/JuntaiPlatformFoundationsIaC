@@ -4,7 +4,7 @@
   "profile": "core-v1.9.0-uid-preserving",
   "behavior": {
     "resourceOption": "ignoreChanges",
-    "propertyPaths": ["*"],
+    "propertySelection": "all-registered-top-level-inputs-in-code-unit-order",
     "scope": "exact-pulumi-type-and-logical-name",
     "physicalDeletion": false,
     "physicalReplacement": false,

@@ -121,6 +121,7 @@ const legacyResourceKeys = new Set(
 export function legacyAdoptionCompatibilityOptions(
   type: string,
   name: string,
+  properties: pulumi.Inputs,
   options: pulumi.ResourceOptions,
 ): pulumi.ResourceOptions | undefined {
   if (!legacyResourceKeys.has(`${type}\0${name}`)) return undefined;
@@ -128,7 +129,7 @@ export function legacyAdoptionCompatibilityOptions(
     ...options,
     // This profile is a UID-preserving ownership transfer, not a rollout.
     // Fresh resources still receive their complete desired inputs on create.
-    ignoreChanges: ["*"],
+    ignoreChanges: Object.keys(properties).sort(),
   };
 }
 
@@ -140,6 +141,7 @@ export function registerLegacyAdoptionCompatibility(
     const opts = legacyAdoptionCompatibilityOptions(
       args.type,
       args.name,
+      args.props,
       args.opts,
     );
     return opts === undefined ? undefined : { props: args.props, opts };
