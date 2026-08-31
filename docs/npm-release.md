@@ -1,6 +1,6 @@
 # npm release process
 
-`@juntai/platform-foundations-iac` is released from reviewed commits on `main`. The `foundations-iac-v<version>` tag must identify the same version as `package.json` and trigger `.github/workflows/release.yml`.
+`@zephytiju/platform-foundations-iac` is released from reviewed commits on `main`. The `foundations-iac-v<version>` tag must identify the same version as `package.json` and trigger `.github/workflows/release.yml`.
 
 Normal releases use npm trusted publishing from GitHub Actions. The trusted publisher is restricted to:
 

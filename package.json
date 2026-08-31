@@ -1,5 +1,5 @@
 {
-  "name": "@juntai/platform-foundations-iac",
+  "name": "@zephytiju/platform-foundations-iac",
   "version": "1.0.1",
   "description": "Pulumi-owned Juntai shared platform foundations package",
   "type": "module",

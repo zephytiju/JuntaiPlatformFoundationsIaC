@@ -1,6 +1,6 @@
 # JuntaiPlatformFoundationsIaC
 
-`JuntaiPlatformFoundationsIaC` is published to npm as `@juntai/platform-foundations-iac`. It owns Juntai shared infrastructure and approved foundation services. Its Core package identity remains `juntai.platform.substrate` for state continuity.
+`JuntaiPlatformFoundationsIaC` is published to npm as `@zephytiju/platform-foundations-iac`. It owns Juntai shared infrastructure and approved foundation services. Its Core package identity remains `juntai.platform.substrate` for state continuity.
 
 `JuntaiPlatformInfrastructure` is intentionally only the thin infrastructure Core. It selects immutable package versions, supplies provider and target context, validates the dependency graph, invokes each package, preserves state, and aggregates opaque typed outputs. It does not declare or interpret Kubernetes resources, service releases, contracts, routes, data engines, migrations, or recovery operations.
 
@@ -24,7 +24,7 @@ GitHub and OCI coordinates in the package contract are reserved for immutable se
 Install the exact release and commit the resulting lockfile:
 
 ```bash
-npm install --save-exact @juntai/platform-foundations-iac@1.0.1
+npm install --save-exact @zephytiju/platform-foundations-iac@1.0.1
 npm ci
 ```
 
