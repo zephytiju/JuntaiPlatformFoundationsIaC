@@ -8,6 +8,8 @@ import {
   getEngineProfile,
   type EngineBinding,
   type MeridianResourceRequirementV1,
+  type OperationRequirementV1,
+  type SchemaProviderV1,
 } from "@zephytiju/meridian-storage-constructs";
 import { childMigration } from "./adoption.js";
 import type {
@@ -17,16 +19,41 @@ import type {
   MeridianRuntimeOutput,
 } from "./types.js";
 
-const BLUEPRINT_SCHEMA_FINGERPRINT =
-  "sha256:0a1d34129ed514fc0e7b227c6d23fbff61f025de209d0ebeedd0cf618a6bd26d";
-const ACCOUNT_SCHEMA_FINGERPRINT =
-  "sha256:c4a79a209e925a10f0c931c711b3c1a9b443a3bcae4495aea467267af1316673";
-const APPLICATION_METADATA_SCHEMA_FINGERPRINT =
-  "sha256:a66d986e8b7e663b37275f1be39bb7cd6e87582abe315eca720c218ebe3f79a1";
-const MERIDIAN_CORE_FINGERPRINT =
-  "sha256:6b8ebb70ee1a8467a96d668878a8eebf826c1c4b63b3832ae70f2c630a8ef4a1";
+const ACCOUNT_PROVIDER = Object.freeze({
+  id: "platform-account",
+  package: "juntai-account-service",
+  contract: "1.0.0",
+  version: "2.1.5",
+  requiredFingerprint:
+    "sha256:6483e0a226a28a3521136d7099162509274bbc93db9a6106f04e65ca44a69d4b",
+});
+const APPLICATION_METADATA_PROVIDER = Object.freeze({
+  id: "juntai.application-metadata",
+  package: "juntai-application-metadata",
+  contract: "1.0.0",
+  version: "3.0.2",
+  requiredFingerprint:
+    "sha256:e950b20bbb97d7f5fd44d99a52b56eac77e25a6dcfd552e407562653eb4824c2",
+});
+const BLUEPRINT_PROVIDER = Object.freeze({
+  id: "juntai.blueprint",
+  package: "juntai-blueprint-marketplace",
+  contract: "1.0.0",
+  version: "3.0.2",
+  requiredFingerprint:
+    "sha256:bcea0a3aa4272c09803ed98d1d9a2a795cd916fb149e6d2c4efa6cfe004e2c49",
+});
+const CONFIG_ARTIFACT_PROVIDER = Object.freeze({
+  id: "meridian.plugin.config-artifact",
+  package: "meridian-plugin-config-artifact",
+  contract: "1.0.0",
+  version: "1.0.2",
+  requiredFingerprint:
+    "sha256:67ed231448870ac0cdb16aee25b44859ca5ab6bc331d417b5006e8fc2d4189ee",
+});
 const CATALOG_FINGERPRINTS = Object.freeze({
-  structured: MERIDIAN_CORE_FINGERPRINT,
+  structured:
+    "sha256:6b8ebb70ee1a8467a96d668878a8eebf826c1c4b63b3832ae70f2c630a8ef4a1",
   object:
     "sha256:62d838ab872a933d5c9f51b30de7389786400f49ed9f006b0cbab07fb67fce36",
   cache:
@@ -37,79 +64,259 @@ const CATALOG_FINGERPRINTS = Object.freeze({
     "sha256:8fa802d1f4d69082b1bb2643856f82db9159ebe92fcd819aa529c143cd8d51eb",
 } as const);
 
-function structuredResource(args: {
+interface ProviderPin {
+  readonly id: string;
+  readonly package: string;
+  readonly contract: string;
+  readonly version: string;
+  readonly requiredFingerprint: string;
+}
+
+const structuredOperation = (method: string): OperationRequirementV1 => ({
+  contract: `meridian.structured.${method}`,
+  version: "1.0.0",
+});
+
+const transactionOperation: OperationRequirementV1 = Object.freeze({
+  contract: "meridian.transaction",
+  version: "1.0.0",
+  guarantees: ["atomic", "no-dirty-reads"],
+});
+
+const accountStructuredOperation = (
+  method: string,
+): OperationRequirementV1 => ({
+  contract: `meridian.structured.${method}`,
+  version: "1.0.0",
+  guarantees: [
+    "bound-parameters",
+    "scope-injected",
+    "single-binding",
+    "strong-consistency",
+    ...(["delete", "patch", "put"].includes(method)
+      ? ["conditional-mutation", "read-committed"]
+      : []),
+  ],
+});
+
+const accountTransactionOperation: OperationRequirementV1 = Object.freeze({
+  contract: "meridian.transaction",
+  version: "1.0.0",
+  guarantees: ["atomic", "no-dirty-reads", "read-committed"],
+});
+
+function resourceRequirement(args: {
+  readonly catalog: "structured" | "object";
   readonly namespace: string;
   readonly name: string;
-  readonly providerId: string;
-  readonly package: string;
-  readonly version: string;
-  readonly fingerprint: string;
-  readonly methods: readonly string[];
-  readonly transaction?: boolean;
+  readonly provider: ProviderPin;
+  readonly operations: readonly OperationRequirementV1[];
 }): MeridianResourceRequirementV1 {
-  const operations = args.methods.map((method) => ({
-    contract: `meridian.structured.${method}`,
-    version: "1.0.0",
-    guarantees: [
-      "bound-parameters",
-      "scope-injected",
-      "single-binding",
-      "strong-consistency",
-      ...(["delete", "patch", "put"].includes(method)
-        ? ["conditional-mutation", "read-committed"]
-        : []),
-    ],
-  }));
   return {
     selector: {
-      catalog: "structured",
+      catalog: args.catalog,
       namespace: args.namespace,
       name: args.name,
     },
     schemas: [
       {
-        providerId: args.providerId,
-        package: args.package,
-        version: args.version,
-        fingerprint: args.fingerprint,
+        providerId: args.provider.id,
+        package: args.provider.package,
+        version: args.provider.version,
+        fingerprint: args.provider.requiredFingerprint,
+      },
+    ],
+    operations: args.operations,
+    guarantees: { required: [] },
+    limits: { values: {} },
+    dataClass: "internal",
+    labels: { owner: args.provider.id },
+  };
+}
+
+const accountResources = Object.freeze([
+  ...(
+    [
+      ["accounts", ["get", "put", "patch", "query"]],
+      ["profiles", ["get", "put", "patch", "query"]],
+      ["integration-bindings", ["get", "put", "query"]],
+      ["mutation-receipts", ["get", "put"]],
+      ["mutation-outbox", ["get", "put", "patch", "query"]],
+    ] as const
+  ).map(([name, methods]) =>
+    resourceRequirement({
+      catalog: "structured",
+      namespace: "platform.account",
+      name,
+      provider: ACCOUNT_PROVIDER,
+      operations: [
+        ...methods.map(accountStructuredOperation),
+        accountTransactionOperation,
+      ],
+    }),
+  ),
+  {
+    selector: {
+      catalog: "evidence",
+      namespace: "platform.account",
+      name: "audit",
+    },
+    schemas: [
+      {
+        providerId: ACCOUNT_PROVIDER.id,
+        package: ACCOUNT_PROVIDER.package,
+        version: ACCOUNT_PROVIDER.version,
+        fingerprint: ACCOUNT_PROVIDER.requiredFingerprint,
       },
     ],
     operations: [
-      ...operations,
-      ...(args.transaction === true
-        ? [
-            {
-              contract: "meridian.transaction",
-              version: "1.0.0",
-              guarantees: ["atomic", "no-dirty-reads", "read-committed"],
-            },
-          ]
-        : []),
+      {
+        contract: "meridian.evidence.append",
+        version: "1.0.0",
+        guarantees: [
+          "append-only",
+          "bound-parameters",
+          "read-committed",
+          "scope-injected",
+          "transactional-with-structured",
+        ],
+      },
+      {
+        contract: "meridian.evidence.query",
+        version: "1.0.0",
+        guarantees: [
+          "bound-parameters",
+          "scope-injected",
+          "strong-consistency",
+        ],
+      },
     ],
     guarantees: { required: [] },
     limits: { values: {} },
     dataClass: "internal",
-    labels: {
-      owner: args.providerId,
-      "juntai.dev/co-location": args.namespace,
-    },
-  };
-}
+    labels: { owner: ACCOUNT_PROVIDER.id },
+  } satisfies MeridianResourceRequirementV1,
+]);
 
-const accountResources = [
-  ["accounts", ["get", "put", "patch", "query"]],
-  ["profiles", ["get", "put", "patch", "query"]],
-  ["integration-bindings", ["get", "put", "query"]],
-  ["mutation-receipts", ["get", "put"]],
-  ["mutation-outbox", ["get", "put", "patch", "query"]],
-] as const;
+const applicationMetadataResources = Object.freeze([
+  resourceRequirement({
+    catalog: "structured",
+    namespace: "application-metadata",
+    name: "applications",
+    provider: APPLICATION_METADATA_PROVIDER,
+    operations: [
+      ...["get", "patch", "put", "query"].map(structuredOperation),
+      transactionOperation,
+    ],
+  }),
+  resourceRequirement({
+    catalog: "structured",
+    namespace: "application-metadata",
+    name: "contributions",
+    provider: APPLICATION_METADATA_PROVIDER,
+    operations: [
+      ...["delete", "get", "put", "query"].map(structuredOperation),
+      transactionOperation,
+    ],
+  }),
+  resourceRequirement({
+    catalog: "structured",
+    namespace: "application-metadata",
+    name: "idempotency",
+    provider: APPLICATION_METADATA_PROVIDER,
+    operations: [
+      ...["delete", "get", "put"].map(structuredOperation),
+      transactionOperation,
+    ],
+  }),
+  resourceRequirement({
+    catalog: "structured",
+    namespace: "application-metadata",
+    name: "versions",
+    provider: APPLICATION_METADATA_PROVIDER,
+    operations: [
+      ...["get", "patch", "put", "query"].map(structuredOperation),
+      transactionOperation,
+    ],
+  }),
+]);
 
-const applicationMetadataResources = [
-  ["applications", ["get", "patch", "put", "query"]],
-  ["versions", ["get", "patch", "put", "query"]],
-  ["contributions", ["delete", "get", "put", "query"]],
-  ["idempotency", ["delete", "get", "put"]],
-] as const;
+const configArtifactResources = Object.freeze([
+  resourceRequirement({
+    catalog: "structured",
+    namespace: "resources",
+    name: "channels",
+    provider: CONFIG_ARTIFACT_PROVIDER,
+    operations: [
+      ...["get", "put", "query"].map(structuredOperation),
+      transactionOperation,
+    ],
+  }),
+  resourceRequirement({
+    catalog: "structured",
+    namespace: "resources",
+    name: "metadata",
+    provider: CONFIG_ARTIFACT_PROVIDER,
+    operations: [
+      ...["get", "patch", "put", "query"].map(structuredOperation),
+      transactionOperation,
+    ],
+  }),
+  resourceRequirement({
+    catalog: "structured",
+    namespace: "resources",
+    name: "orphan-candidates",
+    provider: CONFIG_ARTIFACT_PROVIDER,
+    operations: [
+      ...["get", "patch", "put", "query"].map(structuredOperation),
+      transactionOperation,
+    ],
+  }),
+  resourceRequirement({
+    catalog: "structured",
+    namespace: "resources",
+    name: "provenance",
+    provider: CONFIG_ARTIFACT_PROVIDER,
+    operations: [
+      ...["get", "put", "query"].map(structuredOperation),
+      transactionOperation,
+    ],
+  }),
+  resourceRequirement({
+    catalog: "object",
+    namespace: "resources",
+    name: "objects",
+    provider: CONFIG_ARTIFACT_PROVIDER,
+    operations: [
+      {
+        contract: "meridian.object.get",
+        version: "1.0.0",
+        guarantees: ["object.digest-verification", "object.streaming"],
+      },
+      {
+        contract: "meridian.object.list",
+        version: "1.0.0",
+        guarantees: ["object.bounded-prefix-list"],
+      },
+      {
+        contract: "meridian.object.put",
+        version: "1.0.0",
+        guarantees: [
+          "object.conditional-create",
+          "object.digest-sha256",
+          "object.metadata-after-commit",
+          "object.streaming",
+        ],
+      },
+      {
+        contract: "meridian.object.read_range",
+        version: "1.0.0",
+        guarantees: ["object.digest-verification", "object.range-read"],
+      },
+      { contract: "meridian.object.stat", version: "1.0.0" },
+    ],
+  }),
+]);
 
 function externalEngine(
   selection: MeridianEngineSelection,
@@ -165,7 +372,7 @@ function externalEngine(
         endpoint: selection.endpoint,
         serviceRef: selection.serviceRef,
         requiredPhysicalFingerprint: selection.requiredPhysicalFingerprint,
-        settings: {},
+        settings: selection.settings ?? {},
         extensions: {},
       },
     },
@@ -184,52 +391,43 @@ function externalEngine(
   );
 }
 
-export function createMeridianRuntime(args: {
-  readonly provider: k8s.Provider;
-  readonly namespace: pulumi.Input<string>;
-  readonly inputs: MeridianInputs;
+function schemaProvider(provider: ProviderPin): SchemaProviderV1 {
+  return {
+    id: provider.id,
+    package: provider.package,
+    contract: provider.contract,
+    requiredFingerprint: provider.requiredFingerprint,
+  };
+}
+
+function createDeployment(args: {
+  readonly name: string;
+  readonly schemaProviders: readonly ProviderPin[];
+  readonly resources: readonly MeridianResourceRequirementV1[];
+  readonly engines: readonly EngineBinding[];
   readonly adoption?: AdoptionMap;
+  readonly adoptionKey?: string;
   readonly dependsOn?: readonly pulumi.Resource[];
-}): {
-  readonly deployment: MeridianDeployment;
-  readonly runtime: MeridianRuntimeConfig;
-  readonly output: MeridianRuntimeOutput;
-} {
-  if (args.inputs.engines.length === 0) {
-    throw new Error(
-      "Foundations requires at least one Meridian Engine selection",
-    );
-  }
-  if (/\b(?:kes|kingbase)\b/i.test(JSON.stringify(args.inputs))) {
-    throw new Error("Foundations data engines must not expose KES or Kingbase");
-  }
-  const ids = args.inputs.engines.map((engine) => engine.bindingId);
-  if (new Set(ids).size !== ids.length) {
-    throw new Error("Meridian Engine binding IDs must be unique");
-  }
-  const structured = args.inputs.engines.find(
-    (engine) => engine.bindingId === "structured",
-  );
-  if (structured === undefined) {
-    throw new Error(
-      "Foundations requires a Meridian structured binding for approved foundation services",
-    );
-  }
-  const structuredProfile = getEngineProfile(structured.profileId);
-  if (
-    !structuredProfile.catalogs.includes("structured") ||
-    !structuredProfile.catalogs.includes("evidence")
-  ) {
-    throw new Error(
-      "the Meridian 'structured' binding must select a released structured and evidence profile",
-    );
-  }
-  const engines = args.inputs.engines.map((engine) =>
-    externalEngine(engine, args.adoption),
-  );
-  const deploymentAdoption = args.adoption?.["meridian/deployment"];
-  const deployment = new MeridianDeployment(
-    "foundations-meridian",
+}): MeridianDeployment {
+  const accountResourceSelectors = args.resources
+    .filter(({ selector }) => selector.namespace === "platform.account")
+    .map(({ selector }) => selector);
+  const structuredResources = args.resources
+    .filter(
+      ({ selector }) =>
+        selector.catalog === "structured" &&
+        selector.namespace !== "platform.account",
+    )
+    .map(({ selector }) => selector);
+  const objectResources = args.resources
+    .filter(({ selector }) => selector.catalog === "object")
+    .map(({ selector }) => selector);
+  const deploymentAdoption =
+    args.adoptionKey === undefined
+      ? undefined
+      : args.adoption?.[args.adoptionKey];
+  return new MeridianDeployment(
+    args.name,
     {
       profile: "juntai-foundations/open-source-selected/v1",
       catalogs: (
@@ -240,178 +438,54 @@ export function createMeridianRuntime(args: {
         contract: "1.0.0",
         requiredFingerprint: CATALOG_FINGERPRINTS[name],
       })),
-      schemaProviders: [
-        {
-          id: "platform-account",
-          package: "juntai-account-service",
-          contract: "1.0.0",
-          requiredFingerprint: ACCOUNT_SCHEMA_FINGERPRINT,
-        },
-        {
-          id: "juntai.application-metadata",
-          package: "juntai-application-metadata",
-          contract: "1.0.0",
-          requiredFingerprint: APPLICATION_METADATA_SCHEMA_FINGERPRINT,
-        },
-        {
-          id: "platform-blueprint",
-          package: "juntai-blueprint-marketplace",
-          contract: "1.0.0",
-          requiredFingerprint: BLUEPRINT_SCHEMA_FINGERPRINT,
-        },
-      ],
-      resources: [
-        ...accountResources.map(([name, methods]) =>
-          structuredResource({
-            namespace: "platform.account",
-            name,
-            providerId: "platform-account",
-            package: "juntai-account-service",
-            version: "2.1.4",
-            fingerprint: ACCOUNT_SCHEMA_FINGERPRINT,
-            methods,
-            transaction: true,
-          }),
-        ),
-        {
-          selector: {
-            catalog: "evidence",
-            namespace: "platform.account",
-            name: "audit",
-          },
-          schemas: [
-            {
-              providerId: "platform-account",
-              package: "juntai-account-service",
-              version: "2.1.4",
-              fingerprint: ACCOUNT_SCHEMA_FINGERPRINT,
-            },
-          ],
-          operations: [
-            {
-              contract: "meridian.evidence.append",
-              version: "1.0.0",
-              guarantees: [
-                "append-only",
-                "bound-parameters",
-                "read-committed",
-                "scope-injected",
-                "transactional-with-structured",
-              ],
-            },
-            {
-              contract: "meridian.evidence.query",
-              version: "1.0.0",
-              guarantees: [
-                "bound-parameters",
-                "scope-injected",
-                "strong-consistency",
-              ],
-            },
-          ],
-          guarantees: {
-            required: [],
-          },
-          limits: { values: {} },
-          dataClass: "internal",
-          labels: { owner: "platform-account" },
-        },
-        ...applicationMetadataResources.map(([name, methods]) =>
-          structuredResource({
-            namespace: "application-metadata",
-            name,
-            providerId: "juntai.application-metadata",
-            package: "juntai-application-metadata",
-            version: "2.0.0",
-            fingerprint: APPLICATION_METADATA_SCHEMA_FINGERPRINT,
-            methods,
-            transaction: true,
-          }),
-        ),
-        {
-          selector: {
-            catalog: "structured",
-            namespace: "platform",
-            name: "blueprints",
-          },
-          schemas: [
-            {
-              providerId: "platform-blueprint",
-              package: "juntai-blueprint-marketplace",
-              version: "3.0.0",
-              fingerprint: BLUEPRINT_SCHEMA_FINGERPRINT,
-            },
-          ],
-          operations: [
-            "meridian.structured.create_resource",
-            "meridian.structured.delete",
-            "meridian.structured.get",
-            "meridian.structured.put",
-            "meridian.structured.query",
-          ].map((contract) => ({ contract, version: "1.0.0" })),
-          guarantees: { required: [] },
-          limits: { values: {} },
-          dataClass: "internal",
-          labels: { owner: "juntai-platform-foundations-iac" },
-        },
-      ],
-      engines,
+      schemaProviders: args.schemaProviders.map(schemaProvider),
+      resources: args.resources,
+      engines: args.engines,
       placements: [
-        {
-          id: "place-platform-account",
-          selector: {
-            resources: [
-              ...accountResources.map(([name]) => ({
-                catalog: "structured" as const,
-                namespace: "platform.account",
-                name,
-              })),
+        ...(accountResourceSelectors.length === 0
+          ? []
+          : [
               {
-                catalog: "evidence" as const,
-                namespace: "platform.account",
-                name: "audit",
+                id: `${args.name}-account`,
+                selector: {
+                  resources: accountResourceSelectors,
+                  catalog: null,
+                  labels: {},
+                },
+                bindingId: "structured",
+                extensions: {
+                  coLocationGroup: "platform.account.profile-mutation.v1",
+                },
               },
-            ],
-            catalog: null,
-            labels: {},
-          },
-          bindingId: "structured",
-          extensions: {
-            coLocationGroup: "platform.account.profile-mutation.v1",
-          },
-        },
-        {
-          id: "place-application-metadata",
-          selector: {
-            resources: applicationMetadataResources.map(([name]) => ({
-              catalog: "structured" as const,
-              namespace: "application-metadata",
-              name,
-            })),
-            catalog: null,
-            labels: {},
-          },
-          bindingId: "structured",
-          extensions: {
-            logicalMigration: "juntai.application-metadata/1-to-2",
-          },
-        },
-        {
-          id: "place-platform-blueprints",
-          selector: {
-            resources: [
+            ]),
+        ...(structuredResources.length === 0
+          ? []
+          : [
               {
-                catalog: "structured",
-                namespace: "platform",
-                name: "blueprints",
+                id: `${args.name}-structured`,
+                selector: {
+                  resources: structuredResources,
+                  catalog: null,
+                  labels: {},
+                },
+                bindingId: "structured",
+                extensions: {},
               },
-            ],
-            catalog: null,
-            labels: {},
-          },
-          bindingId: "structured",
-          extensions: {},
-        },
+            ]),
+        ...(objectResources.length === 0
+          ? []
+          : [
+              {
+                id: `${args.name}-object`,
+                selector: {
+                  resources: objectResources,
+                  catalog: null,
+                  labels: {},
+                },
+                bindingId: "object",
+                extensions: {},
+              },
+            ]),
       ],
       validation: defaultValidationPolicy,
       telemetry: {
@@ -434,6 +508,88 @@ export function createMeridianRuntime(args: {
         : { aliases: [...deploymentAdoption.aliases] }),
     },
   );
+}
+
+export function createMeridianRuntime(args: {
+  readonly provider: k8s.Provider;
+  readonly namespace: pulumi.Input<string>;
+  readonly inputs: MeridianInputs;
+  readonly adoption?: AdoptionMap;
+  readonly dependsOn?: readonly pulumi.Resource[];
+}): {
+  readonly deployment: MeridianDeployment;
+  readonly applicationMetadataDeployment: MeridianDeployment;
+  readonly blueprintDeployment: MeridianDeployment;
+  readonly runtime: MeridianRuntimeConfig;
+  readonly applicationMetadataRuntime: MeridianRuntimeConfig;
+  readonly blueprintRuntime: MeridianRuntimeConfig;
+  readonly output: MeridianRuntimeOutput;
+} {
+  if (args.inputs.engines.length === 0) {
+    throw new Error(
+      "Foundations requires at least one Meridian Engine selection",
+    );
+  }
+  if (/\b(?:kes|kingbase)\b/i.test(JSON.stringify(args.inputs))) {
+    throw new Error("Foundations data engines must not expose KES or Kingbase");
+  }
+  const ids = args.inputs.engines.map((engine) => engine.bindingId);
+  if (new Set(ids).size !== ids.length) {
+    throw new Error("Meridian Engine binding IDs must be unique");
+  }
+  const structured = args.inputs.engines.find(
+    (engine) => engine.bindingId === "structured",
+  );
+  const object = args.inputs.engines.find(
+    (engine) => engine.bindingId === "object",
+  );
+  if (structured === undefined || object === undefined) {
+    throw new Error(
+      "Foundations requires Meridian structured and object bindings for the approved services",
+    );
+  }
+  const structuredCatalogs = getEngineProfile(structured.profileId).catalogs;
+  if (
+    !structuredCatalogs.includes("structured") ||
+    !structuredCatalogs.includes("evidence")
+  ) {
+    throw new Error(
+      "the Meridian 'structured' binding must select a released structured and evidence profile",
+    );
+  }
+  if (!getEngineProfile(object.profileId).catalogs.includes("object")) {
+    throw new Error(
+      "the Meridian 'object' binding must select a released object profile",
+    );
+  }
+  const engines = args.inputs.engines.map((engine) =>
+    externalEngine(engine, args.adoption),
+  );
+  const deployment = createDeployment({
+    name: "foundations-meridian",
+    schemaProviders: [ACCOUNT_PROVIDER],
+    resources: accountResources,
+    engines,
+    adoption: args.adoption,
+    adoptionKey: "meridian/deployment",
+    dependsOn: args.dependsOn,
+  });
+  const applicationMetadataDeployment = createDeployment({
+    name: "foundations-meridian-application-metadata",
+    schemaProviders: [APPLICATION_METADATA_PROVIDER, CONFIG_ARTIFACT_PROVIDER],
+    resources: [...applicationMetadataResources, ...configArtifactResources],
+    engines,
+    adoption: args.adoption,
+    dependsOn: args.dependsOn,
+  });
+  const blueprintDeployment = createDeployment({
+    name: "foundations-meridian-blueprint",
+    schemaProviders: [BLUEPRINT_PROVIDER, CONFIG_ARTIFACT_PROVIDER],
+    resources: configArtifactResources,
+    engines,
+    adoption: args.adoption,
+    dependsOn: args.dependsOn,
+  });
   const runtime = new MeridianRuntimeConfig("foundations-meridian", {
     namespace: args.namespace,
     provider: args.provider,
@@ -443,9 +599,43 @@ export function createMeridianRuntime(args: {
     environmentVariable: "MERIDIAN_CONFIG",
     resourceMigration: childMigration(args.adoption, "meridian/runtime-config"),
   });
+  const applicationMetadataRuntime = new MeridianRuntimeConfig(
+    "foundations-meridian-application-metadata",
+    {
+      namespace: args.namespace,
+      provider: args.provider,
+      deployment: applicationMetadataDeployment,
+      configMapName: "juntai-meridian-application-metadata-config",
+      mountPath: "/etc/juntai/meridian",
+      environmentVariable: "MERIDIAN_CONFIG",
+      resourceMigration: childMigration(
+        args.adoption,
+        "meridian/application-metadata-runtime-config",
+      ),
+    },
+  );
+  const blueprintRuntime = new MeridianRuntimeConfig(
+    "foundations-meridian-blueprint",
+    {
+      namespace: args.namespace,
+      provider: args.provider,
+      deployment: blueprintDeployment,
+      configMapName: "juntai-meridian-blueprint-config",
+      mountPath: "/etc/juntai/meridian",
+      environmentVariable: "MERIDIAN_CONFIG",
+      resourceMigration: childMigration(
+        args.adoption,
+        "meridian/blueprint-runtime-config",
+      ),
+    },
+  );
   return {
     deployment,
+    applicationMetadataDeployment,
+    blueprintDeployment,
     runtime,
+    applicationMetadataRuntime,
+    blueprintRuntime,
     output: Object.freeze({
       configFingerprint: deployment.configFingerprint,
       configMapName: runtime.configMap.metadata.name,

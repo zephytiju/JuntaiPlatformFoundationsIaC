@@ -152,6 +152,81 @@ describe("Pulumi composition", () => {
     expect(types).toContain("meridian:storage:ExternalEngine");
     expect(types).not.toContain("meridian:storage:ManagedEngine");
     expect(result.published.size).toBe(4);
+    const meridianConfig = resources.find(
+      ({ type, inputs }) =>
+        type === "kubernetes:core/v1:ConfigMap" &&
+        JSON.stringify(inputs).includes("juntai-meridian-config"),
+    );
+    const renderedMeridianConfig = JSON.parse(
+      (meridianConfig?.inputs.data as Record<string, string>)[
+        "meridian-config.v1.json"
+      ]!,
+    ) as {
+      readonly bindings: readonly {
+        readonly id: string;
+        readonly settings: Record<string, unknown>;
+      }[];
+    };
+    const applicationMetadataMeridianConfig = resources.find(
+      ({ type, inputs }) =>
+        type === "kubernetes:core/v1:ConfigMap" &&
+        JSON.stringify(inputs).includes(
+          "juntai-meridian-application-metadata-config",
+        ),
+    );
+    const renderedApplicationMetadataMeridianConfig = JSON.parse(
+      (
+        applicationMetadataMeridianConfig?.inputs.data as Record<string, string>
+      )["meridian-config.v1.json"]!,
+    ) as {
+      readonly bindings: readonly {
+        readonly id: string;
+        readonly settings: Record<string, unknown>;
+      }[];
+    };
+    expect(
+      renderedApplicationMetadataMeridianConfig.bindings.find(
+        ({ id }) => id === "structured",
+      )?.settings,
+    ).toEqual({
+      formatVersion: "meridian.postgresql.settings.v1",
+      resources: [
+        {
+          ref: "structured:application-metadata.applications",
+          table: "application_metadata_applications",
+        },
+      ],
+    });
+    const blueprintMeridianConfig = resources.find(
+      ({ type, inputs }) =>
+        type === "kubernetes:core/v1:ConfigMap" &&
+        JSON.stringify(inputs).includes("juntai-meridian-blueprint-config"),
+    );
+    expect(blueprintMeridianConfig).toBeDefined();
+    expect(
+      resources.filter(({ type }) => type === "meridian:storage:Deployment"),
+    ).toHaveLength(3);
+    expect(JSON.stringify(renderedMeridianConfig)).toContain(
+      '"catalog":"structured","name":"accounts","namespace":"platform.account"',
+    );
+    expect(JSON.stringify(renderedMeridianConfig)).toContain(
+      '"catalog":"evidence","name":"audit","namespace":"platform.account"',
+    );
+    expect(JSON.stringify(renderedMeridianConfig)).toContain(
+      '"coLocationGroup":"platform.account.profile-mutation.v1"',
+    );
+    expect(JSON.stringify(renderedMeridianConfig)).toContain(
+      '"id":"platform-account","package":"juntai-account-service"',
+    );
+    expect(JSON.stringify(renderedMeridianConfig)).not.toContain(
+      "juntai.application-metadata",
+    );
+    expect(JSON.stringify(renderedApplicationMetadataMeridianConfig)).toContain(
+      '"id":"juntai.application-metadata","package":"juntai-application-metadata"',
+    );
+    expect(
+      JSON.stringify(renderedApplicationMetadataMeridianConfig),
+    ).not.toContain("platform.account");
     expect(
       resources.filter(
         (entry) =>
@@ -184,6 +259,17 @@ describe("Pulumi composition", () => {
     expect(JSON.stringify(applicationMetadataDeployment?.inputs)).toContain(
       "kube-root-ca.crt",
     );
+    const blueprintDeployment = resources.find((entry) =>
+      JSON.stringify(entry.inputs).includes(
+        "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:",
+      ),
+    );
+    expect(JSON.stringify(blueprintDeployment?.inputs)).toContain(
+      "CASDOOR_POLICY_ENDPOINT",
+    );
+    expect(JSON.stringify(blueprintDeployment?.inputs)).toContain(
+      "CASDOOR_POLICY_CLIENT_ID",
+    );
     const accountDeployment = resources.find((entry) =>
       JSON.stringify(entry.inputs).includes(
         "ghcr.io/zephytiju/juntai-account-service@sha256:",
@@ -203,6 +289,21 @@ describe("Pulumi composition", () => {
         },
       },
     });
+    expect(JSON.stringify(accountDeployment?.inputs)).toContain(
+      '"name":"ACCOUNT_ENVIRONMENT","value":"production"',
+    );
+    for (const deployment of [
+      accountDeployment,
+      applicationMetadataDeployment,
+      blueprintDeployment,
+    ]) {
+      expect(JSON.stringify(deployment?.inputs)).toContain(
+        "meridian-runtime-credentials",
+      );
+      expect(JSON.stringify(deployment?.inputs)).toContain(
+        "/var/run/juntai/runtime",
+      );
+    }
     const applicationMetadataRouteResource = resources.find(
       (entry) =>
         entry.inputs.kind === "HTTPRoute" &&

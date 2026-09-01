@@ -1,6 +1,6 @@
 {
   "schemaVersion": "juntai.platform/gateway-manifest-ownership/v1",
-  "package": "juntai.platform.substrate@1.2.4",
+  "package": "juntai.platform.substrate@1.2.5",
   "identityTuple": ["apiVersion", "kind", "namespace", "name"],
   "payloads": [
     {

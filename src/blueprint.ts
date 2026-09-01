@@ -18,6 +18,7 @@ import type {
   FoundationsServiceOutput,
   GatewaySetOutput,
   ObservabilityGatewayOutput,
+  RuntimeFileReference,
 } from "./types.js";
 import type { MeridianRuntimeConfig } from "@zephytiju/juntai-platform-constructs";
 
@@ -36,9 +37,12 @@ function secretFile(reference: BlueprintInputs["cursorHmac"]): {
 export function createBlueprint(args: {
   readonly provider: k8s.Provider;
   readonly namespace: pulumi.Input<string>;
+  readonly stage: string;
   readonly inputs: BlueprintInputs;
   readonly gatewaySet: GatewaySetOutput;
+  readonly casdoor: FoundationsServiceOutput;
   readonly meridianRuntime: MeridianRuntimeConfig;
+  readonly meridianRuntimeReferences?: readonly RuntimeFileReference[];
   readonly observability: ObservabilityGatewayOutput;
   readonly adoption?: AdoptionMap;
   readonly route?: ContractRouteInput;
@@ -77,6 +81,20 @@ export function createBlueprint(args: {
         "CASDOOR_POLICY_CLIENT_SECRET_FILE",
         `${args.inputs.policyReaderClientSecret.mountPath}/client-secret`,
       ),
+      literalValue("CASDOOR_ISSUER", args.inputs.casdoorIssuer),
+      literalValue("CASDOOR_AUDIENCE", args.inputs.casdoorAudience),
+      literalValue("CASDOOR_TENANT_CLAIM", "tenant_id"),
+      literalValue("CASDOOR_POLICY_ENDPOINT", args.casdoor.endpoint),
+      literalValue(
+        "CASDOOR_POLICY_ENFORCER_ID",
+        args.inputs.casdoorPolicyEnforcerId,
+      ),
+      literalValue(
+        "CASDOOR_POLICY_CLIENT_ID",
+        args.inputs.casdoorPolicyClientId,
+      ),
+      literalValue("CASDOOR_ALLOW_HTTP", "1"),
+      literalValue("DEPLOYMENT_ENVIRONMENT", args.stage),
     ],
     files: [
       {
@@ -88,6 +106,10 @@ export function createBlueprint(args: {
         },
         readOnly: true,
       },
+      ...(args.meridianRuntimeReferences ?? []).map((reference) => ({
+        ...reference,
+        readOnly: true as const,
+      })),
       secretFile(args.inputs.cursorHmac),
       secretFile(args.inputs.policyReaderClientSecret),
     ],

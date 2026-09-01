@@ -68,6 +68,17 @@ const result = await deployFoundations({
       workloadBindings: [],
     },
     meridian: {
+      runtimeReferences: [
+        {
+          kind: "secret",
+          name: "meridian-runtime-credentials",
+          mountPath: "/var/run/juntai/runtime",
+          items: {
+            "runtime-identity": "identity/hmac-key",
+            "runtime-credential": "credential/client-secret",
+          },
+        },
+      ],
       engines: [
         {
           bindingId: "structured",
@@ -112,6 +123,41 @@ const result = await deployFoundations({
             validationFingerprint: fingerprint("d"),
           },
         },
+        {
+          bindingId: "object",
+          profileId: "s3-compatible",
+          requiredCapabilityFingerprint: fingerprint("e"),
+          requiredPhysicalFingerprint: fingerprint("f"),
+          physicalNamespace: "juntai-preview/objects",
+          identityRef: {
+            provider: "file",
+            reference: "/var/run/juntai/runtime/identity/hmac-key",
+          },
+          secretRef: {
+            provider: "file",
+            reference: "/var/run/juntai/runtime/credential/client-secret",
+          },
+          tls: {
+            mode: "disabled",
+            serverName: null,
+            caRef: null,
+            clientCertificateRef: null,
+          },
+          endpoint: "https://object.preview.invalid",
+          acl: {
+            provider: "platform-policy",
+            reference: "acl/object",
+          },
+          migration: {
+            contract: "meridian.migration.apply",
+            version: "1.0.0",
+            appliedFingerprint: fingerprint("1"),
+          },
+          observability: {
+            enabled: true,
+            labels: { owner: "juntai-platform-foundations-iac" },
+          },
+        },
       ],
     },
     casdoor: {
@@ -127,6 +173,10 @@ const result = await deployFoundations({
       consoleRedirectUri: "https://console.preview.invalid/auth/callback",
     },
     blueprint: {
+      casdoorIssuer: "https://iam.preview.invalid",
+      casdoorAudience: "juntai-platform",
+      casdoorPolicyEnforcerId: "admin/juntai-domain-authorization",
+      casdoorPolicyClientId: "blueprint",
       cursorHmac: {
         name: "blueprint-cursor-hmac",
         mountPath: "/var/run/juntai/blueprint/cursor",
