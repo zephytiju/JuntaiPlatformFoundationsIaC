@@ -608,6 +608,10 @@ export function createMeridianRuntime(args: {
       configMapName: "juntai-meridian-application-metadata-config",
       mountPath: "/etc/juntai/meridian",
       environmentVariable: "MERIDIAN_CONFIG",
+      resourceMigration: childMigration(
+        args.adoption,
+        "meridian/application-metadata-runtime-config",
+      ),
     },
   );
   const blueprintRuntime = new MeridianRuntimeConfig(
