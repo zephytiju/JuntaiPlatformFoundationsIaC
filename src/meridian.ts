@@ -23,9 +23,9 @@ const ACCOUNT_PROVIDER = Object.freeze({
   id: "platform-account",
   package: "juntai-account-service",
   contract: "1.0.0",
-  version: "2.1.4",
+  version: "2.1.5",
   requiredFingerprint:
-    "sha256:c4a79a209e925a10f0c931c711b3c1a9b443a3bcae4495aea467267af1316673",
+    "sha256:6483e0a226a28a3521136d7099162509274bbc93db9a6106f04e65ca44a69d4b",
 });
 const APPLICATION_METADATA_PROVIDER = Object.freeze({
   id: "juntai.application-metadata",
@@ -518,8 +518,10 @@ export function createMeridianRuntime(args: {
   readonly dependsOn?: readonly pulumi.Resource[];
 }): {
   readonly deployment: MeridianDeployment;
+  readonly applicationMetadataDeployment: MeridianDeployment;
   readonly blueprintDeployment: MeridianDeployment;
   readonly runtime: MeridianRuntimeConfig;
+  readonly applicationMetadataRuntime: MeridianRuntimeConfig;
   readonly blueprintRuntime: MeridianRuntimeConfig;
   readonly output: MeridianRuntimeOutput;
 } {
@@ -565,19 +567,19 @@ export function createMeridianRuntime(args: {
   );
   const deployment = createDeployment({
     name: "foundations-meridian",
-    schemaProviders: [
-      ACCOUNT_PROVIDER,
-      APPLICATION_METADATA_PROVIDER,
-      CONFIG_ARTIFACT_PROVIDER,
-    ],
-    resources: [
-      ...accountResources,
-      ...applicationMetadataResources,
-      ...configArtifactResources,
-    ],
+    schemaProviders: [ACCOUNT_PROVIDER],
+    resources: accountResources,
     engines,
     adoption: args.adoption,
     adoptionKey: "meridian/deployment",
+    dependsOn: args.dependsOn,
+  });
+  const applicationMetadataDeployment = createDeployment({
+    name: "foundations-meridian-application-metadata",
+    schemaProviders: [APPLICATION_METADATA_PROVIDER, CONFIG_ARTIFACT_PROVIDER],
+    resources: [...applicationMetadataResources, ...configArtifactResources],
+    engines,
+    adoption: args.adoption,
     dependsOn: args.dependsOn,
   });
   const blueprintDeployment = createDeployment({
@@ -597,6 +599,17 @@ export function createMeridianRuntime(args: {
     environmentVariable: "MERIDIAN_CONFIG",
     resourceMigration: childMigration(args.adoption, "meridian/runtime-config"),
   });
+  const applicationMetadataRuntime = new MeridianRuntimeConfig(
+    "foundations-meridian-application-metadata",
+    {
+      namespace: args.namespace,
+      provider: args.provider,
+      deployment: applicationMetadataDeployment,
+      configMapName: "juntai-meridian-application-metadata-config",
+      mountPath: "/etc/juntai/meridian",
+      environmentVariable: "MERIDIAN_CONFIG",
+    },
+  );
   const blueprintRuntime = new MeridianRuntimeConfig(
     "foundations-meridian-blueprint",
     {
@@ -614,8 +627,10 @@ export function createMeridianRuntime(args: {
   );
   return {
     deployment,
+    applicationMetadataDeployment,
     blueprintDeployment,
     runtime,
+    applicationMetadataRuntime,
     blueprintRuntime,
     output: Object.freeze({
       configFingerprint: deployment.configFingerprint,

@@ -3,6 +3,7 @@ import {
   ACCOUNT_CONTRACT_BUNDLE,
   ACCOUNT_DEPLOYMENT_MANIFEST,
   ACCOUNT_IMAGE,
+  ACCOUNT_MERIDIAN_PROVIDER,
   ACCOUNT_OPENAPI,
   ACCOUNT_RELEASE_MANIFEST,
   APPLICATION_METADATA_IMAGE,
@@ -111,15 +112,16 @@ export const FOUNDATION_SERVICE_CATALOG = Object.freeze({
     Object.freeze({
       id: "platform.account",
       release: Object.freeze({
-        version: "2.1.4",
+        version: "2.1.5",
         image: ACCOUNT_IMAGE,
         imageDigest:
-          "sha256:26c7c5e2f109aeeb47157f45bd95f2df6e34b9de83085fe1bc32512f9c7cd084",
-        sourceCommit: "a3e1e2e12f31b16d6f01c10e47402688286bf476",
+          "sha256:2f657c47b6aa556f86b1b67b8164180d7aa2fb3c23dbd3c80a20a709edcb8adf",
+        sourceCommit: "e0cd8c44bbbb6856a098058dba9eeaa7e74693cc",
         manifests: Object.freeze([
           ACCOUNT_DEPLOYMENT_MANIFEST,
           ACCOUNT_RELEASE_MANIFEST,
           ACCOUNT_CONTRACT_BUNDLE,
+          ACCOUNT_MERIDIAN_PROVIDER,
         ]),
       }),
       deployment: Object.freeze({

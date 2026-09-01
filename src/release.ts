@@ -10,7 +10,7 @@ export const CASDOOR_BOOTSTRAP_IMAGE =
 export const BLUEPRINT_IMAGE =
   "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:3dfb716006175c32027ac04e325f7e6269911b3e5900ceda04668c240ab7019a";
 export const ACCOUNT_IMAGE =
-  "ghcr.io/zephytiju/juntai-account-service@sha256:26c7c5e2f109aeeb47157f45bd95f2df6e34b9de83085fe1bc32512f9c7cd084";
+  "ghcr.io/zephytiju/juntai-account-service@sha256:2f657c47b6aa556f86b1b67b8164180d7aa2fb3c23dbd3c80a20a709edcb8adf";
 export const APPLICATION_METADATA_IMAGE =
   "ghcr.io/zephytiju/juntai-application-metadata@sha256:19ee6fd561b5dc2c139f31c563f1b6316d5523ede7221d9f6404090ac5fb08cb";
 export const OTEL_COLLECTOR_IMAGE =
@@ -32,24 +32,29 @@ export const BLUEPRINT_OPENAPI = Object.freeze({
     "sha256:e1457e42a9844f26b5716d4627fefe496f318ea7e3d6b4fd0a70a812a0e84165",
 });
 export const ACCOUNT_OPENAPI = Object.freeze({
-  uri: "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/account-service.v1.openapi.json",
+  uri: "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.5/account-service.v1.openapi.json",
   digest:
     "sha256:56910abbac64d3c8a7065c001d7c69b291c59f0904355c2cc7dacb0f9ad58695",
 });
 export const ACCOUNT_DEPLOYMENT_MANIFEST = Object.freeze({
-  uri: "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/deployment-manifest.v1.json",
+  uri: "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.5/deployment-manifest.v1.json",
   digest:
-    "sha256:5bde3a4a98f4da4e80f3aedc1eec1c6eb15e433828a630d1f31e7171d7857df2",
+    "sha256:b8317ed2ba0cf0fa9d42d46eaf95956c010a9da8a1d55c8d9136979b4483458f",
 });
 export const ACCOUNT_RELEASE_MANIFEST = Object.freeze({
-  uri: "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/release-manifest.v1.json",
+  uri: "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.5/release-manifest.v1.json",
   digest:
-    "sha256:cfe43d7d3f71380d8d4e9089d7445a7fd5da815678dcba919b923eeba13b5c92",
+    "sha256:1810bd82d3f1bef0bb6e83ebe09c835a893aaca48ef1367db1aa8835b2c25de0",
 });
 export const ACCOUNT_CONTRACT_BUNDLE = Object.freeze({
-  uri: "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/juntai-account-contracts-2.1.4.json",
+  uri: "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.5/juntai-account-contracts-2.1.5.json",
   digest:
-    "sha256:c4a79a209e925a10f0c931c711b3c1a9b443a3bcae4495aea467267af1316673",
+    "sha256:698b2a264f300bed70070d101c86b3ecfd364434cbb30d7f17cdbbb5a3a3e8c5",
+});
+export const ACCOUNT_MERIDIAN_PROVIDER = Object.freeze({
+  uri: "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.5/account-meridian-provider.v1.json",
+  digest:
+    "sha256:7745367cd1b1b5f65929e779adf222595f7536cd48ed1455bd03295faa0ecccb",
 });
 export const APPLICATION_METADATA_OPENAPI = Object.freeze({
   uri: "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.0.2/application-metadata.v1.json",
@@ -85,8 +90,9 @@ export const releaseInputs: readonly ImmutableReleaseInput[] = Object.freeze([
     id: "account-image",
     uri: ACCOUNT_IMAGE,
     digest:
-      "sha256:26c7c5e2f109aeeb47157f45bd95f2df6e34b9de83085fe1bc32512f9c7cd084",
+      "sha256:2f657c47b6aa556f86b1b67b8164180d7aa2fb3c23dbd3c80a20a709edcb8adf",
   },
+  { id: "account-meridian-provider", ...ACCOUNT_MERIDIAN_PROVIDER },
   { id: "account-openapi", ...ACCOUNT_OPENAPI },
   { id: "account-release-manifest", ...ACCOUNT_RELEASE_MANIFEST },
   {

@@ -66,6 +66,31 @@ describe("Foundations input validation", () => {
         meridian: { engines: [] },
       }),
     ).toThrow(/requires deployment-selected Meridian Engines/);
+    expect(() =>
+      validateFoundationsInputs({
+        ...base,
+        meridian: { engines: base.meridian.engines },
+      }),
+    ).toThrow(/file reference must be projected/);
+    expect(() =>
+      validateFoundationsInputs({
+        ...base,
+        meridian: {
+          ...base.meridian,
+          runtimeReferences: [
+            {
+              kind: "secret",
+              name: "colliding-meridian-runtime",
+              mountPath: base.blueprint.cursorHmac.mountPath,
+              items: {
+                "runtime-identity": "identity/hmac-key",
+                "runtime-credential": "credential/client-secret",
+              },
+            },
+          ],
+        },
+      }),
+    ).toThrow(/Blueprint mount paths must be unique/);
   });
 
   it("rejects ambiguous Application Metadata workload authority", () => {

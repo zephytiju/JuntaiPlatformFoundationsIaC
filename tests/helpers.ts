@@ -24,12 +24,12 @@ export function structuredEngine(): MeridianEngineSelection {
     },
     physicalNamespace: "juntai_runtime",
     identityRef: {
-      provider: "workload-identity",
-      reference: "platform/blueprint",
+      provider: "file",
+      reference: "/var/run/juntai/runtime/identity/hmac-key",
     },
     secretRef: {
-      provider: "vault",
-      reference: "platform/meridian/structured",
+      provider: "file",
+      reference: "/var/run/juntai/runtime/credential/client-secret",
     },
     tls: {
       mode: "disabled",
@@ -74,12 +74,12 @@ export function objectEngine(): MeridianEngineSelection {
     },
     physicalNamespace: "juntai-artifacts/runtime",
     identityRef: {
-      provider: "workload-identity",
-      reference: "platform/blueprint",
+      provider: "file",
+      reference: "/var/run/juntai/runtime/identity/hmac-key",
     },
     secretRef: {
-      provider: "vault",
-      reference: "platform/meridian/object",
+      provider: "file",
+      reference: "/var/run/juntai/runtime/credential/client-secret",
     },
     tls: {
       mode: "disabled",
@@ -113,7 +113,20 @@ export function foundationsInputs(): FoundationsInputs {
   return {
     gateway: { serviceType: "ClusterIP" },
     observability: { exportEndpoint: "https://otel.example.test:4317" },
-    meridian: { engines: [structuredEngine(), objectEngine()] },
+    meridian: {
+      runtimeReferences: [
+        {
+          kind: "secret",
+          name: "meridian-runtime-credentials",
+          mountPath: "/var/run/juntai/runtime",
+          items: {
+            "runtime-identity": "identity/hmac-key",
+            "runtime-credential": "credential/client-secret",
+          },
+        },
+      ],
+      engines: [structuredEngine(), objectEngine()],
+    },
     account: {
       composition: {
         name: "account-composition",

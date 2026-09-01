@@ -51,7 +51,7 @@ describe("package boundary", () => {
     expect(BLUEPRINT_IMAGE).toContain("@sha256:");
     expect(BLUEPRINT_OPENAPI.uri).toContain("/v3.0.2/");
     expect(ACCOUNT_IMAGE).toContain("@sha256:");
-    expect(ACCOUNT_OPENAPI.uri).toContain("/account-service-v2.1.4/");
+    expect(ACCOUNT_OPENAPI.uri).toContain("/account-service-v2.1.5/");
     expect(APPLICATION_METADATA_IMAGE).toContain("@sha256:");
     expect(APPLICATION_METADATA_OPENAPI.uri).toContain("/v3.0.2/");
     expect(APPLICATION_METADATA_MIGRATION.uri).toContain(
@@ -64,7 +64,7 @@ describe("package boundary", () => {
       "platform.blueprint",
     ]);
     expect(serviceDeclaration("platform.account")).toMatchObject({
-      release: { version: "2.1.4", image: ACCOUNT_IMAGE },
+      release: { version: "2.1.5", image: ACCOUNT_IMAGE },
       deployment: { routePrefix: "/api/platform.account/v1" },
     });
     expect(serviceDeclaration("platform.application-metadata")).toMatchObject({

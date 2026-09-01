@@ -20,6 +20,7 @@ import type {
   FoundationsServiceOutput,
   GatewaySetOutput,
   ObservabilityGatewayOutput,
+  RuntimeFileReference,
 } from "./types.js";
 
 const declaration = serviceDeclaration("platform.account");
@@ -31,6 +32,7 @@ export function createAccount(args: {
   readonly inputs: AccountInputs;
   readonly gatewaySet: GatewaySetOutput;
   readonly meridianRuntime: MeridianRuntimeConfig;
+  readonly meridianRuntimeReferences?: readonly RuntimeFileReference[];
   readonly observability: ObservabilityGatewayOutput;
   readonly adoption?: AdoptionMap;
   readonly route?: ContractRouteInput;
@@ -67,6 +69,7 @@ export function createAccount(args: {
       ),
       literalValue("ACCOUNT_HOST", "0.0.0.0"),
       literalValue("ACCOUNT_PORT", "8080"),
+      literalValue("ACCOUNT_ENVIRONMENT", "production"),
       literalValue("PYTHONPATH", args.inputs.composition.mountPath),
       literalValue("JUNTAI_ENVIRONMENT", args.stage),
       literalValue(
@@ -88,6 +91,10 @@ export function createAccount(args: {
         },
         readOnly: true,
       },
+      ...(args.meridianRuntimeReferences ?? []).map((reference) => ({
+        ...reference,
+        readOnly: true as const,
+      })),
       {
         kind: "configMap",
         ...args.inputs.composition,

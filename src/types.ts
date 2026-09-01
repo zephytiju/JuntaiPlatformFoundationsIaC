@@ -101,6 +101,7 @@ export interface MeridianEngineSelection {
 
 export interface MeridianInputs {
   readonly engines: readonly MeridianEngineSelection[];
+  readonly runtimeReferences?: readonly RuntimeFileReference[];
 }
 
 export interface CasdoorInputs {

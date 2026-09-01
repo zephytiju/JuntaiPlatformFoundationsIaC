@@ -68,6 +68,17 @@ const result = await deployFoundations({
       workloadBindings: [],
     },
     meridian: {
+      runtimeReferences: [
+        {
+          kind: "secret",
+          name: "meridian-runtime-credentials",
+          mountPath: "/var/run/juntai/runtime",
+          items: {
+            "runtime-identity": "identity/hmac-key",
+            "runtime-credential": "credential/client-secret",
+          },
+        },
+      ],
       engines: [
         {
           bindingId: "structured",

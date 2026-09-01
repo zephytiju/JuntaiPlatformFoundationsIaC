@@ -23,6 +23,7 @@ import type {
   FoundationsServiceOutput,
   GatewaySetOutput,
   ObservabilityGatewayOutput,
+  RuntimeFileReference,
 } from "./types.js";
 
 const declaration = serviceDeclaration("platform.application-metadata");
@@ -54,6 +55,7 @@ export function createApplicationMetadata(args: {
   readonly gatewaySet: GatewaySetOutput;
   readonly casdoor: FoundationsServiceOutput;
   readonly meridianRuntime: MeridianRuntimeConfig;
+  readonly meridianRuntimeReferences?: readonly RuntimeFileReference[];
   readonly observability: ObservabilityGatewayOutput;
   readonly adoption?: AdoptionMap;
   readonly route?: ContractRouteInput;
@@ -230,6 +232,10 @@ export function createApplicationMetadata(args: {
         },
         readOnly: true,
       },
+      ...(args.meridianRuntimeReferences ?? []).map((reference) => ({
+        ...reference,
+        readOnly: true as const,
+      })),
       { kind: "secret", ...args.inputs.cursorHmac, readOnly: true },
       {
         kind: "secret",

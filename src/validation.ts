@@ -115,6 +115,20 @@ function assertIpv4Cidr(label: string, value: string): void {
   }
 }
 
+function projectedFilePaths(reference: {
+  readonly items: Readonly<Record<string, string>>;
+  readonly mountPath: string;
+}): readonly string[] {
+  const root = reference.mountPath.replace(/\/+$/, "");
+  return Object.values(reference.items).map((path) => `${root}/${path}`);
+}
+
+function assertNoMountCollision(label: string, paths: readonly string[]): void {
+  if (new Set(paths).size !== paths.length) {
+    throw new Error(`${label} mount paths must be unique`);
+  }
+}
+
 export function validateFoundationsInputs(inputs: FoundationsInputs): void {
   rejectSecretMaterial(inputs);
   if (
@@ -280,5 +294,70 @@ export function validateFoundationsInputs(inputs: FoundationsInputs): void {
   }
   if (/\b(?:kes|kingbase)\b/i.test(JSON.stringify(inputs.meridian))) {
     throw new Error("Foundations data engines must not expose KES or Kingbase");
+  }
+  const runtimeReferences = inputs.meridian.runtimeReferences ?? [];
+  const meridianSecretFiles = new Set<string>();
+  for (const [index, reference] of runtimeReferences.entries()) {
+    assertFileReference(`Meridian runtime reference ${index}`, reference, []);
+    if (reference.kind === "secret") {
+      projectedFilePaths(reference).forEach((path) =>
+        meridianSecretFiles.add(path),
+      );
+    }
+  }
+  assertNoMountCollision(
+    "Meridian runtime reference",
+    runtimeReferences.map(({ mountPath }) => mountPath),
+  );
+  const serviceMounts = [
+    {
+      label: "Account",
+      paths: [
+        "/etc/juntai/meridian",
+        inputs.account.composition.mountPath,
+        ...(inputs.account.runtimeReferences ?? []).map(
+          ({ mountPath }) => mountPath,
+        ),
+        ...runtimeReferences.map(({ mountPath }) => mountPath),
+      ],
+    },
+    {
+      label: "Application Metadata",
+      paths: [
+        "/etc/juntai/application-metadata",
+        inputs.applicationMetadata.cursorHmac.mountPath,
+        inputs.applicationMetadata.policyReaderClientSecret.mountPath,
+        ...runtimeReferences.map(({ mountPath }) => mountPath),
+      ],
+    },
+    {
+      label: "Blueprint",
+      paths: [
+        "/etc/juntai/meridian",
+        inputs.blueprint.cursorHmac.mountPath,
+        inputs.blueprint.policyReaderClientSecret.mountPath,
+        ...runtimeReferences.map(({ mountPath }) => mountPath),
+      ],
+    },
+  ];
+  serviceMounts.forEach(({ label, paths }) =>
+    assertNoMountCollision(label, paths),
+  );
+  for (const engine of inputs.meridian.engines) {
+    for (const [label, reference] of [
+      ["identity", engine.identityRef],
+      ["credential", engine.secretRef],
+      ["TLS CA", engine.tls.caRef],
+      ["TLS client certificate", engine.tls.clientCertificateRef],
+    ] as const) {
+      if (
+        reference?.provider === "file" &&
+        !meridianSecretFiles.has(reference.reference)
+      ) {
+        throw new Error(
+          `Meridian Engine '${engine.bindingId}' ${label} file reference must be projected by meridian.runtimeReferences`,
+        );
+      }
+    }
   }
 }

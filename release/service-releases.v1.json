@@ -30,22 +30,26 @@
     {
       "id": "platform.account",
       "release": {
-        "version": "2.1.4",
-        "image": "ghcr.io/zephytiju/juntai-account-service@sha256:26c7c5e2f109aeeb47157f45bd95f2df6e34b9de83085fe1bc32512f9c7cd084",
-        "imageDigest": "sha256:26c7c5e2f109aeeb47157f45bd95f2df6e34b9de83085fe1bc32512f9c7cd084",
-        "sourceCommit": "a3e1e2e12f31b16d6f01c10e47402688286bf476",
+        "version": "2.1.5",
+        "image": "ghcr.io/zephytiju/juntai-account-service@sha256:2f657c47b6aa556f86b1b67b8164180d7aa2fb3c23dbd3c80a20a709edcb8adf",
+        "imageDigest": "sha256:2f657c47b6aa556f86b1b67b8164180d7aa2fb3c23dbd3c80a20a709edcb8adf",
+        "sourceCommit": "e0cd8c44bbbb6856a098058dba9eeaa7e74693cc",
         "manifests": [
           {
-            "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/deployment-manifest.v1.json",
-            "digest": "sha256:5bde3a4a98f4da4e80f3aedc1eec1c6eb15e433828a630d1f31e7171d7857df2"
+            "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.5/deployment-manifest.v1.json",
+            "digest": "sha256:b8317ed2ba0cf0fa9d42d46eaf95956c010a9da8a1d55c8d9136979b4483458f"
           },
           {
-            "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/release-manifest.v1.json",
-            "digest": "sha256:cfe43d7d3f71380d8d4e9089d7445a7fd5da815678dcba919b923eeba13b5c92"
+            "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.5/release-manifest.v1.json",
+            "digest": "sha256:1810bd82d3f1bef0bb6e83ebe09c835a893aaca48ef1367db1aa8835b2c25de0"
           },
           {
-            "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/juntai-account-contracts-2.1.4.json",
-            "digest": "sha256:c4a79a209e925a10f0c931c711b3c1a9b443a3bcae4495aea467267af1316673"
+            "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.5/juntai-account-contracts-2.1.5.json",
+            "digest": "sha256:698b2a264f300bed70070d101c86b3ecfd364434cbb30d7f17cdbbb5a3a3e8c5"
+          },
+          {
+            "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.5/account-meridian-provider.v1.json",
+            "digest": "sha256:7745367cd1b1b5f65929e779adf222595f7536cd48ed1455bd03295faa0ecccb"
           }
         ]
       },
@@ -65,7 +69,7 @@
           "id": "account-openapi",
           "format": "openapi",
           "mediaType": "application/json",
-          "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/account-service.v1.openapi.json",
+          "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.5/account-service.v1.openapi.json",
           "digest": "sha256:56910abbac64d3c8a7065c001d7c69b291c59f0904355c2cc7dacb0f9ad58695",
           "compatibility": {
             "format": "openapi",

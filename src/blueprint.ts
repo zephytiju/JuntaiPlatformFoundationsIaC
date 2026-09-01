@@ -18,6 +18,7 @@ import type {
   FoundationsServiceOutput,
   GatewaySetOutput,
   ObservabilityGatewayOutput,
+  RuntimeFileReference,
 } from "./types.js";
 import type { MeridianRuntimeConfig } from "@zephytiju/juntai-platform-constructs";
 
@@ -41,6 +42,7 @@ export function createBlueprint(args: {
   readonly gatewaySet: GatewaySetOutput;
   readonly casdoor: FoundationsServiceOutput;
   readonly meridianRuntime: MeridianRuntimeConfig;
+  readonly meridianRuntimeReferences?: readonly RuntimeFileReference[];
   readonly observability: ObservabilityGatewayOutput;
   readonly adoption?: AdoptionMap;
   readonly route?: ContractRouteInput;
@@ -104,6 +106,10 @@ export function createBlueprint(args: {
         },
         readOnly: true,
       },
+      ...(args.meridianRuntimeReferences ?? []).map((reference) => ({
+        ...reference,
+        readOnly: true as const,
+      })),
       secretFile(args.inputs.cursorHmac),
       secretFile(args.inputs.policyReaderClientSecret),
     ],
