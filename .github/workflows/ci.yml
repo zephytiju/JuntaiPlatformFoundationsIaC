@@ -62,7 +62,7 @@ jobs:
           pulumi -C preview preview --json --non-interactive --suppress-outputs > "${RUNNER_TEMP}/preview.json"
           jq '{changeSummary, protectedKubernetes: ([.steps[] | select((.newState.type | startswith("kubernetes:")) and (.newState.protect == true))] | length), deployments: ([.steps[] | select(.op == "create" and .newState.type == "kubernetes:apps/v1:Deployment") | .newState.inputs.metadata.name] | sort)}' "${RUNNER_TEMP}/preview.json"
           jq -e '
-            (.changeSummary.create == 139) and
+            (.changeSummary.create == 148) and
             ([.steps[].op | select(test("delete|replace"))] | length == 0) and
             ([.steps[] | select(.newState.type | startswith("kubernetes:")) | select(.newState.protect != true)] | length == 0) and
             (([.steps[] | select(.op == "create" and .newState.type == "kubernetes:apps/v1:Deployment") | .newState.inputs.metadata.name] | sort) == ["account", "application-metadata", "blueprint", "casdoor", "envoy-gateway", "otel-gateway"]) and
