@@ -1,6 +1,6 @@
 import type { ImmutableReleaseInput } from "./contract.js";
 
-export const FOUNDATIONS_PACKAGE_VERSION = "1.2.4" as const;
+export const FOUNDATIONS_PACKAGE_VERSION = "1.2.5" as const;
 export const FOUNDATIONS_PACKAGE_ID = "juntai.platform.substrate" as const;
 
 export const CASDOOR_IMAGE =
@@ -8,11 +8,11 @@ export const CASDOOR_IMAGE =
 export const CASDOOR_BOOTSTRAP_IMAGE =
   "ghcr.io/zephytiju/juntai-platform-casdoor-bootstrap@sha256:6282606098e982d9d6880819e7c895c4bd9696318a014eeb04f5b190821edf9b";
 export const BLUEPRINT_IMAGE =
-  "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:5bfbcdd4073e3b0c16730904691310d8ccd6b913a2a525d3263d52535578fcdc";
+  "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:3dfb716006175c32027ac04e325f7e6269911b3e5900ceda04668c240ab7019a";
 export const ACCOUNT_IMAGE =
   "ghcr.io/zephytiju/juntai-account-service@sha256:26c7c5e2f109aeeb47157f45bd95f2df6e34b9de83085fe1bc32512f9c7cd084";
 export const APPLICATION_METADATA_IMAGE =
-  "ghcr.io/zephytiju/juntai-application-metadata@sha256:66ccf5d5e0bb77564f7d5fd8bd3a7d673bbf4f0c5ce4f438e4e48eec0ef26872";
+  "ghcr.io/zephytiju/juntai-application-metadata@sha256:19ee6fd561b5dc2c139f31c563f1b6316d5523ede7221d9f6404090ac5fb08cb";
 export const OTEL_COLLECTOR_IMAGE =
   "docker.io/otel/opentelemetry-collector-contrib@sha256:93aad750175cbf1a973ae1c5886c3371f4d800f61be25cdd26870b8441ffe9fa";
 
@@ -27,9 +27,9 @@ export const ENVOY_GATEWAY_MANIFEST = Object.freeze({
     "sha256:37a62afe9bb07d87e86c5c2cff32f046f17397cb4fca9f2a741165826212d781",
 });
 export const BLUEPRINT_OPENAPI = Object.freeze({
-  uri: "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.0.0/blueprint-service.v1.json",
+  uri: "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.0.2/blueprint-service.v1.json",
   digest:
-    "sha256:0a1d34129ed514fc0e7b227c6d23fbff61f025de209d0ebeedd0cf618a6bd26d",
+    "sha256:e1457e42a9844f26b5716d4627fefe496f318ea7e3d6b4fd0a70a812a0e84165",
 });
 export const ACCOUNT_OPENAPI = Object.freeze({
   uri: "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.4/account-service.v1.openapi.json",
@@ -52,22 +52,22 @@ export const ACCOUNT_CONTRACT_BUNDLE = Object.freeze({
     "sha256:c4a79a209e925a10f0c931c711b3c1a9b443a3bcae4495aea467267af1316673",
 });
 export const APPLICATION_METADATA_OPENAPI = Object.freeze({
-  uri: "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.0.0/application-metadata.v1.json",
+  uri: "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.0.2/application-metadata.v1.json",
   digest:
-    "sha256:04d80ef99114dcacb3fee9755eb96adc664d520d54a41b17cdbe1e18463f68eb",
+    "sha256:ef15f29569ea44a5013dc9ddba6e9ef889e38b08e8815dd2766511c298f7d9eb",
 });
 export const APPLICATION_METADATA_RELEASE_CONTRACT = Object.freeze({
-  uri: "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.0.0/release-contract.v1.json",
+  uri: "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.0.2/release-contract.v1.json",
   digest:
-    "sha256:dd3b8ea5f5bd4fa84b48378bdaca0ffc34eacdc668326b9e5eaa0021c8ba0159",
+    "sha256:79d40670008753e786f01a9de07d554f420702e68fe606be2fcddaaaada5a019",
 });
 export const APPLICATION_METADATA_RELEASE_MANIFEST = Object.freeze({
-  uri: "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.0.0/release-manifest.json",
+  uri: "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.0.2/release-manifest.json",
   digest:
-    "sha256:48c7dc966766e3f8e124bc30f7f76348b2121de5ee41132e71c26a29082437c1",
+    "sha256:4e47658e074150a1537b75554685d32587a952e7d6f34e374ba591bbec099031",
 });
 export const APPLICATION_METADATA_MIGRATION = Object.freeze({
-  uri: "https://raw.githubusercontent.com/zephytiju/JuntaiApplicationMetadata/ba1ca5df9dbbc64e5c5c1d8a169db015791d38c9/migrations/application-metadata.v2.json",
+  uri: "https://raw.githubusercontent.com/zephytiju/JuntaiApplicationMetadata/34edbb5f8247a46cfe4142b03f442788d1706d10/migrations/application-metadata.v2.json",
   digest:
     "sha256:a66d986e8b7e663b37275f1be39bb7cd6e87582abe315eca720c218ebe3f79a1",
 });
@@ -93,7 +93,7 @@ export const releaseInputs: readonly ImmutableReleaseInput[] = Object.freeze([
     id: "application-metadata-image",
     uri: APPLICATION_METADATA_IMAGE,
     digest:
-      "sha256:66ccf5d5e0bb77564f7d5fd8bd3a7d673bbf4f0c5ce4f438e4e48eec0ef26872",
+      "sha256:19ee6fd561b5dc2c139f31c563f1b6316d5523ede7221d9f6404090ac5fb08cb",
   },
   {
     id: "application-metadata-logical-migration",
@@ -112,7 +112,7 @@ export const releaseInputs: readonly ImmutableReleaseInput[] = Object.freeze([
     id: "blueprint-image",
     uri: BLUEPRINT_IMAGE,
     digest:
-      "sha256:5bfbcdd4073e3b0c16730904691310d8ccd6b913a2a525d3263d52535578fcdc",
+      "sha256:3dfb716006175c32027ac04e325f7e6269911b3e5900ceda04668c240ab7019a",
   },
   { id: "blueprint-openapi", ...BLUEPRINT_OPENAPI },
   {

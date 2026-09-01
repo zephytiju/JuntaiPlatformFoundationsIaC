@@ -35,6 +35,12 @@ describe("Foundations input validation", () => {
         },
       }),
     ).toThrow(/DNS label/);
+    expect(() =>
+      validateFoundationsInputs({
+        ...base,
+        blueprint: { ...base.blueprint, casdoorIssuer: "http://external.test" },
+      }),
+    ).toThrow(/HTTPS or cluster-local HTTP/);
   });
 
   it("requires HTTPS redirects, valid bootstrap refs, and Engine selections", () => {

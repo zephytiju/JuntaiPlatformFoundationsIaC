@@ -124,9 +124,11 @@ export async function deployFoundations(
   const blueprint = createBlueprint({
     provider,
     namespace: namespaces.resources["juntai-platform"].metadata.name,
+    stage: context.target.environment,
     inputs: context.inputs.blueprint,
     gatewaySet,
-    meridianRuntime: meridian.runtime,
+    casdoor,
+    meridianRuntime: meridian.blueprintRuntime,
     observability: observabilityGateway,
     adoption: context.inputs.adoption,
     ...(blueprintRoute === undefined ? {} : { route: blueprintRoute }),

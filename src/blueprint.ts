@@ -36,8 +36,10 @@ function secretFile(reference: BlueprintInputs["cursorHmac"]): {
 export function createBlueprint(args: {
   readonly provider: k8s.Provider;
   readonly namespace: pulumi.Input<string>;
+  readonly stage: string;
   readonly inputs: BlueprintInputs;
   readonly gatewaySet: GatewaySetOutput;
+  readonly casdoor: FoundationsServiceOutput;
   readonly meridianRuntime: MeridianRuntimeConfig;
   readonly observability: ObservabilityGatewayOutput;
   readonly adoption?: AdoptionMap;
@@ -77,6 +79,20 @@ export function createBlueprint(args: {
         "CASDOOR_POLICY_CLIENT_SECRET_FILE",
         `${args.inputs.policyReaderClientSecret.mountPath}/client-secret`,
       ),
+      literalValue("CASDOOR_ISSUER", args.inputs.casdoorIssuer),
+      literalValue("CASDOOR_AUDIENCE", args.inputs.casdoorAudience),
+      literalValue("CASDOOR_TENANT_CLAIM", "tenant_id"),
+      literalValue("CASDOOR_POLICY_ENDPOINT", args.casdoor.endpoint),
+      literalValue(
+        "CASDOOR_POLICY_ENFORCER_ID",
+        args.inputs.casdoorPolicyEnforcerId,
+      ),
+      literalValue(
+        "CASDOOR_POLICY_CLIENT_ID",
+        args.inputs.casdoorPolicyClientId,
+      ),
+      literalValue("CASDOOR_ALLOW_HTTP", "1"),
+      literalValue("DEPLOYMENT_ENVIRONMENT", args.stage),
     ],
     files: [
       {

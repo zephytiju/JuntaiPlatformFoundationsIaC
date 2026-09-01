@@ -139,6 +139,26 @@ export function validateFoundationsInputs(inputs: FoundationsInputs): void {
     inputs.blueprint.policyReaderClientSecret,
     ["client-secret"],
   );
+  if (
+    inputs.blueprint.cursorHmac.mountPath ===
+    inputs.blueprint.policyReaderClientSecret.mountPath
+  ) {
+    throw new Error("Blueprint Secret mount paths must be unique");
+  }
+  assertServiceUrl("Blueprint Casdoor issuer", inputs.blueprint.casdoorIssuer);
+  if (!/^[^/\s]+\/[^/\s]+$/.test(inputs.blueprint.casdoorPolicyEnforcerId)) {
+    throw new Error(
+      "Blueprint Casdoor policy enforcer must use owner/name syntax",
+    );
+  }
+  for (const [label, value] of [
+    ["Casdoor audience", inputs.blueprint.casdoorAudience],
+    ["Casdoor policy client ID", inputs.blueprint.casdoorPolicyClientId],
+  ] as const) {
+    if (value.trim().length === 0) {
+      throw new Error(`Blueprint ${label} must not be empty`);
+    }
+  }
   assertFileReference("Account composition", inputs.account.composition, []);
   if (
     !/^[A-Za-z_][A-Za-z0-9_.]*:[A-Za-z_][A-Za-z0-9_]*$/.test(

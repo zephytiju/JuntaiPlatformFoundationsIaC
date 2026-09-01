@@ -3,6 +3,7 @@ import type * as pulumi from "@pulumi/pulumi";
 import type { ContractCompositionEvidence } from "./contract-composition.js";
 import type {
   AclPolicyRef,
+  JsonObject,
   MigrationStateV1,
   ObservabilityBindingV1,
   OpaqueIdentityRef,
@@ -83,6 +84,7 @@ export interface MeridianEngineSelection {
     | "valkey-standalone";
   readonly requiredCapabilityFingerprint: `sha256:${string}`;
   readonly requiredPhysicalFingerprint: `sha256:${string}`;
+  readonly settings?: JsonObject;
   readonly physicalNamespace: string;
   readonly identityRef: OpaqueIdentityRef;
   readonly secretRef: OpaqueSecretRef;
@@ -110,6 +112,10 @@ export interface CasdoorInputs {
 
 export interface BlueprintInputs {
   readonly enabled?: boolean;
+  readonly casdoorIssuer: string;
+  readonly casdoorAudience: string;
+  readonly casdoorPolicyEnforcerId: `${string}/${string}`;
+  readonly casdoorPolicyClientId: string;
   readonly cursorHmac: SecretFileReference;
   readonly policyReaderClientSecret: SecretFileReference;
   readonly replicas?: number;

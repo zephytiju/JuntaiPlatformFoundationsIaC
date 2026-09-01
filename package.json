@@ -1,6 +1,6 @@
 {
   "name": "@zephytiju/platform-foundations-iac",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Pulumi-owned Juntai shared platform foundations package",
   "type": "module",
   "main": "./dist/index.js",

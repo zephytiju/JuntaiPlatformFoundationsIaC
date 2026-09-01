@@ -13,7 +13,16 @@ export function structuredEngine(): MeridianEngineSelection {
     profileId: "postgresql-postgis-local-single-primary",
     requiredCapabilityFingerprint: fingerprint("a"),
     requiredPhysicalFingerprint: fingerprint("b"),
-    physicalNamespace: "postgresql/platform/blueprints",
+    settings: {
+      formatVersion: "meridian.postgresql.settings.v1",
+      resources: [
+        {
+          ref: "structured:application-metadata.applications",
+          table: "application_metadata_applications",
+        },
+      ],
+    },
+    physicalNamespace: "juntai_runtime",
     identityRef: {
       provider: "workload-identity",
       reference: "platform/blueprint",
@@ -50,11 +59,61 @@ export function structuredEngine(): MeridianEngineSelection {
   };
 }
 
+export function objectEngine(): MeridianEngineSelection {
+  return {
+    bindingId: "object",
+    profileId: "s3-compatible",
+    requiredCapabilityFingerprint: fingerprint("e"),
+    requiredPhysicalFingerprint: fingerprint("f"),
+    settings: {
+      region: "us-east-1",
+      addressingStyle: "path",
+      allowInsecureHttp: true,
+      verifyAfterWrite: true,
+      requireVersioning: false,
+    },
+    physicalNamespace: "juntai-artifacts/runtime",
+    identityRef: {
+      provider: "workload-identity",
+      reference: "platform/blueprint",
+    },
+    secretRef: {
+      provider: "vault",
+      reference: "platform/meridian/object",
+    },
+    tls: {
+      mode: "disabled",
+      serverName: null,
+      caRef: null,
+      clientCertificateRef: null,
+    },
+    endpoint: "http://s3.platform.internal:9000",
+    acl: { provider: "platform-policy", reference: "acl/object" },
+    migration: {
+      contract: "meridian.migration.apply",
+      version: "1.0.0",
+      appliedFingerprint: fingerprint("1"),
+    },
+    observability: {
+      enabled: true,
+      labels: { owner: "juntai-platform-foundations-iac" },
+    },
+    recovery: {
+      method: "backup-restore",
+      owner: "juntai-platform-foundations-iac",
+      policyRef: "recovery/object",
+      rpoSeconds: 300,
+      rtoSeconds: 900,
+      validationFingerprint: fingerprint("2"),
+    },
+  };
+}
+
 export function foundationsInputs(): FoundationsInputs {
   return {
     gateway: { serviceType: "ClusterIP" },
     observability: { exportEndpoint: "https://otel.example.test:4317" },
-    meridian: { engines: [structuredEngine()] },
+    meridian: { engines: [structuredEngine(), objectEngine()] },
     account: {
       composition: {
         name: "account-composition",
@@ -96,6 +155,10 @@ export function foundationsInputs(): FoundationsInputs {
       consoleRedirectUri: "https://console.example.test/auth/callback",
     },
     blueprint: {
+      casdoorIssuer: "https://iam.example.test",
+      casdoorAudience: "juntai-platform",
+      casdoorPolicyEnforcerId: "admin/juntai-domain-authorization",
+      casdoorPolicyClientId: "blueprint",
       cursorHmac: {
         name: "blueprint-cursor-hmac",
         mountPath: "/var/run/juntai/blueprint/cursor",
