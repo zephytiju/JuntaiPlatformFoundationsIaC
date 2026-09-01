@@ -100,6 +100,11 @@ const legacyAdoptionCompatibility = JSON.parse(
     readonly propertySelection: string;
     readonly physicalDeletion: boolean;
     readonly physicalReplacement: boolean;
+    readonly desiredInputNormalization: {
+      readonly scope: string;
+      readonly source: string;
+      readonly spec: { readonly finalizers: readonly string[] };
+    };
   };
   readonly lifecycle: {
     readonly retainedThrough: string;
@@ -170,7 +175,15 @@ if (
   legacyAdoptionCompatibility.behavior.physicalDeletion ||
   legacyAdoptionCompatibility.behavior.physicalReplacement ||
   legacyAdoptionCompatibility.behavior.propertySelection !==
-    "all-registered-top-level-inputs-in-code-unit-order" ||
+    "all-normalized-top-level-inputs-in-code-unit-order" ||
+  legacyAdoptionCompatibility.behavior.desiredInputNormalization.scope !==
+    "the five exact imported Namespace identities" ||
+  legacyAdoptionCompatibility.behavior.desiredInputNormalization.source !==
+    "captured live Core v1.9.0 inputs" ||
+  legacyAdoptionCompatibility.behavior.desiredInputNormalization.spec.finalizers
+    .length !== 1 ||
+  legacyAdoptionCompatibility.behavior.desiredInputNormalization.spec
+    .finalizers[0] !== "kubernetes" ||
   legacyAdoptionCompatibility.lifecycle.retainedThrough !==
     "Task 08 verification" ||
   legacyAdoptionCompatibility.lifecycle.removalRequires.length !== 4

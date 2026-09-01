@@ -118,19 +118,52 @@ const legacyResourceKeys = new Set(
   ),
 );
 
+const legacyNamespaceResourceKeys = new Set(
+  LEGACY_CORE_V1_9_ADOPTION_RESOURCES.filter(
+    ({ type }) => type === "kubernetes:core/v1:Namespace",
+  ).map(({ type, name }) => `${type}\0${name}`),
+);
+
+export interface LegacyAdoptionCompatibilityTransformResult {
+  readonly props: pulumi.Inputs;
+  readonly opts: pulumi.ResourceOptions;
+}
+
+export function legacyAdoptionCompatibilityTransform(
+  type: string,
+  name: string,
+  properties: pulumi.Inputs,
+  options: pulumi.ResourceOptions,
+): LegacyAdoptionCompatibilityTransformResult | undefined {
+  const resourceKey = `${type}\0${name}`;
+  if (!legacyResourceKeys.has(resourceKey)) return undefined;
+  const props = legacyNamespaceResourceKeys.has(resourceKey)
+    ? {
+        ...properties,
+        // Kubernetes defaulted this field into the Core v1.9.0 inputs. Keep
+        // it explicit so the retained Namespace desired state is identical.
+        spec: { finalizers: ["kubernetes"] },
+      }
+    : properties;
+  return {
+    props,
+    opts: {
+      ...options,
+      // This profile is a UID-preserving ownership transfer, not a rollout.
+      // Fresh resources still receive their complete desired inputs on create.
+      ignoreChanges: Object.keys(props).sort(),
+    },
+  };
+}
+
 export function legacyAdoptionCompatibilityOptions(
   type: string,
   name: string,
   properties: pulumi.Inputs,
   options: pulumi.ResourceOptions,
 ): pulumi.ResourceOptions | undefined {
-  if (!legacyResourceKeys.has(`${type}\0${name}`)) return undefined;
-  return {
-    ...options,
-    // This profile is a UID-preserving ownership transfer, not a rollout.
-    // Fresh resources still receive their complete desired inputs on create.
-    ignoreChanges: Object.keys(properties).sort(),
-  };
+  return legacyAdoptionCompatibilityTransform(type, name, properties, options)
+    ?.opts;
 }
 
 export function registerLegacyAdoptionCompatibility(
@@ -138,12 +171,11 @@ export function registerLegacyAdoptionCompatibility(
 ): void {
   if (compatibility === undefined) return;
   pulumi.runtime.registerStackTransform((args) => {
-    const opts = legacyAdoptionCompatibilityOptions(
+    return legacyAdoptionCompatibilityTransform(
       args.type,
       args.name,
       args.props,
       args.opts,
     );
-    return opts === undefined ? undefined : { props: args.props, opts };
   });
 }

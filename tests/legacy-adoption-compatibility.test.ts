@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   LEGACY_CORE_V1_9_ADOPTION_RESOURCES,
   legacyAdoptionCompatibilityOptions,
+  legacyAdoptionCompatibilityTransform,
 } from "../src/legacy-adoption-compatibility.js";
 
 describe("Core v1.9.0 UID-preserving adoption compatibility", () => {
@@ -28,6 +29,37 @@ describe("Core v1.9.0 UID-preserving adoption compatibility", () => {
       retainOnDelete: true,
       ignoreChanges: ["apiVersion", "kind", "spec"],
     });
+  });
+
+  it("makes the five retained Namespace finalizers explicit desired inputs", () => {
+    const transformed = legacyAdoptionCompatibilityTransform(
+      "kubernetes:core/v1:Namespace",
+      "juntai-platform",
+      {
+        apiVersion: "v1",
+        kind: "Namespace",
+        metadata: { name: "juntai-platform" },
+      },
+      { protect: true, retainOnDelete: true },
+    );
+    expect(transformed).toEqual({
+      props: {
+        apiVersion: "v1",
+        kind: "Namespace",
+        metadata: { name: "juntai-platform" },
+        spec: { finalizers: ["kubernetes"] },
+      },
+      opts: {
+        protect: true,
+        retainOnDelete: true,
+        ignoreChanges: ["apiVersion", "kind", "metadata", "spec"],
+      },
+    });
+    expect(
+      LEGACY_CORE_V1_9_ADOPTION_RESOURCES.filter(
+        ({ type }) => type === "kubernetes:core/v1:Namespace",
+      ),
+    ).toHaveLength(5);
   });
 
   it("does not affect new package resources outside the migration inventory", () => {
