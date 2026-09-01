@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { parseAllDocuments, stringify } from "yaml";
 import {
   ENVOY_GATEWAY_IDENTITIES,
+  GATEWAY_MANIFEST_NORMALIZATIONS,
   GATEWAY_API_STANDARD_IDENTITIES,
   partitionGatewayManifests,
   physicalResourceKey,
@@ -19,7 +20,13 @@ function resource(
       name: identity.name,
       ...(identity.namespace === null ? {} : { namespace: identity.namespace }),
     },
-    spec: { source },
+    spec: {
+      source,
+      ...(physicalResourceKey(identity) ===
+      "batch/v1|Job|envoy-gateway-system|eg-gateway-helm-certgen"
+        ? { ttlSecondsAfterFinished: 30 }
+        : {}),
+    },
   };
 }
 
@@ -108,6 +115,40 @@ describe("Gateway manifest ownership", () => {
     ).toHaveLength(30);
     expect(partitioned.gatewayApiYaml).toContain("standard-definition");
     expect(partitioned.gatewayApiYaml).not.toContain("envoy-definition");
+    const certgenJob = parseAllDocuments(partitioned.envoyGatewayYaml)
+      .map((document) => document.toJS() as Record<string, unknown>)
+      .find(
+        (entry) =>
+          entry.kind === "Job" &&
+          (entry.metadata as { readonly name?: string }).name ===
+            "eg-gateway-helm-certgen",
+      );
+    expect(certgenJob).toBeDefined();
+    expect(certgenJob).not.toHaveProperty("spec.ttlSecondsAfterFinished");
+    expect(GATEWAY_MANIFEST_NORMALIZATIONS).toEqual([
+      {
+        owner: "envoy-gateway-install",
+        resourceKey:
+          "batch/v1|Job|envoy-gateway-system|eg-gateway-helm-certgen",
+        removedInput: "spec.ttlSecondsAfterFinished",
+        expectedSourceValue: 30,
+        purpose:
+          "retain the completed package-owned Job for stable desired state",
+      },
+    ]);
+  });
+
+  it("fails closed if the reviewed certgen Job TTL drifts", () => {
+    const input = fixtures();
+    expect(() =>
+      partitionGatewayManifests(
+        input.gateway,
+        input.envoy.replace(
+          "ttlSecondsAfterFinished: 30",
+          "ttlSecondsAfterFinished: 60",
+        ),
+      ),
+    ).toThrow(/source TTL drifted from the reviewed value 30/);
   });
 
   it("fails closed on a duplicate or drifted physical identity", () => {

@@ -78,6 +78,19 @@ const ENVOY_GATEWAY_OWNED_KEYS = Object.freeze([
   "v1|ServiceAccount|envoy-gateway-system|envoy-gateway",
 ] as const);
 
+const ENVOY_CERTGEN_JOB_KEY =
+  "batch/v1|Job|envoy-gateway-system|eg-gateway-helm-certgen";
+
+export const GATEWAY_MANIFEST_NORMALIZATIONS = Object.freeze([
+  Object.freeze({
+    owner: "envoy-gateway-install" as const,
+    resourceKey: ENVOY_CERTGEN_JOB_KEY,
+    removedInput: "spec.ttlSecondsAfterFinished" as const,
+    expectedSourceValue: 30,
+    purpose: "retain the completed package-owned Job for stable desired state",
+  }),
+]);
+
 const EXPECTED_ENVOY_INPUT_KEYS = Object.freeze([
   ...GATEWAY_API_STANDARD_KEYS,
   ...ENVOY_GATEWAY_OWNED_KEYS,
@@ -272,6 +285,27 @@ function serializeDocuments(
     .concat("\n");
 }
 
+function normalizeEnvoyOwnedDocument(
+  document: ParsedManifestDocument,
+): ParsedManifestDocument {
+  if (document.key !== ENVOY_CERTGEN_JOB_KEY) return document;
+  const spec = document.resource.spec;
+  if (!isRecord(spec) || spec.ttlSecondsAfterFinished !== 30) {
+    throw new Error(
+      `${ENVOY_CERTGEN_JOB_KEY} source TTL drifted from the reviewed value 30`,
+    );
+  }
+  const retainedSpec = { ...spec };
+  delete retainedSpec.ttlSecondsAfterFinished;
+  return Object.freeze({
+    ...document,
+    resource: {
+      ...document.resource,
+      spec: retainedSpec,
+    },
+  });
+}
+
 export function partitionGatewayManifests(
   gatewayApiYaml: string,
   envoyGatewayYaml: string,
@@ -318,9 +352,9 @@ export function partitionGatewayManifests(
   }
 
   const overlap = new Set<string>(GATEWAY_API_STANDARD_KEYS);
-  const envoyOwnedDocuments = envoyDocuments.filter(
-    ({ key }) => !overlap.has(key),
-  );
+  const envoyOwnedDocuments = envoyDocuments
+    .filter(({ key }) => !overlap.has(key))
+    .map(normalizeEnvoyOwnedDocument);
   assertExactInventory(
     "envoy-gateway-install",
     envoyOwnedDocuments,

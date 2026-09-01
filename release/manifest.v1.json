@@ -1,7 +1,7 @@
 {
   "schemaVersion": "juntai.platform/iac-package-contract/v1",
   "id": "juntai.platform.substrate",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "targetProfiles": [
     "development",
     "development-local",
