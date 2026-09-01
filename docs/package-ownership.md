@@ -32,7 +32,7 @@ Application Metadata migration `juntai.application-metadata/1-to-2` is platform-
 
 Blueprint 3.0.0 has no standalone database migration: its release contract uses the in-process Meridian config-artifact plugin. Adding a future migration requires a new package release with a digest-pinned supported entrypoint, desired fingerprint, rollback reference, preview evidence, and state-adoption update.
 
-The twelve renamed Envoy identities are described by the package's [legacy-to-replacement migration artifact](../release/envoy-legacy-migration.v1.json). They remain physically present and unmanaged through Task 08 verification. A separate cleanup may start only after replacements have been healthy for at least 24 hours and all recorded reference, certificate, RBAC, UID, and spec checks pass. Cleanup uses the guarded batches and rollback procedure in that artifact; package 1.2.2 does not delete them.
+The twelve renamed Envoy identities are described by the package's [legacy-to-replacement migration artifact](../release/envoy-legacy-migration.v1.json). They remain physically present and unmanaged through Task 08 verification. A separate cleanup may start only after replacements have been healthy for at least 24 hours and all recorded reference, certificate, RBAC, UID, and spec checks pass. Cleanup uses the guarded batches and rollback procedure in that artifact; package 1.2.3 does not delete them.
 
 ## Recovery boundary
 

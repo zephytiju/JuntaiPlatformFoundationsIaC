@@ -1,10 +1,15 @@
 {
   "schemaVersion": "juntai.platform/legacy-adoption-compatibility/v1",
-  "package": "juntai.platform.substrate@1.2.2",
+  "package": "juntai.platform.substrate@1.2.3",
   "profile": "core-v1.9.0-uid-preserving",
   "behavior": {
     "resourceOption": "ignoreChanges",
-    "propertySelection": "all-registered-top-level-inputs-in-code-unit-order",
+    "propertySelection": "all-normalized-top-level-inputs-in-code-unit-order",
+    "desiredInputNormalization": {
+      "scope": "the five exact imported Namespace identities",
+      "spec": { "finalizers": ["kubernetes"] },
+      "source": "captured live Core v1.9.0 inputs"
+    },
     "scope": "exact-pulumi-type-and-logical-name",
     "physicalDeletion": false,
     "physicalReplacement": false,
