@@ -14,6 +14,7 @@ import { FOUNDATION_SERVICE_CATALOG } from "../src/service-contracts.js";
 import { ENVOY_LEGACY_MIGRATION_MAPPINGS } from "../src/envoy-migration.js";
 import { LEGACY_CORE_V1_9_ADOPTION_RESOURCES } from "../src/legacy-adoption-compatibility.js";
 import {
+  GATEWAY_MANIFEST_NORMALIZATIONS,
   GATEWAY_MANIFEST_OWNERSHIP,
   physicalResourceKey,
 } from "../src/gateway-manifests.js";
@@ -67,6 +68,7 @@ const gatewayManifestOwnership = JSON.parse(
   readonly schemaVersion: string;
   readonly package: string;
   readonly payloads: readonly Record<string, unknown>[];
+  readonly desiredInputNormalizations: readonly Record<string, unknown>[];
   readonly owners: Readonly<Record<string, readonly string[]>>;
 };
 const envoyLegacyMigration = JSON.parse(
@@ -216,6 +218,11 @@ deepStrictEqual(gatewayManifestOwnership.payloads, [
     registeredResources: 30,
   },
 ]);
+deepStrictEqual(
+  gatewayManifestOwnership.desiredInputNormalizations,
+  GATEWAY_MANIFEST_NORMALIZATIONS,
+  "Gateway desired-input normalizations differ from the runtime partition",
+);
 for (const owner of [
   "gateway-api-standard",
   "envoy-gateway-install",

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "juntai.platform/gateway-manifest-ownership/v1",
-  "package": "juntai.platform.substrate@1.2.3",
+  "package": "juntai.platform.substrate@1.2.4",
   "identityTuple": ["apiVersion", "kind", "namespace", "name"],
   "payloads": [
     {
@@ -16,6 +16,15 @@
       "digest": "sha256:37a62afe9bb07d87e86c5c2cff32f046f17397cb4fca9f2a741165826212d781",
       "inputResources": 40,
       "registeredResources": 30
+    }
+  ],
+  "desiredInputNormalizations": [
+    {
+      "owner": "envoy-gateway-install",
+      "resourceKey": "batch/v1|Job|envoy-gateway-system|eg-gateway-helm-certgen",
+      "removedInput": "spec.ttlSecondsAfterFinished",
+      "expectedSourceValue": 30,
+      "purpose": "retain the completed package-owned Job for stable desired state"
     }
   ],
   "overlap": {
