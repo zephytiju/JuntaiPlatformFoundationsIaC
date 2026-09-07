@@ -3,6 +3,7 @@ import type * as pulumi from "@pulumi/pulumi";
 import { MeridianRuntimeConfig } from "@zephytiju/juntai-platform-constructs";
 import {
   ExternalEngine,
+  canonicalJson,
   MeridianDeployment,
   defaultValidationPolicy,
   getEngineProfile,
@@ -12,8 +13,11 @@ import {
   type SchemaProviderV1,
 } from "@zephytiju/meridian-storage-constructs";
 import { childMigration } from "./adoption.js";
+import { sha256 } from "./artifacts.js";
+import { validateDomainRequirements } from "./domain-requirements.js";
 import type {
   AdoptionMap,
+  DomainMeridianRuntimeOutput,
   MeridianEngineSelection,
   MeridianInputs,
   MeridianRuntimeOutput,
@@ -31,9 +35,9 @@ const APPLICATION_METADATA_PROVIDER = Object.freeze({
   id: "juntai.application-metadata",
   package: "juntai-application-metadata",
   contract: "1.0.0",
-  version: "3.0.2",
+  version: "3.1.1",
   requiredFingerprint:
-    "sha256:e950b20bbb97d7f5fd44d99a52b56eac77e25a6dcfd552e407562653eb4824c2",
+    "sha256:900ecd672e8b8b3c61948975aaaf014f782938b607d25e50309ed71795e53f67",
 });
 const BLUEPRINT_PROVIDER = Object.freeze({
   id: "juntai.blueprint",
@@ -408,6 +412,10 @@ function createDeployment(args: {
   readonly adoption?: AdoptionMap;
   readonly adoptionKey?: string;
   readonly dependsOn?: readonly pulumi.Resource[];
+  readonly domain?: {
+    readonly ownerPackage: string;
+    readonly resourceNamespace: string;
+  };
 }): MeridianDeployment {
   const accountResourceSelectors = args.resources
     .filter(({ selector }) => selector.namespace === "platform.account")
@@ -419,6 +427,12 @@ function createDeployment(args: {
         selector.namespace !== "platform.account",
     )
     .map(({ selector }) => selector);
+  const domainEvidenceResources =
+    args.domain === undefined
+      ? []
+      : args.resources
+          .filter(({ selector }) => selector.catalog === "evidence")
+          .map(({ selector }) => selector);
   const objectResources = args.resources
     .filter(({ selector }) => selector.catalog === "object")
     .map(({ selector }) => selector);
@@ -458,18 +472,27 @@ function createDeployment(args: {
                 },
               },
             ]),
-        ...(structuredResources.length === 0
+        ...(structuredResources.length === 0 &&
+        domainEvidenceResources.length === 0
           ? []
           : [
               {
                 id: `${args.name}-structured`,
                 selector: {
-                  resources: structuredResources,
+                  resources: [
+                    ...structuredResources,
+                    ...domainEvidenceResources,
+                  ],
                   catalog: null,
                   labels: {},
                 },
                 bindingId: "structured",
-                extensions: {},
+                extensions:
+                  args.domain === undefined
+                    ? {}
+                    : {
+                        coLocationGroup: `${args.domain.resourceNamespace}.transaction.v1`,
+                      },
               },
             ]),
         ...(objectResources.length === 0
@@ -497,6 +520,9 @@ function createDeployment(args: {
       },
       extensions: {
         ownerPackage: "juntai.platform.substrate",
+        ...(args.domain === undefined
+          ? {}
+          : { logicalOwnerPackage: args.domain.ownerPackage }),
         engineAuthority: "@zephytiju/meridian-storage-constructs@1.0.0",
       },
     },
@@ -525,6 +551,7 @@ export function createMeridianRuntime(args: {
   readonly blueprintRuntime: MeridianRuntimeConfig;
   readonly output: MeridianRuntimeOutput;
 } {
+  validateDomainRequirements(args.inputs.domains);
   if (args.inputs.engines.length === 0) {
     throw new Error(
       "Foundations requires at least one Meridian Engine selection",
@@ -629,6 +656,39 @@ export function createMeridianRuntime(args: {
       ),
     },
   );
+  const domainRuntimes: Record<string, DomainMeridianRuntimeOutput> = {};
+  for (const domain of [...(args.inputs.domains ?? [])].sort((a, b) =>
+    a.id.localeCompare(b.id),
+  )) {
+    const domainDeployment = createDeployment({
+      name: `foundations-meridian-${domain.id}`,
+      schemaProviders: domain.schemaProviders,
+      resources: domain.resources,
+      engines: engines.filter(({ bindingId }) => bindingId === "structured"),
+      dependsOn: args.dependsOn,
+      domain,
+    });
+    const domainRuntime = new MeridianRuntimeConfig(
+      `foundations-meridian-${domain.id}`,
+      {
+        namespace: args.namespace,
+        provider: args.provider,
+        deployment: domainDeployment,
+        configMapName: `juntai-meridian-${domain.id}-config`,
+        mountPath: "/etc/juntai/meridian",
+        environmentVariable: "MERIDIAN_CONFIG",
+      },
+    );
+    domainRuntimes[domain.id] = Object.freeze({
+      ownerPackage: domain.ownerPackage,
+      resourceNamespace: domain.resourceNamespace,
+      requirementsFingerprint: sha256(canonicalJson(domain)),
+      configFingerprint: domainDeployment.configFingerprint,
+      configMapName: domainRuntime.configMap.metadata.name,
+      namespace: domainRuntime.configMap.metadata.namespace,
+      resourceBindings: domainDeployment.resourceBindings,
+    });
+  }
   return {
     deployment,
     applicationMetadataDeployment,
@@ -641,6 +701,7 @@ export function createMeridianRuntime(args: {
       configMapName: runtime.configMap.metadata.name,
       namespace: runtime.configMap.metadata.namespace,
       resourceBindings: deployment.resourceBindings,
+      domainRuntimes: Object.freeze(domainRuntimes),
     }),
   };
 }

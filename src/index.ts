@@ -2,6 +2,7 @@ export { default } from "./package.js";
 export { deployFoundations } from "./package.js";
 export type { DeploymentDependencies } from "./package.js";
 export * from "./capabilities.js";
+export * from "./domain-requirements.js";
 export * from "./artifacts.js";
 export * from "./contract-composition.js";
 export * from "./envoy-migration.js";

@@ -159,11 +159,11 @@ export const FOUNDATION_SERVICE_CATALOG = Object.freeze({
     Object.freeze({
       id: "platform.application-metadata",
       release: Object.freeze({
-        version: "3.0.2",
+        version: "3.1.1",
         image: APPLICATION_METADATA_IMAGE,
         imageDigest:
-          "sha256:19ee6fd561b5dc2c139f31c563f1b6316d5523ede7221d9f6404090ac5fb08cb",
-        sourceCommit: "34edbb5f8247a46cfe4142b03f442788d1706d10",
+          "sha256:7d402718fa5c483a2f09f436ebbe28ee25e0a5f6d58b91a711ecdf75bd714327",
+        sourceCommit: "2c6cdf150b9a69879d0a30470cd84d6ceb6a306f",
         manifests: Object.freeze([
           APPLICATION_METADATA_RELEASE_CONTRACT,
           APPLICATION_METADATA_RELEASE_MANIFEST,
@@ -195,7 +195,7 @@ export const FOUNDATION_SERVICE_CATALOG = Object.freeze({
             format: "openapi",
             documentVersion: "3.1",
             title: "Juntai Application Metadata",
-            version: "3.0.2",
+            version: "3.1.1",
             requiredPaths: Object.freeze([
               "/v1/applications",
               "/v1/applications/{application_id}/versions",

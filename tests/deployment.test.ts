@@ -5,6 +5,7 @@ import { deployFoundations } from "../src/package.js";
 import type { ContractRouteInput } from "../src/contract-composition.js";
 import type { FoundationPreflightResolver } from "../src/preflight.js";
 import { capabilities, foundationsInputs, secrets } from "./helpers.js";
+import { domainRequirements } from "./domain-fixture.js";
 import type { FoundationsInputs } from "../src/types.js";
 
 interface RegisteredResource {
@@ -321,6 +322,82 @@ describe("Pulumi composition", () => {
         /kes|kingbase/i.test(JSON.stringify(entry.inputs)),
       ),
     ).toBe(false);
+  });
+
+  it("renders isolated domain runtime configurations while retaining engine ownership", async () => {
+    const base = foundationsInputs();
+    const result = await runDeployment({
+      ...base,
+      meridian: {
+        ...base.meridian,
+        domains: [
+          domainRequirements(),
+          domainRequirements("prism-build", "prism.build"),
+        ],
+      },
+    });
+    const configs = result.registered.filter(
+      ({ type, inputs }) =>
+        type === "kubernetes:core/v1:ConfigMap" &&
+        JSON.stringify(inputs).includes("juntai-meridian-prism-"),
+    );
+    expect(configs).toHaveLength(2);
+    for (const [name, other] of [
+      ["composition", "build"],
+      ["build", "composition"],
+    ]) {
+      const config = configs.find(({ inputs }) =>
+        JSON.stringify(inputs).includes(`juntai-meridian-prism-${name}-config`),
+      )!;
+      const body = JSON.parse(
+        (config.inputs.data as Record<string, string>)[
+          "meridian-config.v1.json"
+        ]!,
+      ) as {
+        placements: {
+          id: string;
+          selector: { resources: unknown[] };
+          bindingId: string;
+          extensions: { coLocationGroup: string };
+        }[];
+        bindings: { id: string }[];
+      };
+      expect(JSON.stringify(body)).toContain(`prism.${name}`);
+      expect(JSON.stringify(body)).not.toContain(`prism.${other}`);
+      expect(JSON.stringify(body)).not.toContain("platform.account");
+      expect(body.bindings.map(({ id }) => id)).toEqual(["structured"]);
+      const placement = body.placements.find((p: { id: string }) =>
+        p.id.endsWith("-structured"),
+      );
+      expect(placement!.selector.resources).toHaveLength(2);
+      expect(placement!.bindingId).toBe("structured");
+      expect(placement!.extensions.coLocationGroup).toBe(
+        `prism.${name}.transaction.v1`,
+      );
+    }
+    expect(
+      result.registered.filter(
+        ({ type }) => type === "meridian:storage:ExternalEngine",
+      ),
+    ).toHaveLength(2);
+    const output = result.published.get("juntai.platform.meridian-runtime") as {
+      domainRuntimes: Record<
+        string,
+        { configMapName: pulumi.Output<string>; ownerPackage: string }
+      >;
+    };
+    expect(Object.keys(output.domainRuntimes).sort()).toEqual([
+      "prism-build",
+      "prism-composition",
+    ]);
+    expect(output.domainRuntimes["prism-build"]!.ownerPackage).toBe(
+      "juntai.platform.domain.prism",
+    );
+    expect(
+      pulumi.Output.isInstance(
+        output.domainRuntimes["prism-build"]!.configMapName,
+      ),
+    ).toBe(true);
   });
 
   it("supports TLS references, explicit addresses, adoption, and optional Blueprint", async () => {

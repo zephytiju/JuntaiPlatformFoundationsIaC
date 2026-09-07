@@ -1,4 +1,5 @@
 import type { FoundationsInputs } from "./types.js";
+import { validateDomainRequirements } from "./domain-requirements.js";
 
 const SECRET_MATERIAL_KEY =
   /^(?:access[-_.]?key|credential|password|private[-_.]?key|secret(?:Bytes|Material|Value)?|token)$/i;
@@ -130,6 +131,7 @@ function assertNoMountCollision(label: string, paths: readonly string[]): void {
 }
 
 export function validateFoundationsInputs(inputs: FoundationsInputs): void {
+  validateDomainRequirements(inputs.meridian.domains);
   rejectSecretMaterial(inputs);
   if (
     inputs.legacyAdoptionCompatibility !== undefined &&
