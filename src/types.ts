@@ -5,6 +5,7 @@ import type {
   AclPolicyRef,
   JsonObject,
   MigrationStateV1,
+  MeridianResourceRequirementV1,
   ObservabilityBindingV1,
   OpaqueIdentityRef,
   OpaqueSecretRef,
@@ -102,6 +103,24 @@ export interface MeridianEngineSelection {
 export interface MeridianInputs {
   readonly engines: readonly MeridianEngineSelection[];
   readonly runtimeReferences?: readonly RuntimeFileReference[];
+  /** Domain packages supply logical requirements; Foundations selects physical bindings. */
+  readonly domains?: readonly DomainMeridianRequirements[];
+}
+
+export interface DomainSchemaProviderPin {
+  readonly id: string;
+  readonly package: string;
+  readonly contract: string;
+  readonly version: string;
+  readonly requiredFingerprint: `sha256:${string}`;
+}
+
+export interface DomainMeridianRequirements {
+  readonly id: string;
+  readonly ownerPackage: `juntai.platform.domain.${string}`;
+  readonly resourceNamespace: string;
+  readonly schemaProviders: readonly DomainSchemaProviderPin[];
+  readonly resources: readonly MeridianResourceRequirementV1[];
 }
 
 export interface CasdoorInputs {
@@ -183,6 +202,19 @@ export interface GatewaySetOutput {
 }
 
 export interface MeridianRuntimeOutput {
+  readonly configFingerprint: pulumi.Output<string>;
+  readonly configMapName: pulumi.Output<string>;
+  readonly namespace: pulumi.Output<string>;
+  readonly resourceBindings: pulumi.Output<Readonly<Record<string, unknown>>>;
+  readonly domainRuntimes?: Readonly<
+    Record<string, DomainMeridianRuntimeOutput>
+  >;
+}
+
+export interface DomainMeridianRuntimeOutput {
+  readonly ownerPackage: string;
+  readonly resourceNamespace: string;
+  readonly requirementsFingerprint: string;
   readonly configFingerprint: pulumi.Output<string>;
   readonly configMapName: pulumi.Output<string>;
   readonly namespace: pulumi.Output<string>;

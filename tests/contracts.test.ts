@@ -24,7 +24,7 @@ describe("package boundary", () => {
   it("implements the released thin-Core contract", () => {
     expect(foundationsPackage).toMatchObject({
       id: "juntai.platform.substrate",
-      version: "1.2.5",
+      version: "1.3.0",
       compatibility: {
         coreContract: "^1.1.0",
         capabilityContracts: "^1.0.0",
@@ -53,9 +53,9 @@ describe("package boundary", () => {
     expect(ACCOUNT_IMAGE).toContain("@sha256:");
     expect(ACCOUNT_OPENAPI.uri).toContain("/account-service-v2.1.5/");
     expect(APPLICATION_METADATA_IMAGE).toContain("@sha256:");
-    expect(APPLICATION_METADATA_OPENAPI.uri).toContain("/v3.0.2/");
+    expect(APPLICATION_METADATA_OPENAPI.uri).toContain("/v3.1.1/");
     expect(APPLICATION_METADATA_MIGRATION.uri).toContain(
-      "34edbb5f8247a46cfe4142b03f442788d1706d10",
+      "2c6cdf150b9a69879d0a30470cd84d6ceb6a306f",
     );
     expect(FOUNDATION_SERVICE_CATALOG.services.map(({ id }) => id)).toEqual([
       "foundation.iam",
@@ -68,7 +68,7 @@ describe("package boundary", () => {
       deployment: { routePrefix: "/api/platform.account/v1" },
     });
     expect(serviceDeclaration("platform.application-metadata")).toMatchObject({
-      release: { version: "3.0.2", image: APPLICATION_METADATA_IMAGE },
+      release: { version: "3.1.1", image: APPLICATION_METADATA_IMAGE },
       deployment: {
         routePrefix: "/api/platform/applications/v1",
         contractPathPrefix: "/v1",
