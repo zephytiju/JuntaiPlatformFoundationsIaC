@@ -1,11 +1,14 @@
-name: Meridian Python runtime image
+name: Meridian durable-registry Python runtime image
 
 on:
   pull_request:
     paths:
-      ["runtime/meridian-python/**", ".github/workflows/runtime-release.yml"]
+      [
+        "runtime/meridian-python-durable/**",
+        ".github/workflows/runtime-durable-release.yml",
+      ]
   push:
-    tags: ["meridian-runtime-python-v1.*"]
+    tags: ["meridian-runtime-python-v2.*"]
 
 permissions:
   contents: read
@@ -17,9 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - run: pip install ruff==0.15.2
-      - run: ruff check runtime/meridian-python && ruff format --check runtime/meridian-python
-      - run: docker build --platform linux/amd64 --build-arg SOURCE_REVISION="$GITHUB_SHA" --tag meridian-runtime:ci runtime/meridian-python
-      - run: python runtime/meridian-python/check_image.py meridian-runtime:ci
+      - run: ruff check runtime/meridian-python-durable && ruff format --check runtime/meridian-python-durable
+      - run: docker build --platform linux/amd64 --build-arg SOURCE_REVISION="$GITHUB_SHA" --tag meridian-runtime-durable:ci runtime/meridian-python-durable
+      - run: python runtime/meridian-python-durable/check_image.py meridian-runtime-durable:ci
       - name: Read exact private consumer releases
         id: consumer-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349
@@ -31,7 +34,7 @@ jobs:
       - name: Verify clean installed service compatibility
         env:
           GH_TOKEN: ${{ steps.consumer-token.outputs.token }}
-        run: python runtime/meridian-python/check_consumers.py meridian-runtime:ci --cache "$RUNNER_TEMP/consumer-wheels" --output "$RUNNER_TEMP/runtime-consumer-compatibility.json"
+        run: python runtime/meridian-python-durable/check_consumers.py meridian-runtime-durable:ci --cache "$RUNNER_TEMP/consumer-wheels" --output "$RUNNER_TEMP/runtime-consumer-compatibility.json"
 
   publish:
     if: startsWith(github.ref, 'refs/tags/meridian-runtime-python-v')
@@ -53,7 +56,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          python3 -c 'import json,os; assert os.environ["GITHUB_REF_NAME"] == "meridian-runtime-python-v" + json.load(open("runtime/meridian-python/profile.json"))["version"]'
+          python3 -c 'import json,os; assert os.environ["GITHUB_REF_NAME"] == "meridian-runtime-python-v" + json.load(open("runtime/meridian-python-durable/profile.json"))["version"]'
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             echo "Release already exists; immutable assets cannot be replaced"
@@ -83,7 +86,7 @@ jobs:
         id: build
         uses: docker/build-push-action@v6
         with:
-          context: runtime/meridian-python
+          context: runtime/meridian-python-durable
           platforms: linux/amd64
           push: true
           provenance: mode=max
@@ -96,7 +99,7 @@ jobs:
         run: |
           set -euo pipefail
           docker pull "$RUNTIME_IMAGE"
-          python3 runtime/meridian-python/check_image.py "$RUNTIME_IMAGE"
+          python3 runtime/meridian-python-durable/check_image.py "$RUNTIME_IMAGE"
       - name: Read exact private consumer releases
         id: consumer-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349
@@ -111,8 +114,8 @@ jobs:
           GH_TOKEN: ${{ steps.consumer-token.outputs.token }}
         run: |
           set -euo pipefail
-          python3 runtime/meridian-python/check_consumers.py "$RUNTIME_IMAGE" --cache "$RUNNER_TEMP/consumer-wheels" --output runtime-consumer-compatibility.json
-          python3 runtime/meridian-python/release.py
+          python3 runtime/meridian-python-durable/check_consumers.py "$RUNTIME_IMAGE" --cache "$RUNNER_TEMP/consumer-wheels" --output runtime-consumer-compatibility.json
+          python3 runtime/meridian-python-durable/release.py
       - name: Publish immutable runtime assets
         env:
           GH_TOKEN: ${{ github.token }}
@@ -120,4 +123,4 @@ jobs:
           gh release create "$GITHUB_REF_NAME" runtime-release/*
           --verify-tag --target "$GITHUB_SHA"
           --title "Platform Meridian Python runtime $GITHUB_REF_NAME"
-          --notes-file runtime/meridian-python/release-notes.md
+          --notes-file runtime/meridian-python-durable/release-notes.md

@@ -1,0 +1,8 @@
+*
+!Dockerfile
+!profile.json
+!requirements.txt
+!inventory.py
+!verify.py
+
+!bindings.py

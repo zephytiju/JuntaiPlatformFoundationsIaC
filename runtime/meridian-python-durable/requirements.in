@@ -1,0 +1,10 @@
+# Platform-owned structured/object/evidence profile. Domain wheels do not select adapters.
+meridian-storage-core==1.1.0
+meridian-storage-semantics==2.1.0
+meridian-storage-query==1.0.3
+meridian-storage-streaming==1.0.1
+meridian-storage-evidence==1.0.2
+meridian-storage-postgresql==2.3.1
+meridian-storage-object-common==1.0.3
+meridian-storage-s3==1.0.4
+pydantic==2.13.4
