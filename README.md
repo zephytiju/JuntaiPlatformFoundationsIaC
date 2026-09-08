@@ -29,24 +29,32 @@ GitHub and OCI coordinates in the package contract are reserved for immutable se
 Install the exact release and commit the resulting lockfile:
 
 ```bash
-npm install --save-exact @zephytiju/platform-foundations-iac@1.3.0
+npm install --save-exact @zephytiju/platform-foundations-iac@1.4.0
 npm ci
 ```
 
 The package requires Core contract `^1.1.0` and provides:
 
 - `juntai.platform.gateway-set@1.0.0`
-- `juntai.platform.meridian-runtime@1.0.0`
+- `juntai.platform.meridian-runtime@1.1.0`
 - `juntai.platform.observability-gateway@1.0.0`
 - `juntai.platform.foundation-services@1.1.0`
 
 ## Domain logical-resource requirements
 
-Version 1.3.0 accepts optional `meridian.domains` contributions from installed domain IaC packages. Each contribution pins its domain owner, logical namespace, schema-provider releases and fingerprints, and structured/evidence resource requirements. Foundations rejects duplicate resource ownership, foreign namespaces, unpinned providers, and physical engine selection in a domain contribution before registering resources.
+Version 1.4.0 accepts optional `meridian.domains` contributions from installed domain IaC packages. Each contribution pins its domain owner, logical namespace, schema-provider releases and fingerprints, and structured/evidence resource requirements. Foundations rejects duplicate resource ownership, foreign namespaces, unpinned providers, and physical engine selection in a domain contribution before registering resources.
 
 Foundations alone maps these requirements to the reviewed `structured` Engine binding and renders an isolated configuration per contribution. Structured state and audit/lineage share one transaction placement group. The existing `MeridianRuntimeCapability` adds an optional `domainRuntimes` map containing the requirement fingerprint and live Pulumi Outputs for each configuration, namespace, and resolved resource-binding map. Consumers verify their own requirement fingerprint and required bindings before starting workloads; they never deserialize Engine settings, copy another service's configuration, or create a physical storage provider. Existing consumers and foundation resource identities remain compatible.
 
 Application Metadata is pinned to 3.1.1, including its image, OpenAPI, source commit, unchanged logical migration bytes, and the schema-provider fingerprint calculated from the released wheel. This enables exact Configuration/Artifact association with an existing OPEN application version. Sealing and deployment remain with Application Metadata and Vangu.
+
+## Platform Python runtime distribution
+
+Capability `juntai.platform.meridian-runtime@1.1.0` supplies `runtimeDistributions`, keyed by domain contribution ID, and the same typed distribution reference on each `domainRuntimes` entry. The reference includes the exact OCI base image, descriptor URI and digest, inventory digest, Python ABI, target platform, and a protected ConfigMap containing the original verified descriptor bytes. Configurations and the descriptor are in `juntai-capabilities`; consumers mount them read-only in that namespace. A deployment without domain contributions creates no distribution ConfigMap and exposes an empty distribution map.
+
+The platform-owned [Meridian Python runtime 1.0.0](https://github.com/zephytiju/JuntaiPlatformFoundationsIaC/releases/tag/meridian-runtime-python-v1.0.0) supports `postgresql-postgis-local-single-primary`, CPython 3.12.11 (`cp312`), and `linux/amd64`. Preflight verifies all seven descriptor, inventory, lock, constraints, SBOM and provenance artifacts against their immutable release pins. A different domain runtime profile is rejected before resource registration and requires a separately reviewed platform distribution.
+
+Final service images inherit the exact base image and install their own public wheel with its platform constraints. Prism wheels and IaC packages do not depend on physical Adapter wheels. The base contains no endpoints, credentials, Bindings, or domain configuration. Each service must run the base's descriptor/inventory verifier, start native Meridian with the platform-provided configuration and opaque Secret references, and validate its live Binding, capability and schema fingerprints before readiness. The installed distribution check alone does not establish storage readiness. See the [runtime recipe and verifier contract](https://github.com/zephytiju/JuntaiPlatformFoundationsIaC/tree/meridian-runtime-python-v1.0.0/runtime/meridian-python).
 
 ## Development
 

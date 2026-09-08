@@ -1,4 +1,4 @@
-import type * as k8s from "@pulumi/kubernetes";
+import * as k8s from "@pulumi/kubernetes";
 import type * as pulumi from "@pulumi/pulumi";
 import { MeridianRuntimeConfig } from "@zephytiju/juntai-platform-constructs";
 import {
@@ -15,12 +15,14 @@ import {
 import { childMigration } from "./adoption.js";
 import { sha256 } from "./artifacts.js";
 import { validateDomainRequirements } from "./domain-requirements.js";
+import type { PreparedRuntimeDistribution } from "./runtime-distribution.js";
 import type {
   AdoptionMap,
   DomainMeridianRuntimeOutput,
   MeridianEngineSelection,
   MeridianInputs,
   MeridianRuntimeOutput,
+  MeridianRuntimeDistributionOutput,
 } from "./types.js";
 
 const ACCOUNT_PROVIDER = Object.freeze({
@@ -537,6 +539,7 @@ function createDeployment(args: {
 }
 
 export function createMeridianRuntime(args: {
+  readonly runtimeDistribution?: PreparedRuntimeDistribution;
   readonly provider: k8s.Provider;
   readonly namespace: pulumi.Input<string>;
   readonly inputs: MeridianInputs;
@@ -587,6 +590,16 @@ export function createMeridianRuntime(args: {
   if (!getEngineProfile(object.profileId).catalogs.includes("object")) {
     throw new Error(
       "the Meridian 'object' binding must select a released object profile",
+    );
+  }
+  const hasDomains = (args.inputs.domains?.length ?? 0) > 0;
+  if (
+    hasDomains &&
+    (!args.runtimeDistribution ||
+      args.runtimeDistribution.selection.profileId !== structured.profileId)
+  ) {
+    throw new Error(
+      "domain Meridian workloads require the exact platform runtime distribution for the selected profile",
     );
   }
   const engines = args.inputs.engines.map((engine) =>
@@ -657,6 +670,31 @@ export function createMeridianRuntime(args: {
     },
   );
   const domainRuntimes: Record<string, DomainMeridianRuntimeOutput> = {};
+  const runtimeDistributions: Record<
+    string,
+    MeridianRuntimeDistributionOutput
+  > = {};
+  const distribution = hasDomains ? args.runtimeDistribution! : undefined;
+  const distributionMap = distribution
+    ? new k8s.core.v1.ConfigMap(
+        "foundations-meridian-python-runtime",
+        {
+          metadata: {
+            name: "juntai-meridian-python-runtime",
+            namespace: args.namespace,
+            labels: {
+              "app.kubernetes.io/managed-by": "juntai-platform-foundations-iac",
+            },
+          },
+          data: { "runtime-distribution.v1.json": distribution.descriptorText },
+        },
+        {
+          provider: args.provider,
+          protect: true,
+          dependsOn: args.dependsOn ? [...args.dependsOn] : undefined,
+        },
+      )
+    : undefined;
   for (const domain of [...(args.inputs.domains ?? [])].sort((a, b) =>
     a.id.localeCompare(b.id),
   )) {
@@ -679,7 +717,20 @@ export function createMeridianRuntime(args: {
         environmentVariable: "MERIDIAN_CONFIG",
       },
     );
+    const selected = distribution!.selection;
+    const runtimeDistribution = Object.freeze({
+      descriptorUri: selected.descriptor.uri,
+      descriptorDigest: selected.descriptor.digest,
+      descriptorConfigMapName: distributionMap!.metadata.name,
+      descriptorFile: "runtime-distribution.v1.json" as const,
+      image: selected.image,
+      inventoryDigest: selected.inventoryDigest,
+      pythonAbi: selected.pythonAbi,
+      platform: selected.platform,
+    });
+    runtimeDistributions[domain.id] = runtimeDistribution;
     domainRuntimes[domain.id] = Object.freeze({
+      runtimeDistribution,
       ownerPackage: domain.ownerPackage,
       resourceNamespace: domain.resourceNamespace,
       requirementsFingerprint: sha256(canonicalJson(domain)),
@@ -697,6 +748,7 @@ export function createMeridianRuntime(args: {
     applicationMetadataRuntime,
     blueprintRuntime,
     output: Object.freeze({
+      runtimeDistributions: Object.freeze(runtimeDistributions),
       configFingerprint: deployment.configFingerprint,
       configMapName: runtime.configMap.metadata.name,
       namespace: runtime.configMap.metadata.namespace,

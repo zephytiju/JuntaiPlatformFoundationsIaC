@@ -1,6 +1,7 @@
 import type { ImmutableReleaseInput } from "./contract.js";
+import { MERIDIAN_PYTHON_RUNTIME } from "./runtime-distribution.js";
 
-export const FOUNDATIONS_PACKAGE_VERSION = "1.3.0" as const;
+export const FOUNDATIONS_PACKAGE_VERSION = "1.4.0" as const;
 export const FOUNDATIONS_PACKAGE_ID = "juntai.platform.substrate" as const;
 
 export const CASDOOR_IMAGE =
@@ -78,6 +79,13 @@ export const APPLICATION_METADATA_MIGRATION = Object.freeze({
 });
 
 export const releaseInputs: readonly ImmutableReleaseInput[] = Object.freeze([
+  MERIDIAN_PYTHON_RUNTIME.descriptor,
+  {
+    id: "meridian-python-runtime-image",
+    uri: MERIDIAN_PYTHON_RUNTIME.image,
+    digest:
+      "sha256:60b6828202ad3cf2c5313c5605ac8bfeccfa5acb88d05f3ccaa56e93c94c78b1",
+  },
   {
     id: "account-contract-bundle",
     ...ACCOUNT_CONTRACT_BUNDLE,

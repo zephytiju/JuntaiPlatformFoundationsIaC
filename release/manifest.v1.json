@@ -1,7 +1,7 @@
 {
   "schemaVersion": "juntai.platform/iac-package-contract/v1",
   "id": "juntai.platform.substrate",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "targetProfiles": [
     "development",
     "development-local",
@@ -18,6 +18,16 @@
     }
   },
   "releaseInputs": [
+    {
+      "id": "meridian-python-runtime-descriptor",
+      "uri": "https://github.com/zephytiju/JuntaiPlatformFoundationsIaC/releases/download/meridian-runtime-python-v1.0.0/runtime-distribution.v1.json",
+      "digest": "sha256:e1957cfd3ed70c23adc975324014299db1969392ef410565c3bc063a0ddcfdc1"
+    },
+    {
+      "id": "meridian-python-runtime-image",
+      "uri": "ghcr.io/zephytiju/juntai-platform-meridian-runtime-python@sha256:60b6828202ad3cf2c5313c5605ac8bfeccfa5acb88d05f3ccaa56e93c94c78b1",
+      "digest": "sha256:60b6828202ad3cf2c5313c5605ac8bfeccfa5acb88d05f3ccaa56e93c94c78b1"
+    },
     {
       "id": "account-contract-bundle",
       "uri": "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.5/juntai-account-contracts-2.1.5.json",
@@ -128,7 +138,7 @@
     },
     {
       "id": "juntai.platform.meridian-runtime",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "multiplexed": false
     },
     {

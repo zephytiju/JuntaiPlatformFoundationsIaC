@@ -10,6 +10,7 @@ export * from "./gateway-manifests.js";
 export * from "./legacy-adoption-compatibility.js";
 export * from "./preflight.js";
 export * from "./release.js";
+export * from "./runtime-distribution.js";
 export * from "./service-contracts.js";
 export type * from "./contract.js";
 export type * from "./types.js";
