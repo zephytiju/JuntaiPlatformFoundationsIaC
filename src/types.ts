@@ -1,6 +1,8 @@
 import type * as k8s from "@pulumi/kubernetes";
 import type * as pulumi from "@pulumi/pulumi";
 import type { ContractCompositionEvidence } from "./contract-composition.js";
+import type { VerifiedArtifact } from "./artifacts.js";
+import type { RuntimeDistributionDescriptor } from "./runtime-distribution.js";
 import type {
   AclPolicyRef,
   JsonObject,
@@ -102,6 +104,8 @@ export interface MeridianEngineSelection {
 
 export interface MeridianInputs {
   readonly engines: readonly MeridianEngineSelection[];
+  /** Foundations-owned immutable selection; defaults to the package's released runtime. */
+  readonly distribution?: VerifiedArtifact;
   readonly runtimeReferences?: readonly RuntimeFileReference[];
   /** Domain packages supply logical requirements; Foundations selects physical bindings. */
   readonly domains?: readonly DomainMeridianRequirements[];
@@ -202,6 +206,8 @@ export interface GatewaySetOutput {
 }
 
 export interface MeridianRuntimeOutput {
+  readonly distribution: MeridianRuntimeDistributionOutput;
+  readonly runtimeReferences: readonly RuntimeFileReference[];
   readonly configFingerprint: pulumi.Output<string>;
   readonly configMapName: pulumi.Output<string>;
   readonly namespace: pulumi.Output<string>;
@@ -211,7 +217,18 @@ export interface MeridianRuntimeOutput {
   >;
 }
 
+export interface MeridianRuntimeDistributionOutput {
+  readonly selection: VerifiedArtifact;
+  readonly descriptor: RuntimeDistributionDescriptor;
+  readonly configMapName: pulumi.Output<string>;
+  readonly namespace: pulumi.Output<string>;
+  readonly key: "runtime-distribution.v1.json";
+  readonly mountPath: "/etc/juntai/meridian-distribution";
+  readonly descriptorDigest: `sha256:${string}`;
+}
+
 export interface DomainMeridianRuntimeOutput {
+  readonly runtimeReferences: readonly RuntimeFileReference[];
   readonly ownerPackage: string;
   readonly resourceNamespace: string;
   readonly requirementsFingerprint: string;

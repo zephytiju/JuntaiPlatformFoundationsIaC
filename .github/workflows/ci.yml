@@ -62,7 +62,7 @@ jobs:
           pulumi -C preview preview --json --non-interactive --suppress-outputs > "${RUNNER_TEMP}/preview.json"
           jq '{changeSummary, protectedKubernetes: ([.steps[] | select((.newState.type | startswith("kubernetes:")) and (.newState.protect == true))] | length), unprotectedKubernetes: [.steps[] | select(.newState.type | startswith("kubernetes:")) | select(.newState.protect != true) | {type: .newState.type, urn: .newState.urn, name: .newState.inputs.metadata.name}], deployments: ([.steps[] | select(.op == "create" and .newState.type == "kubernetes:apps/v1:Deployment") | .newState.inputs.metadata.name] | sort)}' "${RUNNER_TEMP}/preview.json"
           jq '{assertions: {
-            resourceCount: (.changeSummary.create == 148),
+            resourceCount: (.changeSummary.create == 149),
             noDestructiveOperations: (([.steps[].op | select(test("delete|replace"))] | length) == 0),
             allKubernetesProtected: (([.steps[] | select(.newState.type | startswith("kubernetes:")) | select(.newState.protect != true)] | length) == 0),
             deploymentSet: (([.steps[] | select(.op == "create" and .newState.type == "kubernetes:apps/v1:Deployment") | .newState.inputs.metadata.name] | sort) == ["account", "application-metadata", "blueprint", "casdoor", "envoy-gateway", "otel-gateway"]),
@@ -72,7 +72,7 @@ jobs:
             tokenReviewerRbac: (([.steps[] | select(.op == "create" and (.newState.type == "kubernetes:rbac.authorization.k8s.io/v1:ClusterRole" or .newState.type == "kubernetes:rbac.authorization.k8s.io/v1:ClusterRoleBinding")) | select(.newState.inputs.metadata.name == "juntai-application-metadata-token-reviewer")] | length) == 2)
           }}' "${RUNNER_TEMP}/preview.json"
           jq -e '
-            (.changeSummary.create == 148) and
+            (.changeSummary.create == 149) and
             ([.steps[].op | select(test("delete|replace"))] | length == 0) and
             ([.steps[] | select(.newState.type | startswith("kubernetes:")) | select(.newState.protect != true)] | length == 0) and
             (([.steps[] | select(.op == "create" and .newState.type == "kubernetes:apps/v1:Deployment") | .newState.inputs.metadata.name] | sort) == ["account", "application-metadata", "blueprint", "casdoor", "envoy-gateway", "otel-gateway"]) and

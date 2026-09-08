@@ -1,7 +1,7 @@
 {
   "schemaVersion": "juntai.platform/iac-package-contract/v1",
   "id": "juntai.platform.substrate",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "targetProfiles": [
     "development",
     "development-local",
@@ -109,6 +109,11 @@
       "digest": "sha256:62412821373d48922a0beeb24b644dd061e4f8d37e692287e7ac731ebfb431e2"
     },
     {
+      "id": "meridian-runtime-distribution",
+      "uri": "https://github.com/zephytiju/JuntaiPlatformFoundationsIaC/releases/download/meridian-runtime-python-v1.1.0/runtime-distribution.v1.json",
+      "digest": "sha256:9cdd731c803997c4628bbe6a95a4277ed3a627bd6bc1b66a2a098eca75c4d49d"
+    },
+    {
       "id": "meridian-storage-constructs",
       "uri": "https://registry.npmjs.org/@zephytiju/meridian-storage-constructs/-/meridian-storage-constructs-1.0.0.tgz",
       "digest": "sha256:7b853db0e745863517245378a10fc7651ed8f515e763ea8d95258b65aee5dbd5"
@@ -128,7 +133,7 @@
     },
     {
       "id": "juntai.platform.meridian-runtime",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "multiplexed": false
     },
     {

@@ -100,6 +100,7 @@ export async function deployFoundations(
     envoyGatewayYaml: preflight.envoyGatewayYaml,
   });
   const meridian = createMeridianRuntime({
+    distribution: preflight.runtimeDistribution,
     provider,
     namespace: namespaces.resources["juntai-capabilities"].metadata.name,
     inputs: context.inputs.meridian,

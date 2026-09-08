@@ -9,6 +9,7 @@ export * from "./envoy-migration.js";
 export * from "./gateway-manifests.js";
 export * from "./legacy-adoption-compatibility.js";
 export * from "./preflight.js";
+export * from "./runtime-distribution.js";
 export * from "./release.js";
 export * from "./service-contracts.js";
 export type * from "./contract.js";
