@@ -14,7 +14,7 @@ export const GatewaySetCapability = Object.freeze({
 
 export const MeridianRuntimeCapability = Object.freeze({
   id: "juntai.platform.meridian-runtime",
-  version: "1.0.0",
+  version: "1.1.0",
   multiplexed: false,
 }) satisfies CapabilityKey<MeridianRuntimeOutput>;
 

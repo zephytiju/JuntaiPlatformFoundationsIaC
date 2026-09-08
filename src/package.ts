@@ -52,6 +52,12 @@ export async function deployFoundations(
   const preflight = await (
     dependencies.preflight ?? resolveFoundationPreflight
   )(context.inputs, dependencies.fetcher);
+  if (
+    (context.inputs.meridian.domains?.length ?? 0) > 0 &&
+    preflight.runtimeDistribution === undefined
+  ) {
+    throw new Error("domain Meridian runtime distribution was not verified");
+  }
   registerLegacyAdoptionCompatibility(
     context.inputs.legacyAdoptionCompatibility,
   );
@@ -100,6 +106,7 @@ export async function deployFoundations(
     envoyGatewayYaml: preflight.envoyGatewayYaml,
   });
   const meridian = createMeridianRuntime({
+    runtimeDistribution: preflight.runtimeDistribution,
     provider,
     namespace: namespaces.resources["juntai-capabilities"].metadata.name,
     inputs: context.inputs.meridian,

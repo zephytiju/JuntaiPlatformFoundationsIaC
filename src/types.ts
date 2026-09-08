@@ -206,9 +206,23 @@ export interface MeridianRuntimeOutput {
   readonly configMapName: pulumi.Output<string>;
   readonly namespace: pulumi.Output<string>;
   readonly resourceBindings: pulumi.Output<Readonly<Record<string, unknown>>>;
+  readonly runtimeDistributions: Readonly<
+    Record<string, MeridianRuntimeDistributionOutput>
+  >;
   readonly domainRuntimes?: Readonly<
     Record<string, DomainMeridianRuntimeOutput>
   >;
+}
+
+export interface MeridianRuntimeDistributionOutput {
+  readonly descriptorUri: string;
+  readonly descriptorDigest: `sha256:${string}`;
+  readonly descriptorConfigMapName: pulumi.Output<string>;
+  readonly descriptorFile: "runtime-distribution.v1.json";
+  readonly image: string;
+  readonly inventoryDigest: `sha256:${string}`;
+  readonly pythonAbi: string;
+  readonly platform: string;
 }
 
 export interface DomainMeridianRuntimeOutput {
@@ -219,6 +233,7 @@ export interface DomainMeridianRuntimeOutput {
   readonly configMapName: pulumi.Output<string>;
   readonly namespace: pulumi.Output<string>;
   readonly resourceBindings: pulumi.Output<Readonly<Record<string, unknown>>>;
+  readonly runtimeDistribution: MeridianRuntimeDistributionOutput;
 }
 
 export interface FoundationsServiceOutput {

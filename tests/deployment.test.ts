@@ -1,3 +1,4 @@
+import { MERIDIAN_PYTHON_RUNTIME } from "../src/runtime-distribution.js";
 import * as k8s from "@pulumi/kubernetes";
 import * as pulumi from "@pulumi/pulumi";
 import { beforeAll, describe, expect, it } from "vitest";
@@ -6,7 +7,7 @@ import type { ContractRouteInput } from "../src/contract-composition.js";
 import type { FoundationPreflightResolver } from "../src/preflight.js";
 import { capabilities, foundationsInputs, secrets } from "./helpers.js";
 import { domainRequirements } from "./domain-fixture.js";
-import type { FoundationsInputs } from "../src/types.js";
+import type { FoundationsInputs, MeridianRuntimeOutput } from "../src/types.js";
 
 interface RegisteredResource {
   readonly type: string;
@@ -80,6 +81,13 @@ const preflight: FoundationPreflightResolver = async (inputs) => {
     bindings: Object.freeze([]),
   });
   return Object.freeze({
+    runtimeDistribution: inputs.meridian.domains?.length
+      ? {
+          selection: MERIDIAN_PYTHON_RUNTIME,
+          descriptorText: "verified-runtime-descriptor-test-boundary",
+          verifiedArtifacts: [MERIDIAN_PYTHON_RUNTIME.descriptor],
+        }
+      : undefined,
     gatewayApiYaml: verifiedYaml,
     envoyGatewayYaml: verifiedYaml,
     gatewayManifestOwnership: Object.freeze([]),
@@ -153,6 +161,18 @@ describe("Pulumi composition", () => {
     expect(types).toContain("meridian:storage:ExternalEngine");
     expect(types).not.toContain("meridian:storage:ManagedEngine");
     expect(result.published.size).toBe(4);
+    expect(
+      (
+        result.published.get(
+          "juntai.platform.meridian-runtime",
+        ) as MeridianRuntimeOutput
+      ).runtimeDistributions,
+    ).toEqual({});
+    expect(
+      result.registered.some(
+        ({ name }) => name === "foundations-meridian-python-runtime",
+      ),
+    ).toBe(false);
     const meridianConfig = resources.find(
       ({ type, inputs }) =>
         type === "kubernetes:core/v1:ConfigMap" &&
@@ -380,22 +400,52 @@ describe("Pulumi composition", () => {
         ({ type }) => type === "meridian:storage:ExternalEngine",
       ),
     ).toHaveLength(2);
-    const output = result.published.get("juntai.platform.meridian-runtime") as {
-      domainRuntimes: Record<
-        string,
-        { configMapName: pulumi.Output<string>; ownerPackage: string }
-      >;
-    };
-    expect(Object.keys(output.domainRuntimes).sort()).toEqual([
+    const output = result.published.get(
+      "juntai.platform.meridian-runtime",
+    ) as MeridianRuntimeOutput;
+    const distributionMaps = result.registered.filter(
+      ({ name }) => name === "foundations-meridian-python-runtime",
+    );
+    expect(distributionMaps).toHaveLength(1);
+    expect(distributionMaps[0]!.inputs.data).toEqual({
+      "runtime-distribution.v1.json":
+        "verified-runtime-descriptor-test-boundary",
+    });
+    expect(distributionMaps[0]!.inputs.metadata).toMatchObject({
+      name: "juntai-meridian-python-runtime",
+      namespace: "juntai-capabilities",
+    });
+    expect(Object.keys(output.runtimeDistributions).sort()).toEqual([
       "prism-build",
       "prism-composition",
     ]);
-    expect(output.domainRuntimes["prism-build"]!.ownerPackage).toBe(
+    for (const [id, distribution] of Object.entries(
+      output.runtimeDistributions,
+    )) {
+      expect(distribution).toBe(
+        output.domainRuntimes![id]!.runtimeDistribution,
+      );
+      expect(distribution).toMatchObject({
+        descriptorDigest: MERIDIAN_PYTHON_RUNTIME.descriptor.digest,
+        image: MERIDIAN_PYTHON_RUNTIME.image,
+        inventoryDigest: MERIDIAN_PYTHON_RUNTIME.inventoryDigest,
+        pythonAbi: "cp312",
+        platform: "linux/amd64",
+      });
+      expect(
+        pulumi.Output.isInstance(distribution.descriptorConfigMapName),
+      ).toBe(true);
+    }
+    expect(Object.keys(output.domainRuntimes!).sort()).toEqual([
+      "prism-build",
+      "prism-composition",
+    ]);
+    expect(output.domainRuntimes!["prism-build"]!.ownerPackage).toBe(
       "juntai.platform.domain.prism",
     );
     expect(
       pulumi.Output.isInstance(
-        output.domainRuntimes["prism-build"]!.configMapName,
+        output.domainRuntimes!["prism-build"]!.configMapName,
       ),
     ).toBe(true);
   });
@@ -499,4 +549,63 @@ describe("Pulumi composition", () => {
       return {};
     });
   });
+
+  it.each(["unreviewed profile", "missing distribution"])(
+    "rejects %s before registering package resources",
+    async (failure) => {
+      resources.length = 0;
+      await pulumi.runtime.runInPulumiStack(async () => {
+        const provider = new k8s.Provider("invalid-runtime-cluster", {
+          kubeconfig: "apiVersion: v1",
+        });
+        const base = foundationsInputs();
+        const inputs: FoundationsInputs = {
+          ...base,
+          meridian: {
+            ...base.meridian,
+            domains: [domainRequirements()],
+            engines: base.meridian.engines.map((engine) =>
+              failure === "unreviewed profile" &&
+              engine.bindingId === "structured"
+                ? { ...engine, profileId: "postgresql-postgis-cluster" }
+                : engine,
+            ),
+          },
+        };
+        await expect(
+          deployFoundations(
+            {
+              target: {
+                organization: "juntai",
+                project: "platform",
+                stack: "development-local",
+                environment: "development-local",
+                configuration: {},
+              },
+              providers: { kubernetes: provider },
+              inputs,
+              capabilities: capabilities().consumer,
+              secrets: secrets(),
+            },
+            {
+              preflight: async (...args) => ({
+                ...(await preflight(...args)),
+                runtimeDistribution: undefined,
+              }),
+            },
+          ),
+        ).rejects.toThrow(
+          /reviewed platform runtime profile|runtime distribution was not verified/,
+        );
+        expect(
+          resources.filter(
+            ({ type }) =>
+              type !== "pulumi:providers:kubernetes" &&
+              type !== "pulumi:pulumi:Stack",
+          ),
+        ).toHaveLength(0);
+        return {};
+      });
+    },
+  );
 });
