@@ -408,13 +408,16 @@ try {
   );
   await writeFile(
     resolve(consumer, "verify.mts"),
-    `import foundationsPackage, { FOUNDATION_SERVICE_CATALOG, FOUNDATIONS_PACKAGE_VERSION, resolveAndComposeServiceContracts } from "${packageJson.name}";\n\n` +
+    `import foundationsPackage, { FOUNDATION_SERVICE_CATALOG, FOUNDATIONS_PACKAGE_VERSION, resolveAndComposeServiceContracts, MeridianRuntimeCapability, MERIDIAN_RUNTIME_DISTRIBUTION, resolveRuntimeDistribution } from "${packageJson.name}";\n\n` +
       `if (foundationsPackage.id !== "juntai.platform.substrate") throw new Error("unexpected package id");\n` +
       `if (foundationsPackage.version !== FOUNDATIONS_PACKAGE_VERSION) throw new Error("version mismatch");\n` +
       `if (foundationsPackage.version !== "${packageJson.version}") throw new Error("unexpected package version");\n` +
       `if (typeof foundationsPackage.deploy !== "function") throw new Error("missing Pulumi entrypoint");\n` +
       `if (FOUNDATION_SERVICE_CATALOG.services.length !== 4) throw new Error("missing service declarations");\n` +
-      `if (typeof resolveAndComposeServiceContracts !== "function") throw new Error("missing contract resolver");\n`,
+      `if (typeof resolveAndComposeServiceContracts !== "function") throw new Error("missing contract resolver");\n` +
+      `if (MeridianRuntimeCapability.version !== "1.1.0") throw new Error("missing runtime capability");\n` +
+      `if (!MERIDIAN_RUNTIME_DISTRIBUTION.uri.includes("meridian-runtime-python-v1.1.0/")) throw new Error("missing runtime selection");\n` +
+      `if (typeof resolveRuntimeDistribution !== "function") throw new Error("missing runtime resolver");\n`,
   );
 
   run("npm", ["install", "--package-lock-only", "--ignore-scripts"], consumer);

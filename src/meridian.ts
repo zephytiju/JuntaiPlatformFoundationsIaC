@@ -1,4 +1,5 @@
-import type * as k8s from "@pulumi/kubernetes";
+import type { ResolvedRuntimeDistribution } from "./runtime-distribution.js";
+import * as k8s from "@pulumi/kubernetes";
 import type * as pulumi from "@pulumi/pulumi";
 import { MeridianRuntimeConfig } from "@zephytiju/juntai-platform-constructs";
 import {
@@ -12,7 +13,7 @@ import {
   type OperationRequirementV1,
   type SchemaProviderV1,
 } from "@zephytiju/meridian-storage-constructs";
-import { childMigration } from "./adoption.js";
+import { adoptionOptions, childMigration } from "./adoption.js";
 import { sha256 } from "./artifacts.js";
 import { validateDomainRequirements } from "./domain-requirements.js";
 import type {
@@ -537,6 +538,7 @@ function createDeployment(args: {
 }
 
 export function createMeridianRuntime(args: {
+  readonly distribution: ResolvedRuntimeDistribution;
   readonly provider: k8s.Provider;
   readonly namespace: pulumi.Input<string>;
   readonly inputs: MeridianInputs;
@@ -591,6 +593,22 @@ export function createMeridianRuntime(args: {
   }
   const engines = args.inputs.engines.map((engine) =>
     externalEngine(engine, args.adoption),
+  );
+  const descriptorConfig = new k8s.core.v1.ConfigMap(
+    "foundations-meridian-distribution",
+    {
+      metadata: {
+        name: `juntai-meridian-distribution-${args.distribution.selection.digest.slice(7, 19)}`,
+        namespace: args.namespace,
+      },
+      immutable: true,
+      data: { "runtime-distribution.v1.json": args.distribution.text },
+    },
+    {
+      provider: args.provider,
+      ...adoptionOptions(args.adoption, "meridian/runtime-distribution"),
+      dependsOn: args.dependsOn === undefined ? undefined : [...args.dependsOn],
+    },
   );
   const deployment = createDeployment({
     name: "foundations-meridian",
@@ -680,6 +698,9 @@ export function createMeridianRuntime(args: {
       },
     );
     domainRuntimes[domain.id] = Object.freeze({
+      runtimeReferences: Object.freeze([
+        ...(args.inputs.runtimeReferences ?? []),
+      ]),
       ownerPackage: domain.ownerPackage,
       resourceNamespace: domain.resourceNamespace,
       requirementsFingerprint: sha256(canonicalJson(domain)),
@@ -697,6 +718,18 @@ export function createMeridianRuntime(args: {
     applicationMetadataRuntime,
     blueprintRuntime,
     output: Object.freeze({
+      distribution: Object.freeze({
+        selection: args.distribution.selection,
+        descriptor: args.distribution.descriptor,
+        configMapName: descriptorConfig.metadata.name,
+        namespace: descriptorConfig.metadata.namespace,
+        key: "runtime-distribution.v1.json" as const,
+        mountPath: "/etc/juntai/meridian-distribution" as const,
+        descriptorDigest: args.distribution.selection.digest,
+      }),
+      runtimeReferences: Object.freeze([
+        ...(args.inputs.runtimeReferences ?? []),
+      ]),
       configFingerprint: deployment.configFingerprint,
       configMapName: runtime.configMap.metadata.name,
       namespace: runtime.configMap.metadata.namespace,

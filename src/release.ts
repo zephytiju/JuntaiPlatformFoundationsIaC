@@ -1,6 +1,13 @@
 import type { ImmutableReleaseInput } from "./contract.js";
 
-export const FOUNDATIONS_PACKAGE_VERSION = "1.3.0" as const;
+export const FOUNDATIONS_PACKAGE_VERSION = "1.4.0" as const;
+
+export const MERIDIAN_RUNTIME_DISTRIBUTION = Object.freeze({
+  id: "meridian-runtime-distribution",
+  uri: "https://github.com/zephytiju/JuntaiPlatformFoundationsIaC/releases/download/meridian-runtime-python-v1.1.0/runtime-distribution.v1.json",
+  digest:
+    "sha256:9cdd731c803997c4628bbe6a95a4277ed3a627bd6bc1b66a2a098eca75c4d49d" as const,
+});
 export const FOUNDATIONS_PACKAGE_ID = "juntai.platform.substrate" as const;
 
 export const CASDOOR_IMAGE =
@@ -141,6 +148,7 @@ export const releaseInputs: readonly ImmutableReleaseInput[] = Object.freeze([
     digest:
       "sha256:62412821373d48922a0beeb24b644dd061e4f8d37e692287e7ac731ebfb431e2",
   },
+  MERIDIAN_RUNTIME_DISTRIBUTION,
   {
     id: "meridian-storage-constructs",
     uri: "https://registry.npmjs.org/@zephytiju/meridian-storage-constructs/-/meridian-storage-constructs-1.0.0.tgz",

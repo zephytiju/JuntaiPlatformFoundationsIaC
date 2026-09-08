@@ -6,7 +6,8 @@ import type { ContractRouteInput } from "../src/contract-composition.js";
 import type { FoundationPreflightResolver } from "../src/preflight.js";
 import { capabilities, foundationsInputs, secrets } from "./helpers.js";
 import { domainRequirements } from "./domain-fixture.js";
-import type { FoundationsInputs } from "../src/types.js";
+import type { FoundationsInputs, MeridianRuntimeOutput } from "../src/types.js";
+import { runtimeDistributionFixture } from "./runtime-distribution-fixture.js";
 
 interface RegisteredResource {
   readonly type: string;
@@ -80,6 +81,7 @@ const preflight: FoundationPreflightResolver = async (inputs) => {
     bindings: Object.freeze([]),
   });
   return Object.freeze({
+    runtimeDistribution: runtimeDistributionFixture(),
     gatewayApiYaml: verifiedYaml,
     envoyGatewayYaml: verifiedYaml,
     gatewayManifestOwnership: Object.freeze([]),
@@ -151,6 +153,28 @@ describe("Pulumi composition", () => {
     expect(types).toContain("juntai:platform:MeridianRuntimeConfig");
     expect(types).toContain("meridian:storage:Deployment");
     expect(types).toContain("meridian:storage:ExternalEngine");
+    const distribution = result.registered.find(
+      ({ name }) => name === "foundations-meridian-distribution",
+    );
+    const fixture = runtimeDistributionFixture();
+    expect(distribution?.inputs.immutable).toBe(true);
+    expect(distribution?.inputs.data).toEqual({
+      "runtime-distribution.v1.json": fixture.text,
+    });
+    const runtime = result.published.get(
+      "juntai.platform.meridian-runtime",
+    ) as MeridianRuntimeOutput;
+    expect(runtime.distribution.descriptorDigest).toBe(
+      fixture.selection.digest,
+    );
+    expect(runtime.distribution.descriptor).toEqual(fixture.descriptor);
+    expect(runtime.runtimeReferences).toEqual(
+      foundationsInputs().meridian.runtimeReferences,
+    );
+    expect(pulumi.Output.isInstance(runtime.configMapName)).toBe(true);
+    expect(pulumi.Output.isInstance(runtime.distribution.configMapName)).toBe(
+      true,
+    );
     expect(types).not.toContain("meridian:storage:ManagedEngine");
     expect(result.published.size).toBe(4);
     const meridianConfig = resources.find(
