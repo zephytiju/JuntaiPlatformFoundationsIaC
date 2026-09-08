@@ -59,3 +59,36 @@ export function runtimeDistributionFixture(): ResolvedRuntimeDistribution {
     selection: { uri: artifact.url, digest: sha256(text) },
   };
 }
+
+export function durableRuntimeDistributionFixture(): ResolvedRuntimeDistribution {
+  const legacy = runtimeDistributionFixture();
+  const packages = {
+    "meridian-storage-core": "1.1.0",
+    "meridian-storage-semantics": "2.1.0",
+    "meridian-storage-query": "1.0.3",
+    "meridian-storage-evidence": "1.0.2",
+    "meridian-storage-projection": "1.0.3",
+    "meridian-storage-postgresql": "2.3.1",
+  };
+  const descriptor: RuntimeDistributionDescriptor = {
+    ...legacy.descriptor,
+    version: "2.0.0",
+    profileId: "postgresql-postgis-s3-durable-schema-registry",
+    packages: Object.entries(packages).map(([name, version]) => ({
+      name,
+      version,
+      url: `https://files.pythonhosted.org/packages/test/${name}-${version}-py3-none-any.whl`,
+      sha256: "f".repeat(64),
+    })),
+    supportedCatalogs: ["structured", "evidence"],
+  };
+  const text = JSON.stringify(descriptor, null, 2) + "\n";
+  return {
+    descriptor,
+    text,
+    selection: {
+      uri: "https://github.com/zephytiju/JuntaiPlatformFoundationsIaC/releases/download/meridian-runtime-python-v2.0.0/test.json",
+      digest: sha256(text),
+    },
+  };
+}

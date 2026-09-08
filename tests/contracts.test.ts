@@ -24,7 +24,7 @@ describe("package boundary", () => {
   it("implements the released thin-Core contract", () => {
     expect(foundationsPackage).toMatchObject({
       id: "juntai.platform.substrate",
-      version: "1.4.0",
+      version: "1.5.0",
       compatibility: {
         coreContract: "^1.1.0",
         capabilityContracts: "^1.0.0",
@@ -49,7 +49,7 @@ describe("package boundary", () => {
       /^docker\.io\/casbin\/casdoor@sha256:[0-9a-f]{64}$/,
     );
     expect(BLUEPRINT_IMAGE).toContain("@sha256:");
-    expect(BLUEPRINT_OPENAPI.uri).toContain("/v3.0.2/");
+    expect(BLUEPRINT_OPENAPI.uri).toContain("/v3.1.0/");
     expect(ACCOUNT_IMAGE).toContain("@sha256:");
     expect(ACCOUNT_OPENAPI.uri).toContain("/account-service-v2.1.5/");
     expect(APPLICATION_METADATA_IMAGE).toContain("@sha256:");
@@ -75,7 +75,7 @@ describe("package boundary", () => {
       },
     });
     expect(serviceDeclaration("platform.blueprint")).toMatchObject({
-      release: { version: "3.0.2", image: BLUEPRINT_IMAGE },
+      release: { version: "3.1.0", image: BLUEPRINT_IMAGE },
       deployment: {
         namespace: "juntai-platform",
         routePrefix: "/api/blueprints/v1",

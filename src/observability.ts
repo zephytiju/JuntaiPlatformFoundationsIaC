@@ -252,7 +252,7 @@ export function createObservabilityGateway(args: {
     },
   );
   return Object.freeze({
-    endpoint: pulumi.interpolate`http://${service.metadata.name}.${service.metadata.namespace}.svc.cluster.local:4317`,
+    endpoint: pulumi.interpolate`${args.inputs.receiverTls === undefined ? "http" : "https"}://${service.metadata.name}.${service.metadata.namespace}.svc.cluster.local:4317`,
     namespace: service.metadata.namespace,
   });
 }

@@ -12,7 +12,7 @@ import {
   type GatewayManifestOwnership,
 } from "./gateway-manifests.js";
 import { ENVOY_GATEWAY_MANIFEST, GATEWAY_API_MANIFEST } from "./release.js";
-import type { FoundationsInputs } from "./types.js";
+import type { FoundationsInputs, MeridianInputs } from "./types.js";
 import {
   resolveRuntimeDistribution,
   type ResolvedRuntimeDistribution,
@@ -21,6 +21,9 @@ import { MERIDIAN_RUNTIME_DISTRIBUTION } from "./release.js";
 
 export interface FoundationPreflight {
   readonly runtimeDistribution: ResolvedRuntimeDistribution;
+  readonly domainRuntimeDistributions: Readonly<
+    Record<string, ResolvedRuntimeDistribution>
+  >;
   readonly gatewayApiYaml: string;
   readonly envoyGatewayYaml: string;
   readonly gatewayManifestOwnership: readonly GatewayManifestOwnership[];
@@ -62,26 +65,64 @@ export const resolveFoundationPreflight: FoundationPreflightResolver = async (
     gatewayApiPayload,
     envoyGatewayPayload,
   );
-  const requiredCatalogs = new Set([
-    "structured",
-    "object",
-    "evidence",
-    ...(inputs.meridian.domains ?? []).flatMap((domain) =>
-      domain.resources.map((resource) => resource.selector.catalog),
-    ),
-  ]);
-  for (const catalog of requiredCatalogs) {
-    if (!runtimeDistribution.descriptor.supportedCatalogs.includes(catalog)) {
-      throw new Error(
-        `selected Meridian runtime does not support required catalog '${catalog}'`,
-      );
-    }
+  for (const catalog of ["structured", "object", "evidence"]) {
+    requireCatalog(runtimeDistribution, catalog);
   }
+  const domainRuntimeDistributions = await resolveDomainRuntimeDistributions(
+    inputs.meridian,
+    runtimeDistribution,
+    fetcher,
+  );
   return Object.freeze({
     runtimeDistribution,
+    domainRuntimeDistributions,
     gatewayApiYaml: gatewayManifests.gatewayApiYaml,
     envoyGatewayYaml: gatewayManifests.envoyGatewayYaml,
     gatewayManifestOwnership: gatewayManifests.ownership,
     contracts,
   });
 };
+
+function requireCatalog(
+  distribution: ResolvedRuntimeDistribution,
+  catalog: string,
+): void {
+  if (!distribution.descriptor.supportedCatalogs.includes(catalog)) {
+    throw new Error(
+      `selected Meridian runtime does not support required catalog '${catalog}'`,
+    );
+  }
+}
+
+/** Resolve only explicitly declared domains; the default's immutable lock is never rewritten. */
+export async function resolveDomainRuntimeDistributions(
+  inputs: MeridianInputs,
+  fallback: ResolvedRuntimeDistribution,
+  fetcher: ArtifactFetcher = fetchVerifiedArtifact,
+): Promise<Readonly<Record<string, ResolvedRuntimeDistribution>>> {
+  const domains = [...(inputs.domains ?? [])].sort((a, b) =>
+    a.id.localeCompare(b.id),
+  );
+  const ids = new Set(domains.map(({ id }) => id));
+  for (const id of Object.keys(inputs.domainRuntimeSelections ?? {})) {
+    if (!ids.has(id))
+      throw new Error(`runtime distribution selects undeclared domain '${id}'`);
+  }
+  const selected = await Promise.all(
+    domains.map(async (domain) => {
+      const declaration =
+        inputs.domainRuntimeSelections?.[domain.id]?.distribution;
+      const distribution =
+        declaration === undefined
+          ? fallback
+          : await resolveRuntimeDistribution(declaration, fetcher);
+      for (const catalog of new Set(
+        domain.resources.map(({ selector }) => selector.catalog),
+      )) {
+        requireCatalog(distribution, catalog);
+      }
+      return [domain.id, distribution] as const;
+    }),
+  );
+  return Object.freeze(Object.fromEntries(selected));
+}

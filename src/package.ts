@@ -101,6 +101,7 @@ export async function deployFoundations(
   });
   const meridian = createMeridianRuntime({
     distribution: preflight.runtimeDistribution,
+    domainDistributions: preflight.domainRuntimeDistributions,
     provider,
     namespace: namespaces.resources["juntai-capabilities"].metadata.name,
     inputs: context.inputs.meridian,
@@ -163,11 +164,52 @@ export async function deployFoundations(
       : { route: applicationMetadataRoute }),
   });
   const foundationServices: FoundationServicesOutput = Object.freeze({
+    consumers: Object.freeze([...(context.inputs.serviceConsumers ?? [])]),
     ...(account === undefined ? {} : { account }),
     ...(applicationMetadata === undefined ? {} : { applicationMetadata }),
     casdoor,
     ...(blueprint === undefined ? {} : { blueprint }),
   });
+  for (const serviceId of ["application-metadata", "blueprint"] as const) {
+    const consumers = (context.inputs.serviceConsumers ?? []).filter(
+      ({ service }) => service === serviceId,
+    );
+    if (consumers.length === 0) continue;
+    const target = serviceId === "blueprint" ? blueprint : applicationMetadata;
+    if (target === undefined)
+      throw new Error(
+        `cannot grant access to disabled Foundation service '${serviceId}'`,
+      );
+    new k8s.networking.v1.NetworkPolicy(
+      `foundations-${serviceId}-consumers`,
+      {
+        metadata: {
+          namespace: target.namespace,
+          name: `${serviceId}-domain-consumers`,
+        },
+        spec: {
+          podSelector: {
+            matchLabels: { "app.kubernetes.io/name": target.serviceName },
+          },
+          policyTypes: ["Ingress"],
+          ingress: [
+            {
+              from: consumers.map(({ namespace, workloadName }) => ({
+                namespaceSelector: {
+                  matchLabels: { "kubernetes.io/metadata.name": namespace },
+                },
+                podSelector: {
+                  matchLabels: { "app.kubernetes.io/name": workloadName },
+                },
+              })),
+              ports: [{ protocol: "TCP", port: 8080 }],
+            },
+          ],
+        },
+      },
+      { provider },
+    );
+  }
   context.capabilities.provide(GatewaySetCapability, gatewaySet);
   context.capabilities.provide(MeridianRuntimeCapability, meridian.output);
   context.capabilities.provide(
@@ -208,7 +250,7 @@ const foundationsPackage: PlatformIacPackage<
     capabilityContracts: "^1.0.0",
     constructLibraries: {
       "juntai.platform.constructs": "^1.0.0",
-      "juntai.platform.constructs.meridian": "^1.0.0",
+      "juntai.platform.constructs.meridian": "^1.4.0",
     },
   },
   releaseInputs,

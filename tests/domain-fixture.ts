@@ -27,7 +27,7 @@ export function domainRequirements(
           providerId: pin.id,
           package: pin.package,
           version: pin.version,
-          fingerprint: pin.requiredFingerprint,
+          fingerprint: `sha256:${(catalog === "structured" ? "b" : "c").repeat(64)}`,
         },
       ],
       operations: [

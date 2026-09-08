@@ -1,6 +1,6 @@
 {
   "name": "@zephytiju/platform-foundations-iac",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Pulumi-owned Juntai shared platform foundations package",
   "type": "module",
   "main": "./dist/index.js",
@@ -54,7 +54,7 @@
     "@pulumi/kubernetes": "4.33.0",
     "@pulumi/pulumi": "3.257.0",
     "@zephytiju/juntai-platform-constructs": "1.0.0",
-    "@zephytiju/meridian-storage-constructs": "1.0.0",
+    "@zephytiju/meridian-storage-constructs": "1.4.0",
     "yaml": "2.9.0"
   },
   "devDependencies": {

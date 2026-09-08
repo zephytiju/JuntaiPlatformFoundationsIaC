@@ -9,6 +9,7 @@ import {
   defaultValidationPolicy,
   getEngineProfile,
   type EngineBinding,
+  type CatalogProviderV1,
   type MeridianResourceRequirementV1,
   type OperationRequirementV1,
   type SchemaProviderV1,
@@ -16,12 +17,14 @@ import {
 import { adoptionOptions, childMigration } from "./adoption.js";
 import { sha256 } from "./artifacts.js";
 import { validateDomainRequirements } from "./domain-requirements.js";
+import { validateDomainRuntimeSelections } from "./validation.js";
 import type {
   AdoptionMap,
   DomainMeridianRuntimeOutput,
   MeridianEngineSelection,
   MeridianInputs,
   MeridianRuntimeOutput,
+  MeridianRuntimeDistributionOutput,
 } from "./types.js";
 
 const ACCOUNT_PROVIDER = Object.freeze({
@@ -44,9 +47,9 @@ const BLUEPRINT_PROVIDER = Object.freeze({
   id: "juntai.blueprint",
   package: "juntai-blueprint-marketplace",
   contract: "1.0.0",
-  version: "3.0.2",
+  version: "3.1.0",
   requiredFingerprint:
-    "sha256:bcea0a3aa4272c09803ed98d1d9a2a795cd916fb149e6d2c4efa6cfe004e2c49",
+    "sha256:b258e311c641aac58869d00e47cc90dbaf7c34712f5b6fccdcceb09b87c3fca9",
 });
 const CONFIG_ARTIFACT_PROVIDER = Object.freeze({
   id: "meridian.plugin.config-artifact",
@@ -68,6 +71,87 @@ const CATALOG_FINGERPRINTS = Object.freeze({
   streaming:
     "sha256:8fa802d1f4d69082b1bb2643856f82db9159ebe92fcd819aa529c143cd8d51eb",
 } as const);
+
+// Public installed Catalog manifests in the selected platform base image.
+// These are distinct from Core's placeholder Catalog contracts used by legacy inputs.
+const DOMAIN_CATALOGS = Object.freeze([
+  {
+    name: "structured",
+    package: "meridian-storage-semantics",
+    contract: "1.0.0",
+    requiredFingerprint:
+      "sha256:f4861315e02054fdc7c78eb62cf2f6f0150af5e67d7ef008fbeb2459d5cc0d87",
+  },
+  {
+    name: "evidence",
+    package: "meridian-storage-evidence",
+    contract: "1.0.0",
+    requiredFingerprint:
+      "sha256:20a4c630f47a9c40377d3a6009e5df1e8f407c8fa14b75ae449d0e37f496acb0",
+  },
+] as const);
+const DOMAIN_EVIDENCE_PROVIDER = Object.freeze({
+  id: "meridian.evidence",
+  package: "meridian-storage-evidence",
+  contract: "1.0.0",
+  requiredFingerprint:
+    "sha256:69abbca1a2fdb18941920f09b2ac0ae4a00f2d18d799ba9b4c62969ad044a14b",
+});
+
+// Read from the native public providers in the released runtime 2.0.0 image.
+const DURABLE_CATALOGS = Object.freeze([
+  {
+    name: "structured",
+    package: "meridian-storage-semantics",
+    contract: "1.0.0",
+    requiredFingerprint:
+      "sha256:8de756277ed7eadc552b3e9cb4314d71a104e335ab8bfed066f9719c056f7efa",
+  },
+  {
+    name: "evidence",
+    package: "meridian-storage-evidence",
+    contract: "1.0.0",
+    requiredFingerprint:
+      "sha256:2c144cf5b1e33055dd39bb51f6e44fb7481ebf3643f8ada7899136556a7e2cd5",
+  },
+] as const);
+const DURABLE_EVIDENCE_PROVIDER = Object.freeze({
+  id: "meridian.evidence",
+  package: "meridian-storage-evidence",
+  contract: "1.0.0",
+  requiredFingerprint:
+    "sha256:e633005121632f4add17c4607667f5106ee1888e0c4fa7cba42575adaf701295",
+});
+const METADATA_PROVIDER = Object.freeze({
+  id: "meridian.semantics",
+  package: "meridian-storage-semantics",
+  contract: "1.0.0",
+  version: "2.1.0",
+  requiredFingerprint:
+    "sha256:1579517f378f4ceaec3ee78de6f14f705b73320737384f14c720aa4c0edf0366",
+});
+const METADATA_RESOURCE: MeridianResourceRequirementV1 = Object.freeze({
+  selector: {
+    catalog: "structured" as const,
+    namespace: "meridian",
+    name: "registry",
+  },
+  schemas: [
+    {
+      providerId: METADATA_PROVIDER.id,
+      package: METADATA_PROVIDER.package,
+      version: METADATA_PROVIDER.version,
+      resourceFingerprint:
+        "sha256:b02229d273a6c5439da926c7be897dbcc2545bb1778d72f124cb0b8528487b39",
+    },
+  ],
+  operations: [
+    { contract: "meridian.structured.publish_schema", version: "1.0.0" },
+  ],
+  guarantees: { required: [] },
+  limits: { values: {} },
+  dataClass: "internal",
+});
 
 interface ProviderPin {
   readonly id: string;
@@ -326,6 +410,8 @@ const configArtifactResources = Object.freeze([
 function externalEngine(
   selection: MeridianEngineSelection,
   adoption?: AdoptionMap,
+  domainId?: string,
+  distribution?: ResolvedRuntimeDistribution,
 ): EngineBinding {
   const profile = getEngineProfile(selection.profileId);
   if (!profile.allowedModes.includes("external")) {
@@ -344,7 +430,7 @@ function externalEngine(
     );
   }
   return new ExternalEngine(
-    `meridian-${selection.bindingId}`,
+    `meridian-${domainId === undefined ? "" : domainId + "-"}${selection.bindingId}`,
     {
       binding: {
         bindingId: selection.bindingId,
@@ -352,7 +438,15 @@ function externalEngine(
         requiredCapabilityFingerprint: selection.requiredCapabilityFingerprint,
         topology: selection.topology ?? profile.defaultTopology,
         engineVersion: selection.engineVersion ?? profile.defaultEngineVersion,
-        compatibilityPins: profile.compatibilityPins,
+        compatibilityPins:
+          distribution === undefined
+            ? profile.compatibilityPins
+            : Object.fromEntries(
+                distribution.descriptor.packages.map(({ name, version }) => [
+                  name,
+                  version,
+                ]),
+              ),
         acl: selection.acl,
         migration: selection.migration,
         observability: selection.observability,
@@ -410,6 +504,9 @@ function createDeployment(args: {
   readonly schemaProviders: readonly ProviderPin[];
   readonly resources: readonly MeridianResourceRequirementV1[];
   readonly engines: readonly EngineBinding[];
+  readonly catalogs?: readonly CatalogProviderV1[];
+  readonly evidenceProvider?: SchemaProviderV1;
+  readonly metadataBindingId?: string;
   readonly adoption?: AdoptionMap;
   readonly adoptionKey?: string;
   readonly dependsOn?: readonly pulumi.Resource[];
@@ -425,7 +522,12 @@ function createDeployment(args: {
     .filter(
       ({ selector }) =>
         selector.catalog === "structured" &&
-        selector.namespace !== "platform.account",
+        selector.namespace !== "platform.account" &&
+        !(
+          args.metadataBindingId !== undefined &&
+          selector.namespace === "meridian" &&
+          selector.name === "registry"
+        ),
     )
     .map(({ selector }) => selector);
   const domainEvidenceResources =
@@ -445,18 +547,39 @@ function createDeployment(args: {
     args.name,
     {
       profile: "juntai-foundations/open-source-selected/v1",
-      catalogs: (
-        ["structured", "object", "cache", "evidence", "streaming"] as const
-      ).map((name) => ({
-        name,
-        package: "meridian-storage-core",
-        contract: "1.0.0",
-        requiredFingerprint: CATALOG_FINGERPRINTS[name],
-      })),
-      schemaProviders: args.schemaProviders.map(schemaProvider),
+      catalogs: args.domain
+        ? (args.catalogs ?? DOMAIN_CATALOGS)
+        : (
+            ["structured", "object", "cache", "evidence", "streaming"] as const
+          ).map((name) => ({
+            name,
+            package: "meridian-storage-core",
+            contract: "1.0.0",
+            requiredFingerprint: CATALOG_FINGERPRINTS[name],
+          })),
+      schemaProviders: [
+        ...(args.domain
+          ? [args.evidenceProvider ?? DOMAIN_EVIDENCE_PROVIDER]
+          : []),
+        ...args.schemaProviders.map(schemaProvider),
+      ],
       resources: args.resources,
       engines: args.engines,
       placements: [
+        ...(args.metadataBindingId === undefined
+          ? []
+          : [
+              {
+                id: `${args.name}-metadata`,
+                selector: {
+                  resources: [METADATA_RESOURCE.selector],
+                  catalog: null,
+                  labels: {},
+                },
+                bindingId: args.metadataBindingId,
+                extensions: {},
+              },
+            ]),
         ...(accountResourceSelectors.length === 0
           ? []
           : [
@@ -524,7 +647,7 @@ function createDeployment(args: {
         ...(args.domain === undefined
           ? {}
           : { logicalOwnerPackage: args.domain.ownerPackage }),
-        engineAuthority: "@zephytiju/meridian-storage-constructs@1.0.0",
+        engineAuthority: "@zephytiju/meridian-storage-constructs@1.4.0",
       },
     },
     {
@@ -539,6 +662,9 @@ function createDeployment(args: {
 
 export function createMeridianRuntime(args: {
   readonly distribution: ResolvedRuntimeDistribution;
+  readonly domainDistributions?: Readonly<
+    Record<string, ResolvedRuntimeDistribution>
+  >;
   readonly provider: k8s.Provider;
   readonly namespace: pulumi.Input<string>;
   readonly inputs: MeridianInputs;
@@ -554,6 +680,7 @@ export function createMeridianRuntime(args: {
   readonly output: MeridianRuntimeOutput;
 } {
   validateDomainRequirements(args.inputs.domains);
+  validateDomainRuntimeSelections(args.inputs);
   if (args.inputs.engines.length === 0) {
     throw new Error(
       "Foundations requires at least one Meridian Engine selection",
@@ -594,22 +721,42 @@ export function createMeridianRuntime(args: {
   const engines = args.inputs.engines.map((engine) =>
     externalEngine(engine, args.adoption),
   );
-  const descriptorConfig = new k8s.core.v1.ConfigMap(
-    "foundations-meridian-distribution",
-    {
-      metadata: {
-        name: `juntai-meridian-distribution-${args.distribution.selection.digest.slice(7, 19)}`,
-        namespace: args.namespace,
+  const projectDistribution = (
+    distribution: ResolvedRuntimeDistribution,
+    domainId?: string,
+  ): MeridianRuntimeDistributionOutput => {
+    const config = new k8s.core.v1.ConfigMap(
+      domainId === undefined
+        ? "foundations-meridian-distribution"
+        : `foundations-meridian-${domainId}-distribution`,
+      {
+        metadata: {
+          name: `juntai-meridian-${domainId === undefined ? "" : domainId + "-"}distribution-${distribution.selection.digest.slice(7, 19)}`,
+          namespace: args.namespace,
+        },
+        immutable: true,
+        data: { "runtime-distribution.v1.json": distribution.text },
       },
-      immutable: true,
-      data: { "runtime-distribution.v1.json": args.distribution.text },
-    },
-    {
-      provider: args.provider,
-      ...adoptionOptions(args.adoption, "meridian/runtime-distribution"),
-      dependsOn: args.dependsOn === undefined ? undefined : [...args.dependsOn],
-    },
-  );
+      {
+        provider: args.provider,
+        ...(domainId === undefined
+          ? adoptionOptions(args.adoption, "meridian/runtime-distribution")
+          : {}),
+        dependsOn:
+          args.dependsOn === undefined ? undefined : [...args.dependsOn],
+      },
+    );
+    return Object.freeze({
+      selection: distribution.selection,
+      descriptor: distribution.descriptor,
+      configMapName: config.metadata.name,
+      namespace: config.metadata.namespace,
+      key: "runtime-distribution.v1.json" as const,
+      mountPath: "/etc/juntai/meridian-distribution" as const,
+      descriptorDigest: distribution.selection.digest,
+    });
+  };
+  const defaultDistribution = projectDistribution(args.distribution);
   const deployment = createDeployment({
     name: "foundations-meridian",
     schemaProviders: [ACCOUNT_PROVIDER],
@@ -678,11 +825,92 @@ export function createMeridianRuntime(args: {
   for (const domain of [...(args.inputs.domains ?? [])].sort((a, b) =>
     a.id.localeCompare(b.id),
   )) {
+    if (
+      args.inputs.domainRuntimeSelections?.[domain.id] !== undefined &&
+      args.domainDistributions?.[domain.id] === undefined
+    ) {
+      throw new Error(
+        `domain '${domain.id}' runtime distribution was not resolved by preflight`,
+      );
+    }
+    const selectedDistribution =
+      args.domainDistributions?.[domain.id] ?? args.distribution;
+    const domainDistribution =
+      selectedDistribution.selection.digest ===
+      args.distribution.selection.digest
+        ? defaultDistribution
+        : projectDistribution(selectedDistribution, domain.id);
+    const selection = args.inputs.domainRuntimeSelections?.[domain.id];
+    const durable =
+      selectedDistribution.descriptor.profileId ===
+      "postgresql-postgis-s3-durable-schema-registry";
+    if (durable) {
+      const packages = new Map(
+        selectedDistribution.descriptor.packages.map(({ name, version }) => [
+          name,
+          version,
+        ]),
+      );
+      if (
+        packages.get("meridian-storage-semantics") !== "2.1.0" ||
+        packages.get("meridian-storage-evidence") !== "1.0.2"
+      ) {
+        throw new Error(
+          "selected durable runtime does not match the released Catalog and Schema provider pins",
+        );
+      }
+    }
+    if (selection?.metadataBindingId !== undefined && !durable) {
+      throw new Error(
+        "metadata registry requires the explicitly selected durable runtime profile",
+      );
+    }
+    if (
+      selection !== undefined &&
+      !selection.engines.some(({ bindingId }) => bindingId === "structured")
+    ) {
+      throw new Error(
+        `domain '${domain.id}' requires its own structured Engine selection`,
+      );
+    }
+    if (
+      selection?.metadataBindingId !== undefined &&
+      !selection.engines.some(
+        ({ bindingId }) => bindingId === selection.metadataBindingId,
+      )
+    ) {
+      throw new Error(`domain '${domain.id}' metadata binding is not selected`);
+    }
+    const domainEngines =
+      selection === undefined
+        ? engines.filter(({ bindingId }) => bindingId === "structured")
+        : selection.engines.map((engine) =>
+            externalEngine(engine, undefined, domain.id, selectedDistribution),
+          );
     const domainDeployment = createDeployment({
       name: `foundations-meridian-${domain.id}`,
-      schemaProviders: domain.schemaProviders,
-      resources: domain.resources,
-      engines: engines.filter(({ bindingId }) => bindingId === "structured"),
+      schemaProviders: [
+        ...domain.schemaProviders,
+        ...(selection?.metadataBindingId === undefined
+          ? []
+          : [METADATA_PROVIDER]),
+      ],
+      resources: [
+        ...domain.resources,
+        ...(selection?.metadataBindingId === undefined
+          ? []
+          : [METADATA_RESOURCE]),
+      ],
+      engines: domainEngines,
+      ...(durable
+        ? {
+            catalogs: DURABLE_CATALOGS,
+            evidenceProvider: DURABLE_EVIDENCE_PROVIDER,
+          }
+        : {}),
+      ...(selection?.metadataBindingId === undefined
+        ? {}
+        : { metadataBindingId: selection.metadataBindingId }),
       dependsOn: args.dependsOn,
       domain,
     });
@@ -698,8 +926,19 @@ export function createMeridianRuntime(args: {
       },
     );
     domainRuntimes[domain.id] = Object.freeze({
+      distribution: domainDistribution,
+      ...(selection?.metadataBindingId === undefined
+        ? {}
+        : {
+            metadataBindingId: selection.metadataBindingId,
+            metadataBindingFingerprint: selection.engines.find(
+              ({ bindingId }) => bindingId === selection.metadataBindingId,
+            )!.requiredPhysicalFingerprint,
+          }),
       runtimeReferences: Object.freeze([
-        ...(args.inputs.runtimeReferences ?? []),
+        ...(selection?.runtimeReferences ??
+          args.inputs.runtimeReferences ??
+          []),
       ]),
       ownerPackage: domain.ownerPackage,
       resourceNamespace: domain.resourceNamespace,
@@ -718,15 +957,7 @@ export function createMeridianRuntime(args: {
     applicationMetadataRuntime,
     blueprintRuntime,
     output: Object.freeze({
-      distribution: Object.freeze({
-        selection: args.distribution.selection,
-        descriptor: args.distribution.descriptor,
-        configMapName: descriptorConfig.metadata.name,
-        namespace: descriptorConfig.metadata.namespace,
-        key: "runtime-distribution.v1.json" as const,
-        mountPath: "/etc/juntai/meridian-distribution" as const,
-        descriptorDigest: args.distribution.selection.digest,
-      }),
+      distribution: defaultDistribution,
       runtimeReferences: Object.freeze([
         ...(args.inputs.runtimeReferences ?? []),
       ]),

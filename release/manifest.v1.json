@@ -1,7 +1,7 @@
 {
   "schemaVersion": "juntai.platform/iac-package-contract/v1",
   "id": "juntai.platform.substrate",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "targetProfiles": [
     "development",
     "development-local",
@@ -14,7 +14,7 @@
     "capabilityContracts": "^1.0.0",
     "constructLibraries": {
       "juntai.platform.constructs": "^1.0.0",
-      "juntai.platform.constructs.meridian": "^1.0.0"
+      "juntai.platform.constructs.meridian": "^1.4.0"
     }
   },
   "releaseInputs": [
@@ -75,13 +75,13 @@
     },
     {
       "id": "blueprint-image",
-      "uri": "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:3dfb716006175c32027ac04e325f7e6269911b3e5900ceda04668c240ab7019a",
-      "digest": "sha256:3dfb716006175c32027ac04e325f7e6269911b3e5900ceda04668c240ab7019a"
+      "uri": "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:23416a280ea569ec05e470792bb34a532b8e2931404a48d6abe300ea0cd2d4c8",
+      "digest": "sha256:23416a280ea569ec05e470792bb34a532b8e2931404a48d6abe300ea0cd2d4c8"
     },
     {
       "id": "blueprint-openapi",
-      "uri": "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.0.2/blueprint-service.v1.json",
-      "digest": "sha256:e1457e42a9844f26b5716d4627fefe496f318ea7e3d6b4fd0a70a812a0e84165"
+      "uri": "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.1.0/blueprint-service.v1.json",
+      "digest": "sha256:413bb1d84c780416266d7b576b8accc1f47330b03171199c09ddc776cda34135"
     },
     {
       "id": "casdoor-bootstrap-image",
@@ -109,14 +109,19 @@
       "digest": "sha256:62412821373d48922a0beeb24b644dd061e4f8d37e692287e7ac731ebfb431e2"
     },
     {
+      "id": "meridian-durable-runtime-distribution",
+      "uri": "https://github.com/zephytiju/JuntaiPlatformFoundationsIaC/releases/download/meridian-runtime-python-v2.0.0/runtime-distribution.v1.json",
+      "digest": "sha256:37f6f8eb2c3ba48ced9712cf162c36853b2a6e729c3b9f6d0d32417549a9b668"
+    },
+    {
       "id": "meridian-runtime-distribution",
       "uri": "https://github.com/zephytiju/JuntaiPlatformFoundationsIaC/releases/download/meridian-runtime-python-v1.1.0/runtime-distribution.v1.json",
       "digest": "sha256:9cdd731c803997c4628bbe6a95a4277ed3a627bd6bc1b66a2a098eca75c4d49d"
     },
     {
       "id": "meridian-storage-constructs",
-      "uri": "https://registry.npmjs.org/@zephytiju/meridian-storage-constructs/-/meridian-storage-constructs-1.0.0.tgz",
-      "digest": "sha256:7b853db0e745863517245378a10fc7651ed8f515e763ea8d95258b65aee5dbd5"
+      "uri": "https://registry.npmjs.org/@zephytiju/meridian-storage-constructs/-/meridian-storage-constructs-1.4.0.tgz",
+      "digest": "sha256:f35cb9fcc1d0e3d5bead81c8cc12d0340cdeeb37d7981e11c3bd35da0c48146c"
     },
     {
       "id": "otel-collector-image",

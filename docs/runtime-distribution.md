@@ -45,3 +45,51 @@ Runtime Generation Service 0.1.0. It proves 23 unchanged base distributions,
 three required catalog entrypoints, 24 installed service modules and 33 Pydantic
 schemas under network-disabled, read-only, non-root execution. It does not
 replace downstream service/Engine lifecycle acceptance.
+
+## Domain selections in the 1.5.0 candidate
+
+Prism selects the separately published `meridian-runtime-python-v2.0.0`
+distribution with `MERIDIAN_DURABLE_RUNTIME_DISTRIBUTION`. The default 1.1.0
+selection and its immutable Lattice consumer lock remain unchanged. A domain
+package supplies only `DomainMeridianRequirements`; the Platform composition
+supplies physical choices separately in `meridian.domainRuntimeSelections`.
+Each key must identify a declared domain. Each selection supplies an exact
+`distribution`, its own `engines`, and its own `runtimeReferences`. Global
+credential projections are never implicitly added to an explicit domain
+selection. Every file identity, password or TLS reference must be covered by a
+Secret projection in that same selection.
+
+An optional `metadataBindingId` selects a dedicated structured Engine binding
+for the native Semantics metadata registry. Component and Composition select
+the same persistent metadata backend while retaining separate business data
+bindings. Foundations adds the released Semantics provider and metadata
+ResourceDefinition to those runtime configurations. This does not grant a
+domain ownership of the `meridian` namespace. The provider bundle fingerprint,
+ResourceDefinition fingerprint, metadata wrapper fingerprint, and inner
+SchemaDocument fingerprint remain separate values.
+
+`domainRuntimes[id].distribution` exposes that domain's verified descriptor,
+immutable ConfigMap reference and digest. `metadataBindingId` is passed as
+`MERIDIAN_METADATA_BINDING` to the published platform runtime helper. The
+helper builds a fresh native SchemaAPI repository for each request, reads
+projected credentials as needed and preserves the caller's tenant and deadline.
+It does not run DDL. The Platform composition must complete and verify the
+owner's physical migration before a workload is ready.
+
+The 1.5.0 candidate currently uses public Constructs 1.4.0 for declaration and
+projection checks. Final Prism physical acceptance requires the upstream
+`put@2.0.0` and atomic Evidence declaration repair. Offline tests and the public
+2.0.0 image verification do not establish physical Engine readiness. No
+migration or environment application is authorized by this candidate.
+
+The Platform also supplies `serviceConsumers` as exact service/namespace/workload
+triples for direct Application Metadata and Blueprint calls. Foundations owns
+these destination ingress policies and echoes the grants in the service
+capability; Prism verifies the grants before declaring its workloads. IAM
+continues to authorize every request independently of network access.
+
+`GatewaySetOutput.dataPlaneNamespace` identifies `envoy-gateway-system` for the
+verified standard Envoy deployment. Gateway objects remain in `juntai-gateway`.
+These are separate namespaces: [Envoy's deployment mode documentation](https://gateway.envoyproxy.io/docs/tasks/operations/gateway-namespace-mode/)
+places the data plane in the controller namespace by default. Consumers use the
+explicit data-plane namespace for traffic policies.

@@ -1,8 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { validateFoundationsInputs } from "../src/validation.js";
+import {
+  validateDomainRuntimeSelections,
+  validateFoundationsInputs,
+} from "../src/validation.js";
+import type { DomainRuntimeSelection } from "../src/types.js";
+import { domainRequirements } from "./domain-fixture.js";
+import { durableRuntimeDistributionFixture } from "./runtime-distribution-fixture.js";
 import { foundationsInputs } from "./helpers.js";
 
 describe("Foundations input validation", () => {
+  it("rejects duplicate or disabled destination service grants", () => {
+    const base = foundationsInputs();
+    const grant = {
+      service: "blueprint" as const,
+      namespace: "prism",
+      workloadName: "prism-component",
+    };
+    expect(() =>
+      validateFoundationsInputs({ ...base, serviceConsumers: [grant, grant] }),
+    ).toThrow("unique exact");
+    expect(() =>
+      validateFoundationsInputs({
+        ...base,
+        blueprint: { ...base.blueprint, enabled: false },
+        serviceConsumers: [grant],
+      }),
+    ).toThrow("disabled Foundation service");
+  });
   it("requires exact opaque Secret projections", () => {
     const base = foundationsInputs();
     expect(() =>
@@ -117,5 +141,89 @@ describe("Foundations input validation", () => {
         },
       }),
     ).toThrow(/must be unique/);
+  });
+});
+
+describe("domain runtime authority and credential isolation", () => {
+  const base = foundationsInputs().meridian;
+  const selection: DomainRuntimeSelection = {
+    distribution: durableRuntimeDistributionFixture().selection,
+    engines: base.engines.filter(({ bindingId }) => bindingId === "structured"),
+    runtimeReferences: base.runtimeReferences!,
+  };
+  const validate = (selected: DomainRuntimeSelection) =>
+    validateDomainRuntimeSelections({
+      ...base,
+      domains: [domainRequirements()],
+      domainRuntimeSelections: { "prism-composition": selected },
+    });
+
+  it("accepts an explicit physical selection with its own projections", () => {
+    expect(() => validate(selection)).not.toThrow();
+  });
+
+  it("does not borrow global credentials or accept a ConfigMap as a credential", () => {
+    expect(() => validate({ ...selection, runtimeReferences: [] })).toThrow(
+      "its own runtimeReferences",
+    );
+    expect(() =>
+      validate({
+        ...selection,
+        runtimeReferences: selection.runtimeReferences.map((reference) => ({
+          ...reference,
+          kind: "configMap",
+        })),
+      }),
+    ).toThrow("its own runtimeReferences");
+  });
+
+  it("rejects an undeclared domain and unrecognized physical settings", () => {
+    expect(() =>
+      validateDomainRuntimeSelections({
+        ...base,
+        domainRuntimeSelections: { undeclared: selection },
+      }),
+    ).toThrow("undeclared domain");
+    expect(() =>
+      validate({ ...selection, typo: true } as DomainRuntimeSelection),
+    ).toThrow("unknown runtime selection fields");
+  });
+
+  it("requires unambiguous business and metadata binding identities", () => {
+    expect(() => validate({ ...selection, engines: [] })).toThrow(
+      "including structured",
+    );
+    expect(() =>
+      validate({
+        ...selection,
+        engines: [...selection.engines, ...selection.engines],
+      }),
+    ).toThrow("unique Engines");
+    expect(() =>
+      validate({ ...selection, metadataBindingId: "not-selected" }),
+    ).toThrow("metadata binding is not selected");
+  });
+
+  it("rejects colliding or traversing projected credential paths", () => {
+    expect(() =>
+      validate({
+        ...selection,
+        runtimeReferences: [
+          ...selection.runtimeReferences,
+          ...selection.runtimeReferences,
+        ],
+      }),
+    ).toThrow("mount paths must be unique");
+    expect(() =>
+      validate({
+        ...selection,
+        runtimeReferences: [
+          {
+            ...selection.runtimeReferences[0]!,
+            items: { credential: "../outside" },
+          },
+        ],
+      }),
+    ).toThrow("relative paths");
   });
 });

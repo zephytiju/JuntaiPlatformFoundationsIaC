@@ -1,5 +1,6 @@
 import {
   resourceSelectorKey,
+  resourceDefinitionFingerprint,
   validateResourceRequirement,
 } from "@zephytiju/meridian-storage-constructs";
 import type { DomainMeridianRequirements } from "./types.js";
@@ -88,9 +89,9 @@ export function validateDomainRequirements(
       if (resources.has(key))
         throw new Error(`duplicate domain Meridian resource '${key}'`);
       resources.add(key);
-      if (resource.schemas.length === 0)
+      if (resource.schemas.length !== 1)
         throw new Error(
-          "domain Meridian resources need exact schema requirements",
+          "domain Meridian resources need one exact ResourceDefinition provider pin",
         );
       for (const schema of resource.schemas) {
         const provider = providers.get(schema.providerId);
@@ -98,10 +99,10 @@ export function validateDomainRequirements(
           provider === undefined ||
           schema.package !== provider.package ||
           schema.version !== provider.version ||
-          schema.fingerprint !== provider.requiredFingerprint
+          resourceDefinitionFingerprint(schema) === provider.requiredFingerprint
         ) {
           throw new Error(
-            "domain Meridian resource schema differs from its exact provider pin",
+            "domain Meridian resource needs its own ResourceDefinition fingerprint and matching provider identity",
           );
         }
       }

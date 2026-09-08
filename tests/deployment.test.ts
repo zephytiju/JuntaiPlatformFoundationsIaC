@@ -3,11 +3,17 @@ import * as pulumi from "@pulumi/pulumi";
 import { beforeAll, describe, expect, it } from "vitest";
 import { deployFoundations } from "../src/package.js";
 import type { ContractRouteInput } from "../src/contract-composition.js";
-import type { FoundationPreflightResolver } from "../src/preflight.js";
+import {
+  resolveDomainRuntimeDistributions,
+  type FoundationPreflightResolver,
+} from "../src/preflight.js";
 import { capabilities, foundationsInputs, secrets } from "./helpers.js";
 import { domainRequirements } from "./domain-fixture.js";
 import type { FoundationsInputs, MeridianRuntimeOutput } from "../src/types.js";
-import { runtimeDistributionFixture } from "./runtime-distribution-fixture.js";
+import {
+  runtimeDistributionFixture,
+  durableRuntimeDistributionFixture,
+} from "./runtime-distribution-fixture.js";
 
 interface RegisteredResource {
   readonly type: string;
@@ -82,6 +88,12 @@ const preflight: FoundationPreflightResolver = async (inputs) => {
   });
   return Object.freeze({
     runtimeDistribution: runtimeDistributionFixture(),
+    domainRuntimeDistributions: await resolveDomainRuntimeDistributions(
+      inputs.meridian,
+      runtimeDistributionFixture(),
+      async () =>
+        new TextEncoder().encode(durableRuntimeDistributionFixture().text),
+    ),
     gatewayApiYaml: verifiedYaml,
     envoyGatewayYaml: verifiedYaml,
     gatewayManifestOwnership: Object.freeze([]),
@@ -424,6 +436,142 @@ describe("Pulumi composition", () => {
     ).toBe(true);
   });
 
+  it("projects durable metadata bindings independently of the default runtime and Engine locks", async () => {
+    const base = foundationsInputs();
+    const durable = durableRuntimeDistributionFixture();
+    const structured = base.meridian.engines.find(
+      ({ bindingId }) => bindingId === "structured",
+    )!;
+    const result = await runDeployment({
+      ...base,
+      meridian: {
+        ...base.meridian,
+        domains: [domainRequirements()],
+        domainRuntimeSelections: {
+          "prism-composition": {
+            distribution: durable.selection,
+            engines: [
+              structured,
+              {
+                ...structured,
+                bindingId: "metadata",
+                physicalNamespace: "prism_metadata",
+              },
+            ],
+            runtimeReferences: base.meridian.runtimeReferences ?? [],
+            metadataBindingId: "metadata",
+          },
+        },
+      },
+    });
+    const runtime = result.published.get(
+      "juntai.platform.meridian-runtime",
+    ) as MeridianRuntimeOutput;
+    expect(runtime.distribution.descriptor).toEqual(
+      runtimeDistributionFixture().descriptor,
+    );
+    const domain = runtime.domainRuntimes!["prism-composition"]!;
+    expect(domain.distribution.descriptor).toEqual(durable.descriptor);
+    expect(domain.metadataBindingId).toBe("metadata");
+    expect(domain.metadataBindingFingerprint).toBe(
+      base.meridian.engines[0]!.requiredPhysicalFingerprint,
+    );
+    const descriptor = result.registered.find(
+      ({ name }) =>
+        name === "foundations-meridian-prism-composition-distribution",
+    )!;
+    expect(descriptor.inputs.data).toEqual({
+      "runtime-distribution.v1.json": durable.text,
+    });
+    const config = result.registered.find(
+      ({ type, inputs }) =>
+        type === "kubernetes:core/v1:ConfigMap" &&
+        JSON.stringify(inputs).includes(
+          "juntai-meridian-prism-composition-config",
+        ),
+    )!;
+    const body = JSON.parse(
+      (config.inputs.data as Record<string, string>)[
+        "meridian-config.v1.json"
+      ]!,
+    ) as {
+      catalogs: { providers: { name: string }[] };
+      resources: { pins: unknown[] };
+      placements: { id: string; bindingId: string }[];
+      bindings: {
+        extensions: Record<string, { packages: Record<string, string> }>;
+      }[];
+    };
+    expect(
+      body.catalogs.providers.map((p: { name: string }) => p.name).sort(),
+    ).toEqual(["evidence", "structured"]);
+    expect(body.resources.pins).toContainEqual(
+      expect.objectContaining({
+        requiredFingerprint:
+          "sha256:b02229d273a6c5439da926c7be897dbcc2545bb1778d72f124cb0b8528487b39",
+      }),
+    );
+    expect(
+      body.placements.find((p: { id: string }) => p.id.endsWith("-metadata"))
+        ?.bindingId,
+    ).toBe("metadata");
+    for (const binding of body.bindings) {
+      expect(
+        binding.extensions["org.meridian.constructs/package-lock.v1"]!.packages[
+          "meridian-storage-semantics"
+        ],
+      ).toBe("2.1.0");
+    }
+    expect(JSON.stringify(body)).not.toContain("platform.account");
+  });
+
+  it("grants only explicit domain workloads access to selected foundation destinations", async () => {
+    const grant = {
+      service: "blueprint" as const,
+      namespace: "prism",
+      workloadName: "prism-component",
+    };
+    const result = await runDeployment({
+      ...foundationsInputs(),
+      serviceConsumers: [grant],
+    });
+    const policy = result.registered.find(
+      ({ name }) => name === "foundations-blueprint-consumers",
+    )!;
+    expect(policy.inputs.spec).toMatchObject({
+      podSelector: { matchLabels: { "app.kubernetes.io/name": "blueprint" } },
+      ingress: [
+        {
+          from: [
+            {
+              namespaceSelector: {
+                matchLabels: { "kubernetes.io/metadata.name": "prism" },
+              },
+              podSelector: {
+                matchLabels: { "app.kubernetes.io/name": "prism-component" },
+              },
+            },
+          ],
+          ports: [{ protocol: "TCP", port: 8080 }],
+        },
+      ],
+    });
+    expect(
+      result.registered.some(
+        ({ name }) => name === "foundations-application-metadata-consumers",
+      ),
+    ).toBe(false);
+    expect(
+      result.published.get("juntai.platform.foundation-services"),
+    ).toMatchObject({ consumers: [grant] });
+    const gateway = result.published.get("juntai.platform.gateway-set") as {
+      dataPlaneNamespace: pulumi.Output<string>;
+    };
+    expect(
+      await new Promise((resolve) => gateway.dataPlaneNamespace.apply(resolve)),
+    ).toBe("envoy-gateway-system");
+  });
+
   it("supports TLS references, explicit addresses, adoption, and optional Blueprint", async () => {
     const base = foundationsInputs();
     const result = await runDeployment({
@@ -486,6 +634,12 @@ describe("Pulumi composition", () => {
     expect(JSON.stringify(result.registered)).toContain(
       "OTEL_EXPORTER_AUTHORIZATION",
     );
+    const telemetry = result.published.get(
+      "juntai.platform.observability-gateway",
+    ) as { endpoint: pulumi.Output<string> };
+    expect(
+      await new Promise((resolve) => telemetry.endpoint.apply(resolve)),
+    ).toMatch(/^https:\/\//);
   });
 
   it("fails preflight before registering any package-owned resource", async () => {
