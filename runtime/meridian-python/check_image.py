@@ -39,6 +39,9 @@ def main(image):
         prefix="meridian-runtime-acceptance-"
     ) as temporary:
         root = Path(temporary)
+        # These contain only public test fixtures. Linux bind mounts preserve
+        # host mode 0700; the non-root container must be able to traverse them.
+        root.chmod(0o755)
         descriptor = {
             "format": "juntai.platform.meridian-runtime-distribution/v1",
             "inventoryDigest": "sha256:" + hashlib.sha256(raw).hexdigest(),
