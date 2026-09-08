@@ -5,3 +5,6 @@ node_modules/
 .DS_Store
 preview/rendered/
 Pulumi.*.yaml
+runtime-release/
+runtime-consumer-compatibility.json
+__pycache__/

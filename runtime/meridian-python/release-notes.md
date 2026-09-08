@@ -1,17 +1,17 @@
-Platform-owned Python 3.12 Meridian distribution for the selected structured and
-evidence profile. The OCI image contains public, fully locked wheels and no
-endpoint, credential, Binding, domain schema or service configuration. Domain
-service wheels remain independent of physical Adapters.
+Adds the Object catalog and the exact S3 1.0.1 adapter to the Platform-owned
+PostgreSQL/S3 runtime profile. Pydantic 2.13.5 and its complete transitive wheel
+closure are locked for Python 3.12.11 / Linux amd64. The released Streaming
+library required transitively by Lattice is included; no Streaming engine or
+adapter is selected by this profile.
 
-The runtime descriptor pins the official image, Python ABI, public wheel URLs and
-hashes, plugin entry points, file inventory, full image SPDX SBOM, Python package
-SBOM and BuildKit SLSA provenance. All assets are immutable. Foundations package
-consumers must select this descriptor explicitly through capability 1.1.0 before
-any service adopts the base image.
+The release includes digest-pinned image, descriptor, inventory, dependency lock,
+Python and image SBOMs, BuildKit provenance, and reproducible installed-consumer
+compatibility evidence for Model Configuration Service 0.3.0 and Runtime
+Generation Service 0.1.0. The exact service overlay installs offline from hashed
+wheels and preserves every base runtime file and version. All service modules
+(excluding executables) and their Pydantic schemas load offline as non-root on a
+read-only root filesystem. Private consumer wheels remain ephemeral CI inputs.
 
-Image acceptance loads native plugin entry points, validates every inventoried
-file, and rejects missing/mismatched pins, changed locks, changed package files,
-or an unselected Adapter. It runs as a non-root user with no network, a read-only
-root and no capabilities. This validates distribution integrity; deployed
-services must separately validate live Meridian Bindings, capabilities, domain
-migrations and data operations before readiness.
+This verifies packaging compatibility. Service factories, authorization,
+migration, live PostgreSQL/S3 behavior, lifecycle and recovery remain owned by
+Lattice and its downstream infrastructure acceptance. Prior releases are unchanged.

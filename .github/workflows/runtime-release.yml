@@ -20,6 +20,18 @@ jobs:
       - run: ruff check runtime/meridian-python && ruff format --check runtime/meridian-python
       - run: docker build --platform linux/amd64 --build-arg SOURCE_REVISION="$GITHUB_SHA" --tag meridian-runtime:ci runtime/meridian-python
       - run: python runtime/meridian-python/check_image.py meridian-runtime:ci
+      - name: Read exact private consumer releases
+        id: consumer-token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349
+        with:
+          app-id: ${{ secrets.JUNTAI_CI_APP_ID }}
+          private-key: ${{ secrets.JUNTAI_CI_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          permission-contents: read
+      - name: Verify clean installed service compatibility
+        env:
+          GH_TOKEN: ${{ steps.consumer-token.outputs.token }}
+        run: python runtime/meridian-python/check_consumers.py meridian-runtime:ci --cache "$RUNNER_TEMP/consumer-wheels" --output "$RUNNER_TEMP/runtime-consumer-compatibility.json"
 
   publish:
     if: startsWith(github.ref, 'refs/tags/meridian-runtime-python-v')
@@ -85,6 +97,21 @@ jobs:
           set -euo pipefail
           docker pull "$RUNTIME_IMAGE"
           python3 runtime/meridian-python/check_image.py "$RUNTIME_IMAGE"
+      - name: Read exact private consumer releases
+        id: consumer-token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349
+        with:
+          app-id: ${{ secrets.JUNTAI_CI_APP_ID }}
+          private-key: ${{ secrets.JUNTAI_CI_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          permission-contents: read
+      - name: Attest compatibility with the published image digest
+        env:
+          RUNTIME_IMAGE: ghcr.io/zephytiju/juntai-platform-meridian-runtime-python@${{ steps.existing.outputs.digest || steps.build.outputs.digest }}
+          GH_TOKEN: ${{ steps.consumer-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          python3 runtime/meridian-python/check_consumers.py "$RUNTIME_IMAGE" --cache "$RUNNER_TEMP/consumer-wheels" --output runtime-consumer-compatibility.json
           python3 runtime/meridian-python/release.py
       - name: Publish immutable runtime assets
         env:

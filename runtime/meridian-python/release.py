@@ -3,9 +3,9 @@
 import hashlib
 import json
 import os
-from pathlib import Path
 import re
 import subprocess
+from pathlib import Path
 
 
 def sha(data):
@@ -59,6 +59,18 @@ def main():
     assert (output / "requirements.txt").read_bytes() == Path(
         "runtime/meridian-python/requirements.txt"
     ).read_bytes()
+    compatibility_raw = Path("runtime-consumer-compatibility.json").read_bytes()
+    compatibility = json.loads(compatibility_raw)
+    assert compatibility["baseImage"] == image
+    assert compatibility["integrity"]["inventoryDigest"] == sha(
+        (output / "runtime-manifest.json").read_bytes()
+    )
+    assert compatibility["network"] == "none" and compatibility["uid"] == 65532
+    assert compatibility["readOnlyRoot"] and compatibility["importedModules"]
+    (output / "runtime-consumer-compatibility.json").write_bytes(compatibility_raw)
+    consumer_lock = Path("runtime/meridian-python/consumer-lock.json").read_bytes()
+    assert compatibility["consumerLockDigest"] == sha(consumer_lock)
+    (output / "consumer-lock.json").write_bytes(consumer_lock)
     for field, filename, content in (
         ("SBOM", "image-sbom.spdx.json", "SPDX"),
         ("Provenance", "image-provenance.slsa.json", "SLSA"),
@@ -112,6 +124,9 @@ def main():
         "constraints": artifact("constraints.txt"),
         "packages": inventory["packages"],
         "entryPointContract": profile["entryPointContract"],
+        "supportedCatalogs": profile["supportedCatalogs"],
+        "compatibility": artifact("runtime-consumer-compatibility.json"),
+        "consumerLock": artifact("consumer-lock.json"),
         "sbom": artifact("image-sbom.spdx.json"),
         "pythonSbom": artifact("python-sbom.cdx.json"),
         "provenance": artifact("image-provenance.slsa.json"),

@@ -11,7 +11,7 @@ RUN python -m pip install --no-cache-dir --only-binary=:all: --require-hashes --
     && useradd --uid 65532 --gid 65532 --no-create-home --shell /usr/sbin/nologin juntai \
     && chmod -R a-w /opt/juntai/meridian-runtime
 LABEL org.opencontainers.image.title="Juntai platform Meridian Python runtime" \
-      org.opencontainers.image.version="1.0.0" \
+      org.opencontainers.image.version="1.1.0" \
       org.opencontainers.image.source="https://github.com/zephytiju/JuntaiPlatformFoundationsIaC" \
       org.opencontainers.image.revision="${SOURCE_REVISION}"
 USER 65532:65532
