@@ -1,7 +1,7 @@
 {
   "format": "juntai.platform.meridian-runtime-profile/v1",
-  "version": "1.0.0",
-  "profileId": "postgresql-postgis-local-single-primary",
+  "version": "1.1.0",
+  "profileId": "postgresql-postgis-s3-compatible-local",
   "pythonVersion": "3.12.11",
   "pythonAbi": "cp312",
   "platform": "linux/amd64",
@@ -10,18 +10,20 @@
     "id": "juntai.platform.meridian-runtime",
     "version": "1.1.0"
   },
-  "supportedCatalogs": ["structured", "evidence"],
+  "supportedCatalogs": ["structured", "object", "evidence"],
   "entryPointContract": {
     "contract": "juntai.platform.meridian-runtime-entrypoints",
     "version": "1.0.0",
     "required": {
       "meridian_storage.adapters": {
-        "postgresql": "meridian_storage.adapters.postgresql:PostgreSQLAdapterFactory"
+        "postgresql": "meridian_storage.adapters.postgresql:PostgreSQLAdapterFactory",
+        "s3": "meridian_storage.adapters.s3.factory:S3AdapterFactory"
       },
       "meridian_storage.catalogs": {
         "cache": "meridian_storage.semantics.catalogs:CacheCatalogProvider",
         "evidence": "meridian_storage.evidence.catalogs:EvidenceCatalogProvider",
-        "structured": "meridian_storage.semantics.catalogs:StructuredCatalogProvider"
+        "structured": "meridian_storage.semantics.catalogs:StructuredCatalogProvider",
+        "object": "meridian_storage.object_common.catalog:ObjectCatalogProvider"
       },
       "meridian_storage.schemas": {
         "evidence": "meridian_storage.evidence.schemas:EvidenceSchemaProvider",
