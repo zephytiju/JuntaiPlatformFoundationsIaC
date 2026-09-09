@@ -1,5 +1,7 @@
 import * as k8s from "@pulumi/kubernetes";
+import type { JsonObject } from "@zephytiju/meridian-storage-constructs";
 import { deployFoundations } from "../src/package.js";
+import legacyPostgresql from "../tests/fixtures/legacy-postgresql-manifest.json" with { type: "json" };
 
 const fingerprint = (character: string): `sha256:${string}` =>
   `sha256:${character.repeat(64)}`;
@@ -83,7 +85,11 @@ const result = await deployFoundations({
         {
           bindingId: "structured",
           profileId: "postgresql-postgis-local-single-primary",
-          requiredCapabilityFingerprint: fingerprint("a"),
+          engineVersion: legacyPostgresql.manifest.engineVersion,
+          capabilityManifest:
+            legacyPostgresql.manifest as unknown as JsonObject,
+          requiredCapabilityFingerprint:
+            legacyPostgresql.fingerprint as `sha256:${string}`,
           requiredPhysicalFingerprint: fingerprint("b"),
           physicalNamespace: "postgresql/platform/blueprints",
           identityRef: {

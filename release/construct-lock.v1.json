@@ -11,9 +11,9 @@
     {
       "id": "juntai.platform.constructs.meridian",
       "package": "@zephytiju/meridian-storage-constructs",
-      "version": "1.0.0",
-      "artifact": "https://registry.npmjs.org/@zephytiju/meridian-storage-constructs/-/meridian-storage-constructs-1.0.0.tgz",
-      "sha256": "7b853db0e745863517245378a10fc7651ed8f515e763ea8d95258b65aee5dbd5"
+      "version": "1.6.1",
+      "artifact": "https://registry.npmjs.org/@zephytiju/meridian-storage-constructs/-/meridian-storage-constructs-1.6.1.tgz",
+      "sha256": "36464cce62ffc6ec31d782a00f19b50a03d094388ae15a0b34f15fb5f5647afb"
     }
   ]
 }

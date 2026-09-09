@@ -86,6 +86,8 @@ export interface MeridianEngineSelection {
     | "valkey-sentinel"
     | "valkey-standalone";
   readonly requiredCapabilityFingerprint: `sha256:${string}`;
+  /** Exact public Adapter manifest for the selected runtime; never a merged capability recipe. */
+  readonly capabilityManifest?: JsonObject;
   readonly requiredPhysicalFingerprint: `sha256:${string}`;
   readonly settings?: JsonObject;
   readonly physicalNamespace: string;
@@ -106,9 +108,21 @@ export interface MeridianInputs {
   readonly engines: readonly MeridianEngineSelection[];
   /** Foundations-owned immutable selection; defaults to the package's released runtime. */
   readonly distribution?: VerifiedArtifact;
+  /** Platform-owned per-domain selections; omitted domains retain the default distribution. */
+  readonly domainRuntimeSelections?: Readonly<
+    Record<string, DomainRuntimeSelection>
+  >;
   readonly runtimeReferences?: readonly RuntimeFileReference[];
   /** Domain packages supply logical requirements; Foundations selects physical bindings. */
   readonly domains?: readonly DomainMeridianRequirements[];
+}
+
+/** Physical choices belong to the Platform composition, separately from logical domain requirements. */
+export interface DomainRuntimeSelection {
+  readonly distribution: VerifiedArtifact;
+  readonly engines: readonly MeridianEngineSelection[];
+  readonly runtimeReferences: readonly RuntimeFileReference[];
+  readonly metadataBindingId?: string;
 }
 
 export interface DomainSchemaProviderPin {
@@ -177,6 +191,7 @@ export interface ApplicationMetadataInputs {
 }
 
 export interface FoundationsInputs extends Readonly<Record<string, unknown>> {
+  readonly serviceConsumers?: readonly FoundationServiceConsumer[];
   readonly account: AccountInputs;
   readonly adoption?: AdoptionMap;
   readonly applicationMetadata: ApplicationMetadataInputs;
@@ -195,6 +210,8 @@ export interface FoundationsProviders extends Readonly<
 }
 
 export interface GatewaySetOutput {
+  /** Envoy's standard controller namespace mode; distinct from Gateway object ownership. */
+  readonly dataPlaneNamespace?: pulumi.Output<string>;
   readonly gatewayClassName: pulumi.Output<string>;
   readonly gateways: Readonly<
     Record<
@@ -228,6 +245,10 @@ export interface MeridianRuntimeDistributionOutput {
 }
 
 export interface DomainMeridianRuntimeOutput {
+  readonly distribution: MeridianRuntimeDistributionOutput;
+  readonly metadataBindingId?: string;
+  /** Opaque physical pin used to require the same metadata store across consumers. */
+  readonly metadataBindingFingerprint?: string;
   readonly runtimeReferences: readonly RuntimeFileReference[];
   readonly ownerPackage: string;
   readonly resourceNamespace: string;
@@ -253,10 +274,17 @@ export interface FoundationsServiceOutput {
 }
 
 export interface FoundationServicesOutput {
+  readonly consumers?: readonly FoundationServiceConsumer[];
   readonly account?: FoundationsServiceOutput;
   readonly applicationMetadata?: FoundationsServiceOutput;
   readonly blueprint?: FoundationsServiceOutput;
   readonly casdoor: FoundationsServiceOutput;
+}
+
+export interface FoundationServiceConsumer {
+  readonly namespace: string;
+  readonly workloadName: string;
+  readonly service: "application-metadata" | "blueprint";
 }
 
 export interface ObservabilityGatewayOutput {

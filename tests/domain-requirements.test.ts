@@ -90,7 +90,7 @@ describe("domain logical-resource boundary", () => {
       ],
     ],
     [
-      "schema fingerprint mismatch",
+      "bundle fingerprint used as resource fingerprint",
       (d: DomainMeridianRequirements) => [
         {
           ...d,
@@ -100,7 +100,7 @@ describe("domain logical-resource boundary", () => {
               schemas: [
                 {
                   ...d.resources[0]!.schemas[0]!,
-                  fingerprint: `sha256:${"b".repeat(64)}`,
+                  fingerprint: d.schemaProviders[0]!.requiredFingerprint,
                 },
               ],
             },

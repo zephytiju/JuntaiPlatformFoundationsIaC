@@ -142,6 +142,7 @@ export function createGatewaySet(args: {
     ),
   ) as Record<keyof typeof GATEWAY_NAMES, k8s.apiextensions.CustomResource>;
   return Object.freeze({
+    dataPlaneNamespace: pulumi.output("envoy-gateway-system"),
     gatewayClassName: gatewayClass.metadata.name,
     gateways: Object.freeze(
       Object.fromEntries(

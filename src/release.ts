@@ -1,12 +1,18 @@
 import type { ImmutableReleaseInput } from "./contract.js";
 
-export const FOUNDATIONS_PACKAGE_VERSION = "1.4.0" as const;
+export const FOUNDATIONS_PACKAGE_VERSION = "1.5.0" as const;
 
 export const MERIDIAN_RUNTIME_DISTRIBUTION = Object.freeze({
   id: "meridian-runtime-distribution",
   uri: "https://github.com/zephytiju/JuntaiPlatformFoundationsIaC/releases/download/meridian-runtime-python-v1.1.0/runtime-distribution.v1.json",
   digest:
     "sha256:9cdd731c803997c4628bbe6a95a4277ed3a627bd6bc1b66a2a098eca75c4d49d" as const,
+});
+export const MERIDIAN_DURABLE_RUNTIME_DISTRIBUTION = Object.freeze({
+  id: "meridian-durable-runtime-distribution",
+  uri: "https://github.com/zephytiju/JuntaiPlatformFoundationsIaC/releases/download/meridian-runtime-python-v2.0.0/runtime-distribution.v1.json",
+  digest:
+    "sha256:37f6f8eb2c3ba48ced9712cf162c36853b2a6e729c3b9f6d0d32417549a9b668" as const,
 });
 export const FOUNDATIONS_PACKAGE_ID = "juntai.platform.substrate" as const;
 
@@ -15,7 +21,7 @@ export const CASDOOR_IMAGE =
 export const CASDOOR_BOOTSTRAP_IMAGE =
   "ghcr.io/zephytiju/juntai-platform-casdoor-bootstrap@sha256:6282606098e982d9d6880819e7c895c4bd9696318a014eeb04f5b190821edf9b";
 export const BLUEPRINT_IMAGE =
-  "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:3dfb716006175c32027ac04e325f7e6269911b3e5900ceda04668c240ab7019a";
+  "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:23416a280ea569ec05e470792bb34a532b8e2931404a48d6abe300ea0cd2d4c8";
 export const ACCOUNT_IMAGE =
   "ghcr.io/zephytiju/juntai-account-service@sha256:2f657c47b6aa556f86b1b67b8164180d7aa2fb3c23dbd3c80a20a709edcb8adf";
 export const APPLICATION_METADATA_IMAGE =
@@ -34,9 +40,9 @@ export const ENVOY_GATEWAY_MANIFEST = Object.freeze({
     "sha256:37a62afe9bb07d87e86c5c2cff32f046f17397cb4fca9f2a741165826212d781",
 });
 export const BLUEPRINT_OPENAPI = Object.freeze({
-  uri: "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.0.2/blueprint-service.v1.json",
+  uri: "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.1.0/blueprint-service.v1.json",
   digest:
-    "sha256:e1457e42a9844f26b5716d4627fefe496f318ea7e3d6b4fd0a70a812a0e84165",
+    "sha256:413bb1d84c780416266d7b576b8accc1f47330b03171199c09ddc776cda34135",
 });
 export const ACCOUNT_OPENAPI = Object.freeze({
   uri: "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.5/account-service.v1.openapi.json",
@@ -125,7 +131,7 @@ export const releaseInputs: readonly ImmutableReleaseInput[] = Object.freeze([
     id: "blueprint-image",
     uri: BLUEPRINT_IMAGE,
     digest:
-      "sha256:3dfb716006175c32027ac04e325f7e6269911b3e5900ceda04668c240ab7019a",
+      "sha256:23416a280ea569ec05e470792bb34a532b8e2931404a48d6abe300ea0cd2d4c8",
   },
   { id: "blueprint-openapi", ...BLUEPRINT_OPENAPI },
   {
@@ -148,12 +154,13 @@ export const releaseInputs: readonly ImmutableReleaseInput[] = Object.freeze([
     digest:
       "sha256:62412821373d48922a0beeb24b644dd061e4f8d37e692287e7ac731ebfb431e2",
   },
+  MERIDIAN_DURABLE_RUNTIME_DISTRIBUTION,
   MERIDIAN_RUNTIME_DISTRIBUTION,
   {
     id: "meridian-storage-constructs",
-    uri: "https://registry.npmjs.org/@zephytiju/meridian-storage-constructs/-/meridian-storage-constructs-1.0.0.tgz",
+    uri: "https://registry.npmjs.org/@zephytiju/meridian-storage-constructs/-/meridian-storage-constructs-1.6.1.tgz",
     digest:
-      "sha256:7b853db0e745863517245378a10fc7651ed8f515e763ea8d95258b65aee5dbd5",
+      "sha256:36464cce62ffc6ec31d782a00f19b50a03d094388ae15a0b34f15fb5f5647afb",
   },
   {
     id: "otel-collector-image",

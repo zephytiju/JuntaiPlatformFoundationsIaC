@@ -1,4 +1,4 @@
-import type { FoundationsInputs } from "./types.js";
+import type { FoundationsInputs, MeridianInputs } from "./types.js";
 import { validateDomainRequirements } from "./domain-requirements.js";
 
 const SECRET_MATERIAL_KEY =
@@ -131,7 +131,29 @@ function assertNoMountCollision(label: string, paths: readonly string[]): void {
 }
 
 export function validateFoundationsInputs(inputs: FoundationsInputs): void {
+  const consumerIds = new Set<string>();
+  for (const consumer of inputs.serviceConsumers ?? []) {
+    const id = `${consumer.service}/${consumer.namespace}/${consumer.workloadName}`;
+    if (
+      !["application-metadata", "blueprint"].includes(consumer.service) ||
+      !/^[a-z0-9](?:[-a-z0-9]{0,61}[a-z0-9])?$/.test(consumer.namespace) ||
+      !/^[a-z0-9](?:[-a-z0-9]{0,61}[a-z0-9])?$/.test(consumer.workloadName) ||
+      consumerIds.has(id)
+    )
+      throw new Error(
+        "Foundation service consumers require unique exact service, namespace and workload names",
+      );
+    if (
+      (consumer.service === "blueprint" &&
+        inputs.blueprint.enabled === false) ||
+      (consumer.service === "application-metadata" &&
+        inputs.applicationMetadata.enabled === false)
+    )
+      throw new Error("cannot grant access to a disabled Foundation service");
+    consumerIds.add(id);
+  }
   validateDomainRequirements(inputs.meridian.domains);
+  validateDomainRuntimeSelections(inputs.meridian);
   rejectSecretMaterial(inputs);
   if (
     inputs.legacyAdoptionCompatibility !== undefined &&
@@ -359,6 +381,77 @@ export function validateFoundationsInputs(inputs: FoundationsInputs): void {
         throw new Error(
           `Meridian Engine '${engine.bindingId}' ${label} file reference must be projected by meridian.runtimeReferences`,
         );
+      }
+    }
+  }
+}
+
+/** Verify Platform-owned domain physical selections before constructing provider resources. */
+export function validateDomainRuntimeSelections(inputs: MeridianInputs): void {
+  const ids = new Set((inputs.domains ?? []).map(({ id }) => id));
+  for (const [id, selection] of Object.entries(
+    inputs.domainRuntimeSelections ?? {},
+  )) {
+    if (!ids.has(id))
+      throw new Error(`runtime selection targets undeclared domain '${id}'`);
+    const keys = Object.keys(selection);
+    if (
+      keys.some(
+        (key) =>
+          ![
+            "distribution",
+            "engines",
+            "runtimeReferences",
+            "metadataBindingId",
+          ].includes(key),
+      )
+    ) {
+      throw new Error(`domain '${id}' has unknown runtime selection fields`);
+    }
+    const bindings = selection.engines.map(({ bindingId }) => bindingId);
+    if (
+      !bindings.includes("structured") ||
+      new Set(bindings).size !== bindings.length
+    ) {
+      throw new Error(
+        `domain '${id}' requires unique Engines including structured`,
+      );
+    }
+    if (
+      selection.metadataBindingId !== undefined &&
+      !bindings.includes(selection.metadataBindingId)
+    ) {
+      throw new Error(`domain '${id}' metadata binding is not selected`);
+    }
+    const projected = new Set<string>();
+    for (const [index, reference] of selection.runtimeReferences.entries()) {
+      assertFileReference(
+        `domain '${id}' runtime reference ${index}`,
+        reference,
+        [],
+      );
+      if (reference.kind === "secret")
+        projectedFilePaths(reference).forEach((path) => projected.add(path));
+    }
+    assertNoMountCollision(
+      `domain '${id}' runtime reference`,
+      selection.runtimeReferences.map(({ mountPath }) => mountPath),
+    );
+    for (const engine of selection.engines) {
+      for (const reference of [
+        engine.identityRef,
+        engine.secretRef,
+        engine.tls.caRef,
+        engine.tls.clientCertificateRef,
+      ]) {
+        if (
+          reference?.provider === "file" &&
+          !projected.has(reference.reference)
+        ) {
+          throw new Error(
+            `domain '${id}' Engine '${engine.bindingId}' file reference must be projected by its own runtimeReferences`,
+          );
+        }
       }
     }
   }
