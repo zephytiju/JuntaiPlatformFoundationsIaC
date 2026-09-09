@@ -250,7 +250,7 @@ const foundationsPackage: PlatformIacPackage<
     capabilityContracts: "^1.0.0",
     constructLibraries: {
       "juntai.platform.constructs": "^1.0.0",
-      "juntai.platform.constructs.meridian": "^1.4.0",
+      "juntai.platform.constructs.meridian": "^1.6.1",
     },
   },
   releaseInputs,

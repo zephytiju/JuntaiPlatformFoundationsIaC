@@ -7,7 +7,12 @@ import {
   resolveDomainRuntimeDistributions,
   type FoundationPreflightResolver,
 } from "../src/preflight.js";
-import { capabilities, foundationsInputs, secrets } from "./helpers.js";
+import {
+  capabilities,
+  foundationsInputs,
+  secrets,
+  structuredEngine,
+} from "./helpers.js";
 import { domainRequirements } from "./domain-fixture.js";
 import type { FoundationsInputs, MeridianRuntimeOutput } from "../src/types.js";
 import {
@@ -439,14 +444,14 @@ describe("Pulumi composition", () => {
   it("projects durable metadata bindings independently of the default runtime and Engine locks", async () => {
     const base = foundationsInputs();
     const durable = durableRuntimeDistributionFixture();
-    const structured = base.meridian.engines.find(
-      ({ bindingId }) => bindingId === "structured",
-    )!;
+    const structured = structuredEngine(true);
     const result = await runDeployment({
       ...base,
       meridian: {
         ...base.meridian,
-        domains: [domainRequirements()],
+        domains: [
+          domainRequirements("prism-composition", "prism.composition", true),
+        ],
         domainRuntimeSelections: {
           "prism-composition": {
             distribution: durable.selection,

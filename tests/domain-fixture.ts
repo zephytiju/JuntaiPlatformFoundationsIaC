@@ -3,6 +3,7 @@ import type { DomainMeridianRequirements } from "../src/types.js";
 export function domainRequirements(
   id = "prism-composition",
   namespace = "prism.composition",
+  durable = false,
 ): DomainMeridianRequirements {
   const pin = {
     id: namespace,
@@ -36,7 +37,7 @@ export function domainRequirements(
             catalog === "structured"
               ? "meridian.structured.put"
               : "meridian.evidence.append",
-          version: "1.0.0",
+          version: catalog === "structured" && durable ? "2.0.0" : "1.0.0",
         },
         {
           contract: "meridian.transaction",

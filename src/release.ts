@@ -158,9 +158,9 @@ export const releaseInputs: readonly ImmutableReleaseInput[] = Object.freeze([
   MERIDIAN_RUNTIME_DISTRIBUTION,
   {
     id: "meridian-storage-constructs",
-    uri: "https://registry.npmjs.org/@zephytiju/meridian-storage-constructs/-/meridian-storage-constructs-1.4.0.tgz",
+    uri: "https://registry.npmjs.org/@zephytiju/meridian-storage-constructs/-/meridian-storage-constructs-1.6.1.tgz",
     digest:
-      "sha256:f35cb9fcc1d0e3d5bead81c8cc12d0340cdeeb37d7981e11c3bd35da0c48146c",
+      "sha256:36464cce62ffc6ec31d782a00f19b50a03d094388ae15a0b34f15fb5f5647afb",
   },
   {
     id: "otel-collector-image",

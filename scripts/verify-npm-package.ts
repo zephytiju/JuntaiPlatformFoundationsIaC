@@ -408,7 +408,7 @@ try {
   );
   await writeFile(
     resolve(consumer, "verify.mts"),
-    `import foundationsPackage, { FOUNDATION_SERVICE_CATALOG, FOUNDATIONS_PACKAGE_VERSION, resolveAndComposeServiceContracts, MeridianRuntimeCapability, MERIDIAN_RUNTIME_DISTRIBUTION, resolveRuntimeDistribution } from "${packageJson.name}";\n\n` +
+    `import foundationsPackage, { FOUNDATION_SERVICE_CATALOG, FOUNDATIONS_PACKAGE_VERSION, resolveAndComposeServiceContracts, MeridianRuntimeCapability, MERIDIAN_RUNTIME_DISTRIBUTION, MERIDIAN_DURABLE_RUNTIME_DISTRIBUTION, resolveRuntimeDistribution, validateDomainRequirements, type DomainRuntimeSelection } from "${packageJson.name}";\n\n` +
       `if (foundationsPackage.id !== "juntai.platform.substrate") throw new Error("unexpected package id");\n` +
       `if (foundationsPackage.version !== FOUNDATIONS_PACKAGE_VERSION) throw new Error("version mismatch");\n` +
       `if (foundationsPackage.version !== "${packageJson.version}") throw new Error("unexpected package version");\n` +
@@ -417,6 +417,10 @@ try {
       `if (typeof resolveAndComposeServiceContracts !== "function") throw new Error("missing contract resolver");\n` +
       `if (MeridianRuntimeCapability.version !== "1.1.0") throw new Error("missing runtime capability");\n` +
       `if (!MERIDIAN_RUNTIME_DISTRIBUTION.uri.includes("meridian-runtime-python-v1.1.0/")) throw new Error("missing runtime selection");\n` +
+      `const domainSelection: DomainRuntimeSelection = { distribution: MERIDIAN_DURABLE_RUNTIME_DISTRIBUTION, metadataBindingId: "metadata", engines: [], runtimeReferences: [] };\n` +
+      `if (!domainSelection.distribution.uri.includes("meridian-runtime-python-v2.0.0/")) throw new Error("missing explicit durable selection");\n` +
+      `if (domainSelection.distribution.digest === MERIDIAN_RUNTIME_DISTRIBUTION.digest) throw new Error("runtime profiles are not isolated");\n` +
+      `validateDomainRequirements([]);\n` +
       `if (typeof resolveRuntimeDistribution !== "function") throw new Error("missing runtime resolver");\n`,
   );
 
@@ -442,6 +446,16 @@ try {
     !installed.integrity?.startsWith("sha512-")
   ) {
     throw new Error("clean consumer lock lacks exact npm tarball integrity");
+  }
+  const constructs =
+    lock.packages?.["node_modules/@zephytiju/meridian-storage-constructs"];
+  if (
+    constructs?.version !== "1.6.1" ||
+    !constructs.integrity?.startsWith("sha512-")
+  ) {
+    throw new Error(
+      "clean consumer did not resolve public Constructs 1.6.1 with integrity",
+    );
   }
 
   process.stdout.write(

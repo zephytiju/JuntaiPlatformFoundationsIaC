@@ -72,7 +72,7 @@ const CATALOG_FINGERPRINTS = Object.freeze({
     "sha256:8fa802d1f4d69082b1bb2643856f82db9159ebe92fcd819aa529c143cd8d51eb",
 } as const);
 
-// Public installed Catalog manifests in the selected platform base image.
+// Public Catalog manifests for the selected legacy package inventory.
 // These are distinct from Core's placeholder Catalog contracts used by legacy inputs.
 const DOMAIN_CATALOGS = Object.freeze([
   {
@@ -98,7 +98,7 @@ const DOMAIN_EVIDENCE_PROVIDER = Object.freeze({
     "sha256:69abbca1a2fdb18941920f09b2ac0ae4a00f2d18d799ba9b4c62969ad044a14b",
 });
 
-// Read from the native public providers in the released runtime 2.0.0 image.
+// Native public provider pins for the durable 2.0.0 package inventory.
 const DURABLE_CATALOGS = Object.freeze([
   {
     name: "structured",
@@ -436,6 +436,9 @@ function externalEngine(
         bindingId: selection.bindingId,
         profileId: selection.profileId,
         requiredCapabilityFingerprint: selection.requiredCapabilityFingerprint,
+        ...(selection.capabilityManifest === undefined
+          ? {}
+          : { capabilityManifest: selection.capabilityManifest }),
         topology: selection.topology ?? profile.defaultTopology,
         engineVersion: selection.engineVersion ?? profile.defaultEngineVersion,
         compatibilityPins:
@@ -647,7 +650,7 @@ function createDeployment(args: {
         ...(args.domain === undefined
           ? {}
           : { logicalOwnerPackage: args.domain.ownerPackage }),
-        engineAuthority: "@zephytiju/meridian-storage-constructs@1.4.0",
+        engineAuthority: "@zephytiju/meridian-storage-constructs@1.6.1",
       },
     },
     {
@@ -719,7 +722,7 @@ export function createMeridianRuntime(args: {
     );
   }
   const engines = args.inputs.engines.map((engine) =>
-    externalEngine(engine, args.adoption),
+    externalEngine(engine, args.adoption, undefined, args.distribution),
   );
   const projectDistribution = (
     distribution: ResolvedRuntimeDistribution,

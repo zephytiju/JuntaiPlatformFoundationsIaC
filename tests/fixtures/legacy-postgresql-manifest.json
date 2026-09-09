@@ -1,0 +1,331 @@
+{
+  "fingerprint": "sha256:54229542100cc08d022277b2b6253f34509a7b5cafd337eb2211364ccddeaa26",
+  "manifest": {
+    "availableOperationContracts": [
+      "meridian.evidence.append",
+      "meridian.evidence.query",
+      "meridian.structured.aggregate",
+      "meridian.structured.create_resource",
+      "meridian.structured.delete",
+      "meridian.structured.get",
+      "meridian.structured.patch",
+      "meridian.structured.publish_schema",
+      "meridian.structured.put",
+      "meridian.structured.query",
+      "meridian.structured.search",
+      "meridian.structured.traverse",
+      "meridian.transaction"
+    ],
+    "descriptor": {
+      "adapterContractVersion": "1.0.0",
+      "adapterId": "postgresql",
+      "capabilities": [
+        {
+          "cursorBehavior": "none",
+          "extensions": {},
+          "guarantees": [
+            "append-only",
+            "bound-parameters",
+            "read-committed",
+            "scope-injected",
+            "transactional-with-structured"
+          ],
+          "healthProbes": ["authenticated", "physical", "readiness"],
+          "limits": { "maxPageSize": 500 },
+          "migrationBehavior": "platform-iac-hook",
+          "operationContract": "meridian.evidence.append",
+          "operationVersions": ["1.0.0"]
+        },
+        {
+          "cursorBehavior": "signed-live-keyset",
+          "extensions": {},
+          "guarantees": [
+            "bound-parameters",
+            "scope-injected",
+            "strong-consistency"
+          ],
+          "healthProbes": ["authenticated", "physical", "readiness"],
+          "limits": { "maxPageSize": 500 },
+          "migrationBehavior": "platform-iac-hook",
+          "operationContract": "meridian.evidence.query",
+          "operationVersions": ["1.0.0"]
+        },
+        {
+          "cursorBehavior": "none",
+          "extensions": {
+            "org.meridian.postgresql/distance": "wgs84-geography-meters",
+            "org.meridian.postgresql/transaction": "read-committed"
+          },
+          "guarantees": [
+            "bound-parameters",
+            "scope-injected",
+            "single-binding",
+            "strong-consistency"
+          ],
+          "healthProbes": ["authenticated", "physical", "readiness"],
+          "limits": {
+            "maxMembershipNames": 10000,
+            "maxPageSize": 500,
+            "maxRelationResources": 32,
+            "maxTraversalDepth": 8,
+            "pageSize": 500
+          },
+          "migrationBehavior": "platform-iac-hook",
+          "operationContract": "meridian.structured.aggregate",
+          "operationVersions": ["1.0.0"]
+        },
+        {
+          "cursorBehavior": "none",
+          "extensions": {
+            "org.meridian.postgresql/distance": "wgs84-geography-meters",
+            "org.meridian.postgresql/transaction": "read-committed"
+          },
+          "guarantees": [
+            "bound-parameters",
+            "external-migration",
+            "scope-injected",
+            "single-binding",
+            "strong-consistency"
+          ],
+          "healthProbes": ["authenticated", "physical", "readiness"],
+          "limits": {
+            "maxMembershipNames": 10000,
+            "maxPageSize": 500,
+            "maxRelationResources": 32,
+            "maxTraversalDepth": 8,
+            "pageSize": 500
+          },
+          "migrationBehavior": "platform-iac-hook",
+          "operationContract": "meridian.structured.create_resource",
+          "operationVersions": ["1.0.0"]
+        },
+        {
+          "cursorBehavior": "none",
+          "extensions": {
+            "org.meridian.postgresql/distance": "wgs84-geography-meters",
+            "org.meridian.postgresql/transaction": "read-committed"
+          },
+          "guarantees": [
+            "bound-parameters",
+            "conditional-mutation",
+            "read-committed",
+            "scope-injected",
+            "single-binding",
+            "strong-consistency"
+          ],
+          "healthProbes": ["authenticated", "physical", "readiness"],
+          "limits": {
+            "maxMembershipNames": 10000,
+            "maxPageSize": 500,
+            "maxRelationResources": 32,
+            "maxTraversalDepth": 8,
+            "pageSize": 500
+          },
+          "migrationBehavior": "platform-iac-hook",
+          "operationContract": "meridian.structured.delete",
+          "operationVersions": ["1.0.0"]
+        },
+        {
+          "cursorBehavior": "none",
+          "extensions": {
+            "org.meridian.postgresql/distance": "wgs84-geography-meters",
+            "org.meridian.postgresql/transaction": "read-committed"
+          },
+          "guarantees": [
+            "bound-parameters",
+            "scope-injected",
+            "single-binding",
+            "strong-consistency"
+          ],
+          "healthProbes": ["authenticated", "physical", "readiness"],
+          "limits": {
+            "maxMembershipNames": 10000,
+            "maxPageSize": 500,
+            "maxRelationResources": 32,
+            "maxTraversalDepth": 8,
+            "pageSize": 500
+          },
+          "migrationBehavior": "platform-iac-hook",
+          "operationContract": "meridian.structured.get",
+          "operationVersions": ["1.0.0"]
+        },
+        {
+          "cursorBehavior": "none",
+          "extensions": {
+            "org.meridian.postgresql/distance": "wgs84-geography-meters",
+            "org.meridian.postgresql/transaction": "read-committed"
+          },
+          "guarantees": [
+            "bound-parameters",
+            "conditional-mutation",
+            "read-committed",
+            "scope-injected",
+            "single-binding",
+            "strong-consistency"
+          ],
+          "healthProbes": ["authenticated", "physical", "readiness"],
+          "limits": {
+            "maxMembershipNames": 10000,
+            "maxPageSize": 500,
+            "maxRelationResources": 32,
+            "maxTraversalDepth": 8,
+            "pageSize": 500
+          },
+          "migrationBehavior": "platform-iac-hook",
+          "operationContract": "meridian.structured.patch",
+          "operationVersions": ["1.0.0"]
+        },
+        {
+          "cursorBehavior": "none",
+          "extensions": {
+            "org.meridian.postgresql/distance": "wgs84-geography-meters",
+            "org.meridian.postgresql/transaction": "read-committed"
+          },
+          "guarantees": [
+            "bound-parameters",
+            "external-migration",
+            "scope-injected",
+            "single-binding",
+            "strong-consistency"
+          ],
+          "healthProbes": ["authenticated", "physical", "readiness"],
+          "limits": {
+            "maxMembershipNames": 10000,
+            "maxPageSize": 500,
+            "maxRelationResources": 32,
+            "maxTraversalDepth": 8,
+            "pageSize": 500
+          },
+          "migrationBehavior": "platform-iac-hook",
+          "operationContract": "meridian.structured.publish_schema",
+          "operationVersions": ["1.0.0"]
+        },
+        {
+          "cursorBehavior": "none",
+          "extensions": {
+            "org.meridian.postgresql/distance": "wgs84-geography-meters",
+            "org.meridian.postgresql/transaction": "read-committed"
+          },
+          "guarantees": [
+            "bound-parameters",
+            "conditional-mutation",
+            "read-committed",
+            "scope-injected",
+            "single-binding",
+            "strong-consistency"
+          ],
+          "healthProbes": ["authenticated", "physical", "readiness"],
+          "limits": {
+            "maxMembershipNames": 10000,
+            "maxPageSize": 500,
+            "maxRelationResources": 32,
+            "maxTraversalDepth": 8,
+            "pageSize": 500
+          },
+          "migrationBehavior": "platform-iac-hook",
+          "operationContract": "meridian.structured.put",
+          "operationVersions": ["1.0.0"]
+        },
+        {
+          "cursorBehavior": "signed-live-keyset",
+          "extensions": {
+            "org.meridian.postgresql/distance": "wgs84-geography-meters",
+            "org.meridian.postgresql/transaction": "read-committed"
+          },
+          "guarantees": [
+            "bound-parameters",
+            "scope-injected",
+            "single-binding",
+            "strong-consistency"
+          ],
+          "healthProbes": ["authenticated", "physical", "readiness"],
+          "limits": {
+            "maxMembershipNames": 10000,
+            "maxPageSize": 500,
+            "maxRelationResources": 32,
+            "maxTraversalDepth": 8,
+            "pageSize": 500
+          },
+          "migrationBehavior": "platform-iac-hook",
+          "operationContract": "meridian.structured.query",
+          "operationVersions": ["1.0.0"]
+        },
+        {
+          "cursorBehavior": "signed-live-keyset",
+          "extensions": {
+            "org.meridian.postgresql/distance": "wgs84-geography-meters",
+            "org.meridian.postgresql/transaction": "read-committed"
+          },
+          "guarantees": [
+            "bound-parameters",
+            "scope-injected",
+            "single-binding",
+            "strong-consistency"
+          ],
+          "healthProbes": ["authenticated", "physical", "readiness"],
+          "limits": {
+            "maxMembershipNames": 10000,
+            "maxPageSize": 500,
+            "maxRelationResources": 32,
+            "maxTraversalDepth": 8,
+            "pageSize": 500
+          },
+          "migrationBehavior": "platform-iac-hook",
+          "operationContract": "meridian.structured.search",
+          "operationVersions": ["1.0.0"]
+        },
+        {
+          "cursorBehavior": "none",
+          "extensions": {
+            "org.meridian.postgresql/distance": "wgs84-geography-meters",
+            "org.meridian.postgresql/transaction": "read-committed"
+          },
+          "guarantees": [
+            "bound-parameters",
+            "bounded-traversal",
+            "relation-collections",
+            "scope-injected",
+            "single-binding",
+            "strong-consistency"
+          ],
+          "healthProbes": ["authenticated", "physical", "readiness"],
+          "limits": {
+            "maxMembershipNames": 10000,
+            "maxPageSize": 500,
+            "maxRelationResources": 32,
+            "maxTraversalDepth": 8,
+            "pageSize": 500
+          },
+          "migrationBehavior": "platform-iac-hook",
+          "operationContract": "meridian.structured.traverse",
+          "operationVersions": ["1.0.0"]
+        },
+        {
+          "cursorBehavior": "none",
+          "extensions": {},
+          "guarantees": ["atomic", "no-dirty-reads", "read-committed"],
+          "healthProbes": ["authenticated", "readiness"],
+          "limits": { "maxOperations": 10000 },
+          "migrationBehavior": "external",
+          "operationContract": "meridian.transaction",
+          "operationVersions": ["1.0.0"]
+        }
+      ],
+      "driver": "psycopg-3",
+      "supportedEngineVersions": {
+        "postgresql-postgis-cluster": ["16-postgis-3.4", "17-postgis-3.5"],
+        "postgresql-postgis-local-single-primary": [
+          "16-postgis-3.4",
+          "17-postgis-3.5"
+        ]
+      }
+    },
+    "engineProfile": "postgresql-postgis-local-single-primary",
+    "engineVersion": "17-postgis-3.5",
+    "extensions": {
+      "org.meridian.postgresql/postgisRequired": true,
+      "org.meridian.postgresql/queryCapabilityFingerprint": "sha256:b74fab5ac877ec7f9cb1df6de5d9b424f5fbb8d54af00ee73a8805ae9b0a6d3a"
+    },
+    "formatVersion": "meridian-adapter-capabilities.v1"
+  }
+}

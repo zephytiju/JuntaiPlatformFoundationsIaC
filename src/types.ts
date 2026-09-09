@@ -86,6 +86,8 @@ export interface MeridianEngineSelection {
     | "valkey-sentinel"
     | "valkey-standalone";
   readonly requiredCapabilityFingerprint: `sha256:${string}`;
+  /** Exact public Adapter manifest for the selected runtime; never a merged capability recipe. */
+  readonly capabilityManifest?: JsonObject;
   readonly requiredPhysicalFingerprint: `sha256:${string}`;
   readonly settings?: JsonObject;
   readonly physicalNamespace: string;

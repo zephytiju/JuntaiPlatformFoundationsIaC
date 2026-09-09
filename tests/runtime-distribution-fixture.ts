@@ -29,14 +29,21 @@ export function runtimeDistributionFixture(): ResolvedRuntimeDistribution {
     provenance: artifact,
     compatibility: artifact,
     consumerLock: artifact,
-    packages: [
-      {
-        name: "meridian-storage-core",
-        version: "1.0.0",
-        url: "https://files.pythonhosted.org/packages/test/core-1.0.0-py3-none-any.whl",
-        sha256: "f".repeat(64),
-      },
-    ],
+    packages: Object.entries({
+      "meridian-storage-core": "1.0.0",
+      "meridian-storage-semantics": "1.0.0",
+      "meridian-storage-query": "1.0.0",
+      "meridian-storage-streaming": "1.0.0",
+      "meridian-storage-evidence": "1.0.0",
+      "meridian-storage-postgresql": "1.0.0",
+      "meridian-storage-object-common": "1.0.1",
+      "meridian-storage-s3": "1.0.1",
+    }).map(([name, version]) => ({
+      name,
+      version,
+      url: `https://files.pythonhosted.org/packages/test/${name}-${version}-py3-none-any.whl`,
+      sha256: "f".repeat(64),
+    })),
     supportedCatalogs: ["structured", "object", "evidence"],
     entryPointContract: {
       contract: "juntai.platform.meridian-runtime-entrypoints",

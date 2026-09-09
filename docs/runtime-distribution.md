@@ -32,12 +32,12 @@ physical bindings and engine endpoints are not added to the capability. Domain
 runtime outputs also carry those opaque mount references. The descriptor contains
 public package and adapter inventory, with no deployment configuration.
 
-Domain deployment images inherit `distribution.descriptor.image`, install their
-exact released service closure under the base `constraints.txt`, and rerun the
-embedded verifier at build time. Before readiness, the service passes the
-projected descriptor path and `descriptorDigest` to the platform verifier, then
-performs its own live Meridian Binding/capability/schema checks. Service
-factories, policy, migrations and live lifecycle remain with the owning package.
+Existing consumers of the 1.1.0 shared image retain their exact base image,
+constraints, descriptor projection and verifier contract. This compatibility
+path does not require other domains to inherit that image. Python services
+declare Meridian dependencies in their own package metadata and resolve an exact
+hashed dependency lock. Service factories, policy, migrations and live lifecycle
+remain with the owning package.
 
 The runtime release's `runtime-consumer-compatibility.json` binds the published
 image digest to a hash-locked overlay of Model Configuration Service 0.3.0 and
@@ -46,10 +46,16 @@ three required catalog entrypoints, 24 installed service modules and 33 Pydantic
 schemas under network-disabled, read-only, non-root execution. It does not
 replace downstream service/Engine lifecycle acceptance.
 
-## Domain selections in the 1.5.0 candidate
+## Domain selections in 1.5.0
 
-Prism selects the separately published `meridian-runtime-python-v2.0.0`
-distribution with `MERIDIAN_DURABLE_RUNTIME_DISTRIBUTION`. The default 1.1.0
+Prism's physical composition selects the separately published
+`meridian-runtime-python-v2.0.0` profile descriptor with
+`MERIDIAN_DURABLE_RUNTIME_DISTRIBUTION`. It supplies the planning inventory and
+adapter compatibility pins. Prism Component 2.1.1, Composition 1.1.0 and Build
+1.1.0 use their own standard Python base image and ten exact Meridian PyPI
+dependencies, declared in each released wheel and resolved by its `uv.lock`.
+They neither copy Python code from the shared image nor require its descriptor
+mount or embedded verifier. The default 1.1.0
 selection and its immutable Lattice consumer lock remain unchanged. A domain
 package supplies only `DomainMeridianRequirements`; the Platform composition
 supplies physical choices separately in `meridian.domainRuntimeSelections`.
@@ -69,18 +75,28 @@ ResourceDefinition fingerprint, metadata wrapper fingerprint, and inner
 SchemaDocument fingerprint remain separate values.
 
 `domainRuntimes[id].distribution` exposes that domain's verified descriptor,
-immutable ConfigMap reference and digest. `metadataBindingId` is passed as
-`MERIDIAN_METADATA_BINDING` to the published platform runtime helper. The
-helper builds a fresh native SchemaAPI repository for each request, reads
-projected credentials as needed and preserves the caller's tenant and deadline.
-It does not run DDL. The Platform composition must complete and verify the
-owner's physical migration before a workload is ready.
+immutable ConfigMap reference and digest for consumers of that capability.
+PrismIaC projects `metadataBindingId`, logical config fingerprints and opaque
+runtime references into `PRISM_PLATFORM_CONFIG`. Each Prism service's own
+composition imports the installed Meridian packages and constructs the native
+SchemaAPI repository from those inputs, preserving the caller's tenant and
+deadline. It does not run DDL. The Platform composition must complete and verify
+the owner's physical migration before a workload is ready.
 
-The 1.5.0 candidate currently uses public Constructs 1.4.0 for declaration and
-projection checks. Final Prism physical acceptance requires the upstream
-`put@2.0.0` and atomic Evidence declaration repair. Offline tests and the public
-2.0.0 image verification do not establish physical Engine readiness. No
-migration or environment application is authorized by this candidate.
+Foundations 1.5.0 uses public Constructs 1.6.1, which includes the released
+`put@2.0.0` and atomic Evidence declaration repair. Each Engine selection may
+provide its exact public Adapter `capabilityManifest`; Constructs verifies it
+against `requiredCapabilityFingerprint`. Select the manifest from the exact
+released Adapter package, including its Engine profile and version. The legacy 1.1.0
+runtime retains PostgreSQL Adapter 1.0.0 and `put@1.0.0`; the durable 2.0.0
+runtime retains Adapter 2.3.1 and `put@2.0.0`. Package compatibility pins are
+derived from the selected runtime descriptor for both global and domain Engines.
+The public release's complete conformance environment lock is reproducibility
+evidence, not a replacement for the domain's independently verified dependency
+lock. Prism Component and Build retain protobuf 6.33.6, as required by Artifact
+Client 1.2.0; Composition's independent lock selects 7.36.1 without that client.
+Offline planning and image verification do not establish physical Engine
+readiness. Package publication does not authorize migration or environment application.
 
 The Platform also supplies `serviceConsumers` as exact service/namespace/workload
 triples for direct Application Metadata and Blueprint calls. Foundations owns

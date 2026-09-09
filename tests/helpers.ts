@@ -1,3 +1,6 @@
+import legacyPostgresql from "./fixtures/legacy-postgresql-manifest.json" with { type: "json" };
+import durablePostgresql from "./fixtures/durable-postgresql-manifest.json" with { type: "json" };
+import type { JsonObject } from "@zephytiju/meridian-storage-constructs";
 import type * as pulumi from "@pulumi/pulumi";
 import type {
   FoundationsInputs,
@@ -7,11 +10,14 @@ import type {
 const fingerprint = (character: string): `sha256:${string}` =>
   `sha256:${character.repeat(64)}`;
 
-export function structuredEngine(): MeridianEngineSelection {
+export function structuredEngine(durable = false): MeridianEngineSelection {
+  const selected = durable ? durablePostgresql : legacyPostgresql;
   return {
     bindingId: "structured",
     profileId: "postgresql-postgis-local-single-primary",
-    requiredCapabilityFingerprint: fingerprint("a"),
+    requiredCapabilityFingerprint: selected.fingerprint as `sha256:${string}`,
+    capabilityManifest: selected.manifest as unknown as JsonObject,
+    engineVersion: selected.manifest.engineVersion,
     requiredPhysicalFingerprint: fingerprint("b"),
     settings: {
       formatVersion: "meridian.postgresql.settings.v1",
