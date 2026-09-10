@@ -1,0 +1,650 @@
+{
+  "catalogs": [
+    {
+      "fingerprint": "sha256:20a4c630f47a9c40377d3a6009e5df1e8f407c8fa14b75ae449d0e37f496acb0",
+      "name": "evidence"
+    },
+    {
+      "fingerprint": "sha256:e6696e6944768e9a42acffa331d91c75fe7222ae331bfbda3640a4a4fe024b1b",
+      "name": "object"
+    },
+    {
+      "fingerprint": "sha256:f4861315e02054fdc7c78eb62cf2f6f0150af5e67d7ef008fbeb2459d5cc0d87",
+      "name": "structured"
+    }
+  ],
+  "format": "juntai.lattice/released-schema-provider-observation/v1",
+  "providers": [
+    {
+      "package": "lattice-model-configuration-service",
+      "providerContract": "1.0.0",
+      "providerFingerprint": "sha256:f108a95e2d463baae123e49defdc6e91c6d8bef640c1f32803bf6b46451dcaa3",
+      "providerId": "lattice.model-configuration",
+      "providerVersion": "0.1.0",
+      "resources": [
+        {
+          "fingerprint": "sha256:fcda4409d7b3f34fac498c691163ef83b7c4531dbde4da932c041dd63c2b53c4",
+          "operations": [
+            {
+              "contract": "meridian.evidence.append",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "evidence",
+            "name": "audit",
+            "namespace": "lattice-authoring"
+          }
+        },
+        {
+          "fingerprint": "sha256:9565da67691c92569efa71a45906144af865eec382a0e762139b18a8d0d62f7f",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "automations",
+            "namespace": "lattice-authoring"
+          }
+        },
+        {
+          "fingerprint": "sha256:dfab3bbd01563b15ef3a05507e0d9feb8dc73d2153477f79f90ee1aab055a682",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "bundles",
+            "namespace": "lattice-authoring"
+          }
+        },
+        {
+          "fingerprint": "sha256:e50ed3ad824c8dea082837bd6f8cc9dee40cd18820ba59f7dfbef8a7bc4bdac9",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "commands",
+            "namespace": "lattice-authoring"
+          }
+        },
+        {
+          "fingerprint": "sha256:0663acb34c9fa89d8d57525d635930e73101cfa8b87199acb4e3cf1238b2d204",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "dependencies",
+            "namespace": "lattice-authoring"
+          }
+        },
+        {
+          "fingerprint": "sha256:b867bba4754541c969a4f091f0ca90b2a40f02333e8990db9ccdb4d2b29a066f",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "events",
+            "namespace": "lattice-authoring"
+          }
+        },
+        {
+          "fingerprint": "sha256:fcac86290b349239741b3592b02dab2b80e0005a7caf46c3d21a5a57e330b54b",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "import-plans",
+            "namespace": "lattice-authoring"
+          }
+        },
+        {
+          "fingerprint": "sha256:da90323240d41d5610456b9077b3d2bd86a196cc18e0edce3c79574fb2443fea",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "interface-bindings",
+            "namespace": "lattice-authoring"
+          }
+        },
+        {
+          "fingerprint": "sha256:fe8965a84c7d09f79799f209e79177ec65223f5f7e24257afd6289817ca789cc",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "interfaces",
+            "namespace": "lattice-authoring"
+          }
+        },
+        {
+          "fingerprint": "sha256:db20f243cf0e906479714d08dd5b11ec0a6119e38ae294359825522624d29be1",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "memberships",
+            "namespace": "lattice-authoring"
+          }
+        },
+        {
+          "fingerprint": "sha256:b14dbda77efd806bf97824fe167e9ab6cff87ed247dfb3bc8d4f03e31df1725b",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "models",
+            "namespace": "lattice-authoring"
+          }
+        },
+        {
+          "fingerprint": "sha256:00897f310d60bebf17b1c30ec03fc07936f094d33e22c0db14a475bd6ef2afe0",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "origins",
+            "namespace": "lattice-authoring"
+          }
+        },
+        {
+          "fingerprint": "sha256:6b687f5ce876d7fbac9f78bf6b76fed41baa06c491451f5941c59e98ab2fbc58",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "relations",
+            "namespace": "lattice-authoring"
+          }
+        },
+        {
+          "fingerprint": "sha256:ffdb2b18ae3016793d76cc8d666d15048a52ff9912a42c85531f01e8828c9a06",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "releases",
+            "namespace": "lattice-authoring"
+          }
+        }
+      ],
+      "version": "0.3.0"
+    },
+    {
+      "package": "lattice-runtime-generation-service",
+      "providerContract": "1.0.0",
+      "providerFingerprint": "sha256:568b3efe83cecc14648f8fac93c868ac993e0c3fdbecfcf6f02c22d7eb7ea441",
+      "providerId": "lattice.generation",
+      "providerVersion": "0.1.0",
+      "resources": [
+        {
+          "fingerprint": "sha256:1613c076f904fd7a2ff2172118d762f1dfc5d4dabce936e64f583bd7d73d5fcc",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "operations",
+            "namespace": "lattice-generation"
+          }
+        }
+      ],
+      "version": "0.1.0"
+    },
+    {
+      "package": "meridian-plugin-config-artifact",
+      "providerContract": "1.0.0",
+      "providerFingerprint": "sha256:68a4e989a39a5cfabacf55d18709fcacd055f0d56fc4082c1a596b9dba4b16ca",
+      "providerId": "meridian.plugin.config-artifact",
+      "providerVersion": "1.0.3",
+      "resources": [
+        {
+          "fingerprint": "sha256:7c929d3b1d6e651257d0c63697eabcabe8af1421f6d6f5e1f1b90cde0a858a8b",
+          "operations": [
+            {
+              "contract": "meridian.object.get",
+              "guarantees": ["object.digest-verification", "object.streaming"],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.object.list",
+              "guarantees": ["object.bounded-prefix-list"],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.object.put",
+              "guarantees": [
+                "object.conditional-create",
+                "object.digest-sha256",
+                "object.metadata-after-commit",
+                "object.streaming"
+              ],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.object.read_range",
+              "guarantees": ["object.digest-verification", "object.range-read"],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.object.stat",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "object",
+            "name": "objects",
+            "namespace": "resources"
+          }
+        },
+        {
+          "fingerprint": "sha256:fdb587c999f8d07c262e446cb5b34d36a2a2b955af1feb5b7b8db91c949bf8d3",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.transaction",
+              "guarantees": ["atomic", "no-dirty-reads"],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "channels",
+            "namespace": "resources"
+          }
+        },
+        {
+          "fingerprint": "sha256:2fdb82a840596b0d0f5b67212a8874e27a49d660d4f80e61611cebeed6704d90",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.patch",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.transaction",
+              "guarantees": ["atomic", "no-dirty-reads"],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "metadata",
+            "namespace": "resources"
+          }
+        },
+        {
+          "fingerprint": "sha256:c9fb4f100122216b41bc5e8baef3f081c14c1647fbf446cf11a75aea664c4770",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.patch",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.transaction",
+              "guarantees": ["atomic", "no-dirty-reads"],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "orphan-candidates",
+            "namespace": "resources"
+          }
+        },
+        {
+          "fingerprint": "sha256:f4115700a3b9715517604d21fdb5279622bcc75db9ff3d9be3b6d95b81b50f86",
+          "operations": [
+            {
+              "contract": "meridian.structured.get",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.put",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.structured.query",
+              "guarantees": [],
+              "limits": {},
+              "version": "1.0.0"
+            },
+            {
+              "contract": "meridian.transaction",
+              "guarantees": ["atomic", "no-dirty-reads"],
+              "limits": {},
+              "version": "1.0.0"
+            }
+          ],
+          "selector": {
+            "catalog": "structured",
+            "name": "provenance",
+            "namespace": "resources"
+          }
+        }
+      ],
+      "version": "1.0.3"
+    }
+  ]
+}

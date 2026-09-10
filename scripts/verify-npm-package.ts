@@ -336,6 +336,7 @@ try {
     "docs/adoption-and-rollback.md",
     "docs/foundation-services.md",
     "docs/npm-release.md",
+    "docs/lattice-resource-stores.md",
     "docs/package-ownership.md",
     "package.json",
     "release/adoption-inventory.v1.json",
@@ -399,6 +400,7 @@ try {
           skipLibCheck: true,
           strict: true,
           target: "ES2023",
+          allowImportingTsExtensions: true,
         },
         include: ["verify.mts"],
       },
@@ -406,9 +408,22 @@ try {
       2,
     )}\n`,
   );
+  await copyFile(
+    resolve(repository, "tests/fixtures/lattice-released-contracts.json"),
+    resolve(consumer, "lattice-released-contracts.json"),
+  );
+  await writeFile(
+    resolve(consumer, "lattice-fixture.mts"),
+    (await readFile(resolve(repository, "tests/lattice-fixture.ts"), "utf8"))
+      .replace(
+        "./fixtures/lattice-released-contracts.json",
+        "./lattice-released-contracts.json",
+      )
+      .replace("../src/types.js", packageJson.name),
+  );
   await writeFile(
     resolve(consumer, "verify.mts"),
-    `import foundationsPackage, { FOUNDATION_SERVICE_CATALOG, FOUNDATIONS_PACKAGE_VERSION, resolveAndComposeServiceContracts, MeridianRuntimeCapability, MERIDIAN_RUNTIME_DISTRIBUTION, MERIDIAN_DURABLE_RUNTIME_DISTRIBUTION, resolveRuntimeDistribution, validateDomainRequirements, type DomainRuntimeSelection } from "${packageJson.name}";\n\n` +
+    `import foundationsPackage, { FOUNDATION_SERVICE_CATALOG, FOUNDATIONS_PACKAGE_VERSION, resolveAndComposeServiceContracts, MeridianRuntimeCapability, MERIDIAN_RUNTIME_DISTRIBUTION, MERIDIAN_DURABLE_RUNTIME_DISTRIBUTION, resolveRuntimeDistribution, validateDomainRequirements, composeDomainRequirements, type DomainRuntimeSelection } from "${packageJson.name}";\n\n` +
       `if (foundationsPackage.id !== "juntai.platform.substrate") throw new Error("unexpected package id");\n` +
       `if (foundationsPackage.version !== FOUNDATIONS_PACKAGE_VERSION) throw new Error("version mismatch");\n` +
       `if (foundationsPackage.version !== "${packageJson.version}") throw new Error("unexpected package version");\n` +
@@ -421,6 +436,11 @@ try {
       `if (!domainSelection.distribution.uri.includes("meridian-runtime-python-v2.0.0/")) throw new Error("missing explicit durable selection");\n` +
       `if (domainSelection.distribution.digest === MERIDIAN_RUNTIME_DISTRIBUTION.digest) throw new Error("runtime profiles are not isolated");\n` +
       `validateDomainRequirements([]);\n` +
+      `const { latticeDomains, latticeSharedStore } = await import("./lattice-fixture.mts");\n` +
+      `const domains = latticeDomains(); const stores = [latticeSharedStore()];\n` +
+      `validateDomainRequirements(domains, stores);\n` +
+      `for (const domain of domains) { const composed = composeDomainRequirements(domain, stores); if (composed.resources.length !== domain.resources.length + 5 || !composed.resources.some(r => r.selector.catalog === "object")) throw new Error("packed Lattice shared ResourceStore composition incomplete"); }\n` +
+      `let missingRejected = false; try { validateDomainRequirements(domains); } catch { missingRejected = true; } if (!missingRejected) throw new Error("packed consumer accepted missing shared dependency");\n` +
       `if (typeof resolveRuntimeDistribution !== "function") throw new Error("missing runtime resolver");\n`,
   );
 
