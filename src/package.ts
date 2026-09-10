@@ -104,6 +104,7 @@ export async function deployFoundations(
     domainDistributions: preflight.domainRuntimeDistributions,
     provider,
     namespace: namespaces.resources["juntai-capabilities"].metadata.name,
+    peerNamespace: namespaces.resources["juntai-platform"].metadata.name,
     inputs: context.inputs.meridian,
     adoption: context.inputs.adoption,
     dependsOn: namespaceResources,
@@ -127,11 +128,19 @@ export async function deployFoundations(
     provider,
     namespace: namespaces.resources["juntai-platform"].metadata.name,
     stage: context.target.environment,
-    inputs: context.inputs.blueprint,
+    inputs: {
+      ...context.inputs.blueprint,
+      ownedReferenceRuntime:
+        meridian.peerOwnedReferenceInputs.blueprint ??
+        context.inputs.blueprint.ownedReferenceRuntime,
+    },
     gatewaySet,
     casdoor,
     meridianRuntime: meridian.blueprintRuntime,
-    meridianRuntimeReferences: context.inputs.meridian.runtimeReferences,
+    runtimeDependencies: Object.values(meridian.peerOwnedReferenceConfigMaps),
+    meridianRuntimeReferences:
+      context.inputs.meridian.peerRuntimeSelections?.blueprint
+        ?.runtimeReferences ?? context.inputs.meridian.runtimeReferences,
     observability: observabilityGateway,
     adoption: context.inputs.adoption,
     ...(blueprintRoute === undefined ? {} : { route: blueprintRoute }),
@@ -152,11 +161,19 @@ export async function deployFoundations(
     provider,
     namespace: namespaces.resources["juntai-platform"].metadata.name,
     stage: context.target.environment,
-    inputs: context.inputs.applicationMetadata,
+    inputs: {
+      ...context.inputs.applicationMetadata,
+      ownedReferenceRuntime:
+        meridian.peerOwnedReferenceInputs["application-metadata"] ??
+        context.inputs.applicationMetadata.ownedReferenceRuntime,
+    },
     gatewaySet,
     casdoor,
     meridianRuntime: meridian.applicationMetadataRuntime,
-    meridianRuntimeReferences: context.inputs.meridian.runtimeReferences,
+    runtimeDependencies: Object.values(meridian.peerOwnedReferenceConfigMaps),
+    meridianRuntimeReferences:
+      context.inputs.meridian.peerRuntimeSelections?.["application-metadata"]
+        ?.runtimeReferences ?? context.inputs.meridian.runtimeReferences,
     observability: observabilityGateway,
     adoption: context.inputs.adoption,
     ...(applicationMetadataRoute === undefined

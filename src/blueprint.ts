@@ -1,4 +1,4 @@
-import type * as k8s from "@pulumi/kubernetes";
+import * as k8s from "@pulumi/kubernetes";
 import type * as pulumi from "@pulumi/pulumi";
 import {
   GatewayBinding,
@@ -11,6 +11,7 @@ import {
 import { childMigration } from "./adoption.js";
 import type { ContractRouteInput } from "./contract-composition.js";
 import { BLUEPRINT_IMAGE } from "./release.js";
+import { ownedReferenceRuntime } from "./owned-reference-runtime.js";
 import { serviceDeclaration } from "./service-contracts.js";
 import type {
   AdoptionMap,
@@ -43,6 +44,7 @@ export function createBlueprint(args: {
   readonly casdoor: FoundationsServiceOutput;
   readonly meridianRuntime: MeridianRuntimeConfig;
   readonly meridianRuntimeReferences?: readonly RuntimeFileReference[];
+  readonly runtimeDependencies?: readonly pulumi.Resource[];
   readonly observability: ObservabilityGatewayOutput;
   readonly adoption?: AdoptionMap;
   readonly route?: ContractRouteInput;
@@ -67,8 +69,24 @@ export function createBlueprint(args: {
       "service.namespace": "platform",
     },
   });
+  // Preserve the existing source ConfigMap identity while projecting its data beside the workload.
+  const configuration = new k8s.core.v1.ConfigMap(
+    "blueprint-service-runtime-config",
+    {
+      metadata: {
+        name: "juntai-blueprint-runtime-config",
+        namespace: args.namespace,
+      },
+      data: args.meridianRuntime.configMap.data,
+    },
+    { provider: args.provider, protect: true },
+  );
   const references = new RuntimeReferences("blueprint", {
     environment: [
+      ...ownedReferenceRuntime(
+        "BLUEPRINT_OWNED_REFERENCE_MERIDIAN_CONFIG",
+        args.inputs.ownedReferenceRuntime,
+      ).environment,
       literalValue(
         "MERIDIAN_CONFIG",
         "/etc/juntai/meridian/meridian-config.v1.json",
@@ -97,9 +115,13 @@ export function createBlueprint(args: {
       literalValue("DEPLOYMENT_ENVIRONMENT", args.stage),
     ],
     files: [
+      ...ownedReferenceRuntime(
+        "BLUEPRINT_OWNED_REFERENCE_MERIDIAN_CONFIG",
+        args.inputs.ownedReferenceRuntime,
+      ).files,
       {
         kind: "configMap",
-        name: args.meridianRuntime.configMap.metadata.name,
+        name: configuration.metadata.name,
         mountPath: "/etc/juntai/meridian",
         items: {
           "meridian-config.v1.json": "meridian-config.v1.json",
@@ -114,89 +136,93 @@ export function createBlueprint(args: {
       secretFile(args.inputs.policyReaderClientSecret),
     ],
   });
-  const service = new JuntaiService("blueprint", {
-    namespace: args.namespace,
-    provider: args.provider,
-    identity: identity.reference,
-    image: BLUEPRINT_IMAGE,
-    port: 8080,
-    replicas: args.inputs.replicas ?? 2,
-    autoscaling: {
-      minReplicas: args.inputs.replicas ?? 2,
-      maxReplicas: 8,
-      targetCpuUtilizationPercentage: 70,
-    },
-    references,
-    observability,
-    resources: {
-      requests: { cpu: "100m", memory: "128Mi" },
-      limits: { cpu: "1", memory: "512Mi" },
-    },
-    probes: {
-      startup: {
-        path: "/health/startup",
-        port: 8080,
-        periodSeconds: 2,
-        failureThreshold: 60,
+  const service = new JuntaiService(
+    "blueprint",
+    {
+      namespace: args.namespace,
+      provider: args.provider,
+      identity: identity.reference,
+      image: BLUEPRINT_IMAGE,
+      port: 8080,
+      replicas: args.inputs.replicas ?? 2,
+      autoscaling: {
+        minReplicas: args.inputs.replicas ?? 2,
+        maxReplicas: 8,
+        targetCpuUtilizationPercentage: 70,
       },
-      readiness: { path: "/health/ready", port: 8080 },
-      liveness: { path: "/health/live", port: 8080 },
-    },
-    networkPolicy: {
-      allowClusterDns: true,
-      ingress: [
-        {
-          peers: [
-            {
-              namespaceLabels: {
-                "kubernetes.io/metadata.name": "juntai-gateway",
-              },
-            },
-          ],
-          ports: [{ port: 8080 }],
-        },
-      ],
-      egress: [
-        {
-          peers: [
-            {
-              namespaceLabels: {
-                "kubernetes.io/metadata.name": "juntai-capabilities",
-              },
-            },
-            {
-              namespaceLabels: {
-                "kubernetes.io/metadata.name": "juntai-iam",
-              },
-            },
-            {
-              namespaceLabels: {
-                "kubernetes.io/metadata.name": "juntai-observability",
-              },
-            },
-          ],
-        },
-      ],
-    },
-    resourceMigration: {
-      workload: {
-        deployment: childMigration(args.adoption, "blueprint/deployment"),
-        disruptionBudget: childMigration(args.adoption, "blueprint/pdb"),
-        autoscaler: childMigration(args.adoption, "blueprint/hpa"),
+      references,
+      observability,
+      resources: {
+        requests: { cpu: "100m", memory: "128Mi" },
+        limits: { cpu: "1", memory: "512Mi" },
       },
-      service: childMigration(args.adoption, "blueprint/service"),
+      probes: {
+        startup: {
+          path: "/health/startup",
+          port: 8080,
+          periodSeconds: 2,
+          failureThreshold: 60,
+        },
+        readiness: { path: "/health/ready", port: 8080 },
+        liveness: { path: "/health/live", port: 8080 },
+      },
       networkPolicy: {
-        defaultDeny: childMigration(
-          args.adoption,
-          "blueprint/network/default-deny",
-        ),
-        allowedTraffic: childMigration(
-          args.adoption,
-          "blueprint/network/allowed",
-        ),
+        allowClusterDns: true,
+        ingress: [
+          {
+            peers: [
+              {
+                namespaceLabels: {
+                  "kubernetes.io/metadata.name": "juntai-gateway",
+                },
+              },
+            ],
+            ports: [{ port: 8080 }],
+          },
+        ],
+        egress: [
+          {
+            peers: [
+              {
+                namespaceLabels: {
+                  "kubernetes.io/metadata.name": "juntai-capabilities",
+                },
+              },
+              {
+                namespaceLabels: {
+                  "kubernetes.io/metadata.name": "juntai-iam",
+                },
+              },
+              {
+                namespaceLabels: {
+                  "kubernetes.io/metadata.name": "juntai-observability",
+                },
+              },
+            ],
+          },
+        ],
+      },
+      resourceMigration: {
+        workload: {
+          deployment: childMigration(args.adoption, "blueprint/deployment"),
+          disruptionBudget: childMigration(args.adoption, "blueprint/pdb"),
+          autoscaler: childMigration(args.adoption, "blueprint/hpa"),
+        },
+        service: childMigration(args.adoption, "blueprint/service"),
+        networkPolicy: {
+          defaultDeny: childMigration(
+            args.adoption,
+            "blueprint/network/default-deny",
+          ),
+          allowedTraffic: childMigration(
+            args.adoption,
+            "blueprint/network/allowed",
+          ),
+        },
       },
     },
-  });
+    { dependsOn: [...(args.runtimeDependencies ?? [])] },
+  );
   new GatewayBinding("blueprint", {
     namespace: args.namespace,
     provider: args.provider,

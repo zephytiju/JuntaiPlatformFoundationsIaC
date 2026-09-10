@@ -38,6 +38,12 @@ export type RuntimeFileReference =
   | ({ readonly kind: "configMap" } & ConfigFileReference)
   | ({ readonly kind: "secret" } & SecretFileReference);
 
+/** A separately composed runtime for explicit application-owned references. */
+export interface OwnedReferenceRuntimeInput {
+  readonly configuration: ConfigFileReference;
+  readonly runtimeReferences?: readonly RuntimeFileReference[];
+}
+
 export interface AdoptionRule {
   readonly aliases?: readonly pulumi.Alias[];
   readonly import?: string;
@@ -118,6 +124,20 @@ export interface MeridianInputs {
   readonly domains?: readonly DomainMeridianRequirements[];
   /** Foundations-selected shared logical Resources; domains reference these without taking ownership. */
   readonly sharedResourceStores?: readonly SharedResourceStoreRequirements[];
+  /** Physical selections for the exact released peer-service dependency inventories. */
+  readonly peerRuntimeSelections?: Readonly<
+    Partial<Record<"application-metadata" | "blueprint", PeerRuntimeSelection>>
+  >;
+}
+
+export interface PeerRuntimeSelection {
+  readonly engines: readonly MeridianEngineSelection[];
+  readonly runtimeReferences: readonly RuntimeFileReference[];
+  readonly ownedReferences?: {
+    readonly storeId: string;
+    readonly engines: readonly MeridianEngineSelection[];
+    readonly runtimeReferences: readonly RuntimeFileReference[];
+  };
 }
 
 /** Physical choices belong to the Platform composition, separately from logical domain requirements. */
@@ -178,6 +198,7 @@ export interface CasdoorInputs {
 }
 
 export interface BlueprintInputs {
+  readonly ownedReferenceRuntime?: OwnedReferenceRuntimeInput;
   readonly enabled?: boolean;
   readonly casdoorIssuer: string;
   readonly casdoorAudience: string;
@@ -204,6 +225,7 @@ export interface ApplicationMetadataWorkloadBinding {
 }
 
 export interface ApplicationMetadataInputs {
+  readonly ownedReferenceRuntime?: OwnedReferenceRuntimeInput;
   readonly enabled?: boolean;
   readonly casdoorIssuer: string;
   readonly casdoorAudience: string;

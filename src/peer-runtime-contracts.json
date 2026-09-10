@@ -1,0 +1,1098 @@
+{
+  "formatVersion": "juntai.platform.peer-meridian-contracts.v1",
+  "peers": {
+    "application-metadata": {
+      "catalogs": [
+        {
+          "contract": "1.0.0",
+          "name": "structured",
+          "package": "meridian-storage-semantics",
+          "requiredFingerprint": "sha256:f4861315e02054fdc7c78eb62cf2f6f0150af5e67d7ef008fbeb2459d5cc0d87"
+        },
+        {
+          "contract": "1.0.0",
+          "name": "object",
+          "package": "meridian-storage-object-common",
+          "requiredFingerprint": "sha256:e6696e6944768e9a42acffa331d91c75fe7222ae331bfbda3640a4a4fe024b1b"
+        }
+      ],
+      "package": "juntai-application-metadata",
+      "packages": {
+        "meridian-plugin-config-artifact": "1.0.3",
+        "meridian-storage-core": "1.0.0",
+        "meridian-storage-object-common": "1.0.1",
+        "meridian-storage-postgresql": "1.0.0",
+        "meridian-storage-query": "1.0.0",
+        "meridian-storage-s3": "1.0.1",
+        "meridian-storage-semantics": "1.0.0"
+      },
+      "providers": [
+        {
+          "pin": {
+            "contract": "1.0.0",
+            "id": "juntai.application-metadata",
+            "package": "juntai-application-metadata",
+            "requiredFingerprint": "sha256:e8b27863395cc8a31ef36f0617368e6c1227b02839459ec95e49574cf93833ea",
+            "version": "3.1.3"
+          },
+          "resources": [
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "relational",
+                "ref": {
+                  "catalog": "structured",
+                  "name": "applications",
+                  "namespace": "application-metadata"
+                },
+                "relatedResources": [],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.patch",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.put",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.query",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["atomic", "no-dirty-reads"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.transaction",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": {
+                  "catalog": "structured",
+                  "name": "application",
+                  "namespace": "application-metadata",
+                  "version": "2.0.0"
+                }
+              },
+              "fingerprint": "sha256:712b42fa61d2ed4dc1fb4b6d2a76fb8366edf43f755e90fb1b3c13fbc5d18f76",
+              "schemaFingerprint": "sha256:dcff54b1a006ed3a093312ac55831cb2fd9a6f9b20eced1eb531b3074e1988b7"
+            },
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "relational",
+                "ref": {
+                  "catalog": "structured",
+                  "name": "contributions",
+                  "namespace": "application-metadata"
+                },
+                "relatedResources": [
+                  {
+                    "catalog": "structured",
+                    "name": "versions",
+                    "namespace": "application-metadata"
+                  }
+                ],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.delete",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.put",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.query",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["atomic", "no-dirty-reads"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.transaction",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": {
+                  "catalog": "structured",
+                  "name": "domain-contribution",
+                  "namespace": "application-metadata",
+                  "version": "2.0.0"
+                }
+              },
+              "fingerprint": "sha256:62bf71f1fbb859487c14ffe9764d392d790b73209f12b53e87fd1bba0ac1d193",
+              "schemaFingerprint": "sha256:fe93c97e62880e893e8c01cf397c595c28834e7a13141b36492ab4f128b09fbc"
+            },
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "relational",
+                "ref": {
+                  "catalog": "structured",
+                  "name": "idempotency",
+                  "namespace": "application-metadata"
+                },
+                "relatedResources": [
+                  {
+                    "catalog": "structured",
+                    "name": "applications",
+                    "namespace": "application-metadata"
+                  },
+                  {
+                    "catalog": "structured",
+                    "name": "contributions",
+                    "namespace": "application-metadata"
+                  },
+                  {
+                    "catalog": "structured",
+                    "name": "versions",
+                    "namespace": "application-metadata"
+                  }
+                ],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.delete",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.put",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["atomic", "no-dirty-reads"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.transaction",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": {
+                  "catalog": "structured",
+                  "name": "idempotency-record",
+                  "namespace": "application-metadata",
+                  "version": "2.0.0"
+                }
+              },
+              "fingerprint": "sha256:06e5dc6dacd3bc369a4979b4351fd7addafc16760c313b5c685e4c9ed20228a8",
+              "schemaFingerprint": "sha256:9792a79e0fc34f34230f76bf712ee627c440b2da7b1ec11b1b37c3c868154f24"
+            },
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "relational",
+                "ref": {
+                  "catalog": "structured",
+                  "name": "versions",
+                  "namespace": "application-metadata"
+                },
+                "relatedResources": [
+                  {
+                    "catalog": "structured",
+                    "name": "applications",
+                    "namespace": "application-metadata"
+                  },
+                  {
+                    "catalog": "structured",
+                    "name": "contributions",
+                    "namespace": "application-metadata"
+                  }
+                ],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.patch",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.put",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.query",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["atomic", "no-dirty-reads"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.transaction",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": {
+                  "catalog": "structured",
+                  "name": "application-version",
+                  "namespace": "application-metadata",
+                  "version": "2.0.0"
+                }
+              },
+              "fingerprint": "sha256:dfe2f66cb36f872065004fd2a2075cb91c6573b71c7f6a4ea0776660cd9ea65e",
+              "schemaFingerprint": "sha256:0d5d8a4f9597c6bc607e85b51520bd0e732d38ebc1e83d6387d16a758998de60"
+            }
+          ]
+        },
+        {
+          "pin": {
+            "contract": "1.0.0",
+            "id": "meridian.plugin.config-artifact",
+            "package": "meridian-plugin-config-artifact",
+            "requiredFingerprint": "sha256:68a4e989a39a5cfabacf55d18709fcacd055f0d56fc4082c1a596b9dba4b16ca",
+            "version": "1.0.3"
+          },
+          "resources": [
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "artifact",
+                "ref": {
+                  "catalog": "object",
+                  "name": "objects",
+                  "namespace": "resources"
+                },
+                "relatedResources": [
+                  {
+                    "catalog": "structured",
+                    "name": "metadata",
+                    "namespace": "resources"
+                  },
+                  {
+                    "catalog": "structured",
+                    "name": "orphan-candidates",
+                    "namespace": "resources"
+                  }
+                ],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [
+                      "object.digest-verification",
+                      "object.streaming"
+                    ],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.object.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["object.bounded-prefix-list"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.object.list",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [
+                      "object.conditional-create",
+                      "object.digest-sha256",
+                      "object.metadata-after-commit",
+                      "object.streaming"
+                    ],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.object.put",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [
+                      "object.digest-verification",
+                      "object.range-read"
+                    ],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.object.read_range",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.object.stat",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": null
+              },
+              "fingerprint": "sha256:7c929d3b1d6e651257d0c63697eabcabe8af1421f6d6f5e1f1b90cde0a858a8b",
+              "schemaFingerprint": null
+            },
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "relational",
+                "ref": {
+                  "catalog": "structured",
+                  "name": "channels",
+                  "namespace": "resources"
+                },
+                "relatedResources": [
+                  {
+                    "catalog": "structured",
+                    "name": "metadata",
+                    "namespace": "resources"
+                  }
+                ],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.put",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.query",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["atomic", "no-dirty-reads"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.transaction",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": {
+                  "catalog": "structured",
+                  "name": "resource-channel",
+                  "namespace": "resources",
+                  "version": "1.0.0"
+                }
+              },
+              "fingerprint": "sha256:fdb587c999f8d07c262e446cb5b34d36a2a2b955af1feb5b7b8db91c949bf8d3",
+              "schemaFingerprint": "sha256:6a97de0cc3bcb20e3fbd961c80bcbaea4ae333cb3282a144ed1ca7636a79d807"
+            },
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "relational",
+                "ref": {
+                  "catalog": "structured",
+                  "name": "metadata",
+                  "namespace": "resources"
+                },
+                "relatedResources": [
+                  {
+                    "catalog": "object",
+                    "name": "objects",
+                    "namespace": "resources"
+                  },
+                  {
+                    "catalog": "structured",
+                    "name": "channels",
+                    "namespace": "resources"
+                  },
+                  {
+                    "catalog": "structured",
+                    "name": "provenance",
+                    "namespace": "resources"
+                  }
+                ],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.patch",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.put",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.query",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["atomic", "no-dirty-reads"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.transaction",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": {
+                  "catalog": "structured",
+                  "name": "stored-resource",
+                  "namespace": "resources",
+                  "version": "1.0.0"
+                }
+              },
+              "fingerprint": "sha256:2fdb82a840596b0d0f5b67212a8874e27a49d660d4f80e61611cebeed6704d90",
+              "schemaFingerprint": "sha256:51be2f642ccaa630be2de99a4dcd2be49dddb6fd465fc60f65aa02f1bbaf6ccf"
+            },
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "relational",
+                "ref": {
+                  "catalog": "structured",
+                  "name": "orphan-candidates",
+                  "namespace": "resources"
+                },
+                "relatedResources": [
+                  {
+                    "catalog": "object",
+                    "name": "objects",
+                    "namespace": "resources"
+                  },
+                  {
+                    "catalog": "structured",
+                    "name": "metadata",
+                    "namespace": "resources"
+                  }
+                ],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.patch",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.put",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.query",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["atomic", "no-dirty-reads"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.transaction",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": {
+                  "catalog": "structured",
+                  "name": "orphan-candidate",
+                  "namespace": "resources",
+                  "version": "1.0.0"
+                }
+              },
+              "fingerprint": "sha256:c9fb4f100122216b41bc5e8baef3f081c14c1647fbf446cf11a75aea664c4770",
+              "schemaFingerprint": "sha256:ca7972332ee6c39b57d2a083cc778fb6facf2e3f93bd60e8d397c5ea1d97463a"
+            },
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "relational",
+                "ref": {
+                  "catalog": "structured",
+                  "name": "provenance",
+                  "namespace": "resources"
+                },
+                "relatedResources": [
+                  {
+                    "catalog": "structured",
+                    "name": "metadata",
+                    "namespace": "resources"
+                  }
+                ],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.put",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.query",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["atomic", "no-dirty-reads"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.transaction",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": {
+                  "catalog": "structured",
+                  "name": "provenance",
+                  "namespace": "resources",
+                  "version": "1.0.0"
+                }
+              },
+              "fingerprint": "sha256:f4115700a3b9715517604d21fdb5279622bcc75db9ff3d9be3b6d95b81b50f86",
+              "schemaFingerprint": "sha256:7a8f39b30464fcc8ba4004842bb3efb4de002e705e016243fa9b35d498548d69"
+            }
+          ]
+        }
+      ],
+      "version": "3.2.1"
+    },
+    "blueprint": {
+      "catalogs": [
+        {
+          "contract": "2.0.0",
+          "name": "structured",
+          "package": "meridian-storage-semantics",
+          "requiredFingerprint": "sha256:8de756277ed7eadc552b3e9cb4314d71a104e335ab8bfed066f9719c056f7efa"
+        },
+        {
+          "contract": "1.0.0",
+          "name": "object",
+          "package": "meridian-storage-object-common",
+          "requiredFingerprint": "sha256:13d9b014fb497c903085214e3db9826c650436f32bff220a68ab68a1a9c3c723"
+        },
+        {
+          "contract": "1.0.0",
+          "name": "evidence",
+          "package": "meridian-storage-evidence",
+          "requiredFingerprint": "sha256:2c144cf5b1e33055dd39bb51f6e44fb7481ebf3643f8ada7899136556a7e2cd5"
+        }
+      ],
+      "package": "juntai-blueprint-marketplace",
+      "packages": {
+        "meridian-plugin-config-artifact": "1.1.2",
+        "meridian-storage-core": "1.1.0",
+        "meridian-storage-evidence": "1.0.2",
+        "meridian-storage-object-common": "1.0.3",
+        "meridian-storage-postgresql": "2.4.0",
+        "meridian-storage-projection": "1.0.3",
+        "meridian-storage-query": "1.0.3",
+        "meridian-storage-s3": "1.0.4",
+        "meridian-storage-semantics": "2.1.0"
+      },
+      "providers": [
+        {
+          "pin": {
+            "contract": "1.0.0",
+            "id": "juntai.blueprint",
+            "package": "juntai-blueprint-marketplace",
+            "requiredFingerprint": "sha256:3a0e191586f38613a4aecbc2b03d39840e50fbc54044968b92eac43269404614",
+            "version": "3.2.0"
+          },
+          "resources": [
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "append-only-evidence",
+                "ref": {
+                  "catalog": "evidence",
+                  "name": "audit",
+                  "namespace": "blueprint"
+                },
+                "relatedResources": [],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": ["atomic-evidence"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.evidence.append",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.evidence.query",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["atomic", "no-dirty-reads"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.transaction",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": {
+                  "catalog": "evidence",
+                  "name": "audit",
+                  "namespace": "blueprint",
+                  "version": "1.0.0"
+                }
+              },
+              "fingerprint": "sha256:8c0885d81ce70193a3a3b52932a1d04c4f499e0afd9b19e89f94729ccaf6f544",
+              "schemaFingerprint": "sha256:fa988360623da0b0742483b11db7b0565ab7a8022a07e79eb29f136098454687"
+            },
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "relational",
+                "ref": {
+                  "catalog": "structured",
+                  "name": "outbox",
+                  "namespace": "blueprint"
+                },
+                "relatedResources": [],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.patch",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.put",
+                    "operationVersion": "2.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.query",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["atomic", "no-dirty-reads"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.transaction",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": {
+                  "catalog": "structured",
+                  "name": "outbox",
+                  "namespace": "blueprint",
+                  "version": "1.0.0"
+                }
+              },
+              "fingerprint": "sha256:02860aed77e2d70daea3ebf166c555c3aa6f4f48a80431f95e8ee8629f31a404",
+              "schemaFingerprint": "sha256:87a944dcd5963df183bd3c7f57f730db1f142f5addb4ad1ea5f5c21e09f54ca2"
+            }
+          ]
+        },
+        {
+          "pin": {
+            "contract": "1.0.0",
+            "id": "meridian.plugin.config-artifact",
+            "package": "meridian-plugin-config-artifact",
+            "requiredFingerprint": "sha256:cabbfae02c091ed7b501e370f93deed81e3c9e8cd00d9065adcab8be1070d1c9",
+            "version": "1.1.2"
+          },
+          "resources": [
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "artifact",
+                "ref": {
+                  "catalog": "object",
+                  "name": "objects",
+                  "namespace": "resources"
+                },
+                "relatedResources": [
+                  {
+                    "catalog": "structured",
+                    "name": "metadata",
+                    "namespace": "resources"
+                  },
+                  {
+                    "catalog": "structured",
+                    "name": "orphan-candidates",
+                    "namespace": "resources"
+                  }
+                ],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [
+                      "object.digest-verification",
+                      "object.streaming"
+                    ],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.object.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["object.bounded-prefix-list"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.object.list",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [
+                      "object.conditional-create",
+                      "object.digest-sha256",
+                      "object.metadata-after-commit",
+                      "object.streaming"
+                    ],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.object.put",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [
+                      "object.digest-verification",
+                      "object.range-read"
+                    ],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.object.read_range",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.object.stat",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": null
+              },
+              "fingerprint": "sha256:7c929d3b1d6e651257d0c63697eabcabe8af1421f6d6f5e1f1b90cde0a858a8b",
+              "schemaFingerprint": null
+            },
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "relational",
+                "ref": {
+                  "catalog": "structured",
+                  "name": "channels",
+                  "namespace": "resources"
+                },
+                "relatedResources": [
+                  {
+                    "catalog": "structured",
+                    "name": "metadata",
+                    "namespace": "resources"
+                  }
+                ],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.put",
+                    "operationVersion": "2.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.query",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["atomic", "no-dirty-reads"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.transaction",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": {
+                  "catalog": "structured",
+                  "name": "resource-channel",
+                  "namespace": "resources",
+                  "version": "1.0.0"
+                }
+              },
+              "fingerprint": "sha256:703c9b67570e706d44eb85ee448357ae4a8c07c8e36e32c60b4c9542778cf0f4",
+              "schemaFingerprint": "sha256:6a97de0cc3bcb20e3fbd961c80bcbaea4ae333cb3282a144ed1ca7636a79d807"
+            },
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "relational",
+                "ref": {
+                  "catalog": "structured",
+                  "name": "metadata",
+                  "namespace": "resources"
+                },
+                "relatedResources": [
+                  {
+                    "catalog": "object",
+                    "name": "objects",
+                    "namespace": "resources"
+                  },
+                  {
+                    "catalog": "structured",
+                    "name": "channels",
+                    "namespace": "resources"
+                  },
+                  {
+                    "catalog": "structured",
+                    "name": "provenance",
+                    "namespace": "resources"
+                  }
+                ],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.patch",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.put",
+                    "operationVersion": "2.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.query",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["atomic", "no-dirty-reads"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.transaction",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": {
+                  "catalog": "structured",
+                  "name": "stored-resource",
+                  "namespace": "resources",
+                  "version": "1.0.0"
+                }
+              },
+              "fingerprint": "sha256:08576be956d59154852881422e8585cbdc22c713cb54f09eb78e6b8f0aaf068a",
+              "schemaFingerprint": "sha256:51be2f642ccaa630be2de99a4dcd2be49dddb6fd465fc60f65aa02f1bbaf6ccf"
+            },
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "relational",
+                "ref": {
+                  "catalog": "structured",
+                  "name": "orphan-candidates",
+                  "namespace": "resources"
+                },
+                "relatedResources": [
+                  {
+                    "catalog": "object",
+                    "name": "objects",
+                    "namespace": "resources"
+                  },
+                  {
+                    "catalog": "structured",
+                    "name": "metadata",
+                    "namespace": "resources"
+                  }
+                ],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.patch",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.put",
+                    "operationVersion": "2.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.query",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["atomic", "no-dirty-reads"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.transaction",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": {
+                  "catalog": "structured",
+                  "name": "orphan-candidate",
+                  "namespace": "resources",
+                  "version": "1.0.0"
+                }
+              },
+              "fingerprint": "sha256:26a95c88af6de3d6b6a401392356951233ef6170ccda527f5dea2d78f9de0329",
+              "schemaFingerprint": "sha256:ca7972332ee6c39b57d2a083cc778fb6facf2e3f93bd60e8d397c5ea1d97463a"
+            },
+            {
+              "definition": {
+                "extensions": {},
+                "formatVersion": "meridian-resource.v1",
+                "labels": {},
+                "profile": "relational",
+                "ref": {
+                  "catalog": "structured",
+                  "name": "provenance",
+                  "namespace": "resources"
+                },
+                "relatedResources": [
+                  {
+                    "catalog": "structured",
+                    "name": "metadata",
+                    "namespace": "resources"
+                  }
+                ],
+                "requiredScope": ["tenant"],
+                "requirements": [
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.get",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.put",
+                    "operationVersion": "2.0.0"
+                  },
+                  {
+                    "guarantees": [],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.structured.query",
+                    "operationVersion": "1.0.0"
+                  },
+                  {
+                    "guarantees": ["atomic", "no-dirty-reads"],
+                    "minimumLimits": {},
+                    "operationContract": "meridian.transaction",
+                    "operationVersion": "1.0.0"
+                  }
+                ],
+                "schema": {
+                  "catalog": "structured",
+                  "name": "provenance",
+                  "namespace": "resources",
+                  "version": "1.0.0"
+                }
+              },
+              "fingerprint": "sha256:978adb8317133aa73dedd42aece8c57b3eec60faa50331db75b18ec57386a865",
+              "schemaFingerprint": "sha256:7a8f39b30464fcc8ba4004842bb3efb4de002e705e016243fa9b35d498548d69"
+            }
+          ]
+        }
+      ],
+      "version": "3.3.1"
+    }
+  }
+}

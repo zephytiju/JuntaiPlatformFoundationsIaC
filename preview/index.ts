@@ -1,6 +1,7 @@
 import * as k8s from "@pulumi/kubernetes";
 import type { JsonObject } from "@zephytiju/meridian-storage-constructs";
 import { deployFoundations } from "../src/package.js";
+import { foundationsInputs } from "../tests/helpers.js";
 import legacyPostgresql from "../tests/fixtures/legacy-postgresql-manifest.json" with { type: "json" };
 
 const fingerprint = (character: string): `sha256:${string}` =>
@@ -70,6 +71,7 @@ const result = await deployFoundations({
       workloadBindings: [],
     },
     meridian: {
+      peerRuntimeSelections: foundationsInputs().meridian.peerRuntimeSelections,
       runtimeReferences: [
         {
           kind: "secret",

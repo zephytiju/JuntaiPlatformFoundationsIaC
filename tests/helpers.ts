@@ -132,6 +132,22 @@ export function foundationsInputs(): FoundationsInputs {
         },
       ],
       engines: [structuredEngine(), objectEngine()],
+      peerRuntimeSelections: {
+        blueprint: {
+          engines: [structuredEngine(true), objectEngine()],
+          runtimeReferences: [
+            {
+              kind: "secret",
+              name: "meridian-runtime-credentials",
+              mountPath: "/var/run/juntai/runtime",
+              items: {
+                "runtime-identity": "identity/hmac-key",
+                "runtime-credential": "credential/client-secret",
+              },
+            },
+          ],
+        },
+      },
     },
     account: {
       composition: {

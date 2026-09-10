@@ -1,0 +1,121 @@
+{
+  "formatVersion": "juntai.platform.peer-runtime-acceptance.v1",
+  "foundationsVersion": "1.7.0",
+  "result": "passed",
+  "environment": "task-owned local PostgreSQL 16/PostGIS and MinIO",
+  "configurationSource": "Foundations MeridianRuntimeConfig with mocked Kubernetes resource registration",
+  "sourceFiles": {
+    "src/peer-runtimes.ts": "sha256:b8b007f4024289591178e143a0c0e58f64f55c888dd3ed397d1efa1d0363864d",
+    "src/peer-runtime-contracts.json": "sha256:109cbf87782608574e46c9c16c166db1144ee0af2d0e08f0e9e79da53791b167",
+    "src/meridian.ts": "sha256:0242201523512b6ea6d6d6d7b1ab766d6b9fc3f5c9e1c82e26dc2d1fbbb1f715",
+    "src/blueprint.ts": "sha256:1d5f92ebe9143122364c98ee6e64f60ee9eab2b66d0011871acfc6cda056cf42",
+    "src/application-metadata.ts": "sha256:04303fbcfaa26803b0d00a5d516ea85a0fd74dd2f63f0e8d78cb3b1e399bedd8",
+    "src/package.ts": "sha256:019f579e6904a47cf018d5a7a9e00055297bc92de3eeeb2d6541f197bf69f509",
+    "src/validation.ts": "sha256:a3926d6ed3f1c95f69ff868c638669a2270af131f0221fdf8af2508f3023e672",
+    "src/types.ts": "sha256:30bde0e9cdcadf34dc37e1f7409bd461fe3053623ef331780e7db794b832213b",
+    "scripts/verify-peer-configs.ts": "sha256:07aecf1d71173cf1e61c951453e2f038256d92451606562038c67008bd29ef7f"
+  },
+  "selectedReleases": {
+    "application-metadata": {
+      "version": "3.2.1",
+      "sourceCommit": "0be25621317d9f438e728ab9655078e53afa3432",
+      "release": "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/tag/v3.2.1",
+      "wheelDigest": "sha256:60c5286a26b7f1da6508db2481b7b644178d68626c74332ddc9848309960ed91",
+      "meridianPackages": {
+        "meridian-plugin-config-artifact": "1.0.3",
+        "meridian-storage-core": "1.0.0",
+        "meridian-storage-object-common": "1.0.1",
+        "meridian-storage-postgresql": "1.0.0",
+        "meridian-storage-query": "1.0.0",
+        "meridian-storage-s3": "1.0.1",
+        "meridian-storage-semantics": "1.0.0"
+      }
+    },
+    "blueprint": {
+      "version": "3.3.1",
+      "sourceCommit": "7e3e70bebdfcfc5c5fbd1a39fbdb2cbef8cb48b5",
+      "release": "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/tag/v3.3.1",
+      "wheelDigest": "sha256:8c56b0e974bc11a050fb2bad6bc661808fa9955bf2eb708802ab887ab2cf6ffe",
+      "meridianPackages": {
+        "meridian-plugin-config-artifact": "1.1.2",
+        "meridian-storage-core": "1.1.0",
+        "meridian-storage-evidence": "1.0.2",
+        "meridian-storage-object-common": "1.0.3",
+        "meridian-storage-postgresql": "2.4.0",
+        "meridian-storage-projection": "1.0.3",
+        "meridian-storage-query": "1.0.3",
+        "meridian-storage-s3": "1.0.4",
+        "meridian-storage-semantics": "2.1.0"
+      }
+    }
+  },
+  "checks": {
+    "metadataAssociation": {
+      "count": 22,
+      "receiptDigest": "sha256:ed8b11050725913f115ab0c3c31e21ef8ac2935a19ab740609f4c90db096bf7e",
+      "checks": [
+        "public-resource-store-six-publications",
+        "fresh-runtime-exact-binary-reads",
+        "cross-tenant-resource-denial",
+        "normal-install-uv-pip-check",
+        "invalid-missing-digest-duplicate-denied-cross-tenant-and-stale-set-no-writes",
+        "real-database-fourth-slot-failure-rolls-back-all-slots-and-revision",
+        "failed-transaction-key-reusable-no-partial-receipt",
+        "six-slots-one-revision",
+        "actual-http-response-lost-after-commit",
+        "six-provider-identities-and-viewer-routes-roundtrip-independently",
+        "documentation-link-provider-route-exact-reference-projection",
+        "fresh-service-process-original-key-and-if-match-replay",
+        "reordered-replay",
+        "changed-content-key-conflict",
+        "historical-receipt-survives-later-association-and-seal",
+        "provider-and-route-are-independently-bound-by-sealed-manifest",
+        "real-concurrent-sets-one-committed-revision",
+        "historical-replay-reauthorizes-every-namespace",
+        "501-contribution-aggregate-paginates-without-truncation",
+        "conditional-application-update",
+        "generated-client-provider-and-route-response-models",
+        "sealed-provider-handoff-and-historical-receipt-survive-process-restart"
+      ]
+    },
+    "blueprintCatalog": {
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "receiptDigest": "sha256:b6aeaf4b8cc008867f536381304b5767bf2ee72097ce292721879b17ae690708"
+    },
+    "runtimes": [
+      {
+        "runtime": "application-metadata",
+        "ready": true,
+        "oldOwnedArtifactRead": false,
+        "configDigest": "sha256:6065eb84876ab2e5bfe301fa8d8dcdd8f8810e5c6f58e9a52403543c540e5a97"
+      },
+      {
+        "runtime": "application-metadata-owned",
+        "ready": true,
+        "oldOwnedArtifactRead": true,
+        "configDigest": "sha256:4933240187d0f08b10bad563ba5723270a637ce98a6379bcc37fa2132104b853"
+      },
+      {
+        "runtime": "blueprint",
+        "ready": true,
+        "oldOwnedArtifactRead": false,
+        "configDigest": "sha256:ac08a5f1e8c0e68915adefaaeb809daeb8ac5a401f785d4ceeb7957a9bbc3426"
+      },
+      {
+        "runtime": "blueprint-owned",
+        "ready": true,
+        "oldOwnedArtifactRead": true,
+        "configDigest": "sha256:28c70667399193c0dabb4de0e30c965d879679dc1ee685c9f0b414cd9a96897f"
+      }
+    ],
+    "physicalFingerprintsUnchanged": true,
+    "ownedReaderDdlExecuted": false
+  },
+  "boundaries": [
+    "Only fixture authentication/admission decisions; real IAM context enforcement",
+    "Full Lattice lifecycle acceptance belongs to consumer integration",
+    "Source file digests bind this local observation; CI additionally validates the exact commit and npm artifact"
+  ]
+}

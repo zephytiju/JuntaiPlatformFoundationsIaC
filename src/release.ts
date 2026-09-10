@@ -1,6 +1,6 @@
 import type { ImmutableReleaseInput } from "./contract.js";
 
-export const FOUNDATIONS_PACKAGE_VERSION = "1.6.0" as const;
+export const FOUNDATIONS_PACKAGE_VERSION = "1.7.0" as const;
 
 export const MERIDIAN_RUNTIME_DISTRIBUTION = Object.freeze({
   id: "meridian-runtime-distribution",
@@ -21,11 +21,11 @@ export const CASDOOR_IMAGE =
 export const CASDOOR_BOOTSTRAP_IMAGE =
   "ghcr.io/zephytiju/juntai-platform-casdoor-bootstrap@sha256:6282606098e982d9d6880819e7c895c4bd9696318a014eeb04f5b190821edf9b";
 export const BLUEPRINT_IMAGE =
-  "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:23416a280ea569ec05e470792bb34a532b8e2931404a48d6abe300ea0cd2d4c8";
+  "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:6e74d249c8312fa2dbb3ac9f9db60279cc33723602dc59136011d377a4fe20ee";
 export const ACCOUNT_IMAGE =
   "ghcr.io/zephytiju/juntai-account-service@sha256:2f657c47b6aa556f86b1b67b8164180d7aa2fb3c23dbd3c80a20a709edcb8adf";
 export const APPLICATION_METADATA_IMAGE =
-  "ghcr.io/zephytiju/juntai-application-metadata@sha256:7d402718fa5c483a2f09f436ebbe28ee25e0a5f6d58b91a711ecdf75bd714327";
+  "ghcr.io/zephytiju/juntai-application-metadata@sha256:7763c22201f6f988cf8db746555fcc4590de08c7385822af8cb837fd471f5ead";
 export const OTEL_COLLECTOR_IMAGE =
   "docker.io/otel/opentelemetry-collector-contrib@sha256:93aad750175cbf1a973ae1c5886c3371f4d800f61be25cdd26870b8441ffe9fa";
 
@@ -40,9 +40,14 @@ export const ENVOY_GATEWAY_MANIFEST = Object.freeze({
     "sha256:37a62afe9bb07d87e86c5c2cff32f046f17397cb4fca9f2a741165826212d781",
 });
 export const BLUEPRINT_OPENAPI = Object.freeze({
-  uri: "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.1.0/blueprint-service.v1.json",
+  uri: "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.3.1/blueprint-service.v1.json",
   digest:
-    "sha256:413bb1d84c780416266d7b576b8accc1f47330b03171199c09ddc776cda34135",
+    "sha256:da9a6b21bc32ac864d3c5f6ff028ec0cc1c453b54eb0885258208039a2ebcdc2",
+});
+export const BLUEPRINT_RELEASE_CONTRACT = Object.freeze({
+  uri: "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.3.1/release-contract.json",
+  digest:
+    "sha256:1d3b9d43345c8b0a4f4fc448d13d66076268e778d251c1a8fb2e5f036fd4332a",
 });
 export const ACCOUNT_OPENAPI = Object.freeze({
   uri: "https://github.com/zephytiju/JuntaiAccountService/releases/download/account-service-v2.1.5/account-service.v1.openapi.json",
@@ -70,24 +75,29 @@ export const ACCOUNT_MERIDIAN_PROVIDER = Object.freeze({
     "sha256:7745367cd1b1b5f65929e779adf222595f7536cd48ed1455bd03295faa0ecccb",
 });
 export const APPLICATION_METADATA_OPENAPI = Object.freeze({
-  uri: "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.1.1/application-metadata.v1.json",
+  uri: "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.2.1/application-metadata.v1.json",
   digest:
-    "sha256:43ba2240f410cbc87fb38b4fa15d2746aca8ed8fbcea0c8e0f9d01a8edebc6a8",
+    "sha256:d1955f256e9e93a46a2fbb249fa15e4372d66634bf0b69f444ed7245f4910343",
 });
 export const APPLICATION_METADATA_RELEASE_CONTRACT = Object.freeze({
-  uri: "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.1.1/release-contract.v1.json",
+  uri: "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.2.1/release-contract.v1.json",
   digest:
-    "sha256:87938e1bb4d034277e92fa6866fa8ebdabaaba092c97eb5cadc093ccdb466fb7",
+    "sha256:9b1713ce2b821295e6a60c3ed70cac6261e8a2e62ae2c1c9e566ed84ad877f55",
 });
 export const APPLICATION_METADATA_RELEASE_MANIFEST = Object.freeze({
-  uri: "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.1.1/release-manifest.json",
+  uri: "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.2.1/release-manifest.json",
   digest:
-    "sha256:758d18cca471e764e6831821aad94d516a0ad16bcb29584f3af100e905f944e7",
+    "sha256:547a7e7cb44cb9889eeecaca0c6e411a0ffb04e52a3fe32aaded10409999e23a",
 });
 export const APPLICATION_METADATA_MIGRATION = Object.freeze({
-  uri: "https://raw.githubusercontent.com/zephytiju/JuntaiApplicationMetadata/2c6cdf150b9a69879d0a30470cd84d6ceb6a306f/migrations/application-metadata.v2.json",
+  uri: "https://raw.githubusercontent.com/zephytiju/JuntaiApplicationMetadata/0be25621317d9f438e728ab9655078e53afa3432/migrations/application-metadata.v2.json",
   digest:
     "sha256:a66d986e8b7e663b37275f1be39bb7cd6e87582abe315eca720c218ebe3f79a1",
+});
+export const APPLICATION_METADATA_ASSOCIATION_MIGRATION = Object.freeze({
+  uri: "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.2.1/application-metadata.v3.1.3.json",
+  digest:
+    "sha256:4633cb192af349b0db9cec1cc384492fa0a073729527f3f1a4927931fa16bc79",
 });
 
 export const releaseInputs: readonly ImmutableReleaseInput[] = Object.freeze([
@@ -112,13 +122,17 @@ export const releaseInputs: readonly ImmutableReleaseInput[] = Object.freeze([
     id: "application-metadata-image",
     uri: APPLICATION_METADATA_IMAGE,
     digest:
-      "sha256:7d402718fa5c483a2f09f436ebbe28ee25e0a5f6d58b91a711ecdf75bd714327",
+      "sha256:7763c22201f6f988cf8db746555fcc4590de08c7385822af8cb837fd471f5ead",
   },
   {
     id: "application-metadata-logical-migration",
     ...APPLICATION_METADATA_MIGRATION,
   },
   { id: "application-metadata-openapi", ...APPLICATION_METADATA_OPENAPI },
+  {
+    id: "application-metadata-association-migration",
+    ...APPLICATION_METADATA_ASSOCIATION_MIGRATION,
+  },
   {
     id: "application-metadata-release-contract",
     ...APPLICATION_METADATA_RELEASE_CONTRACT,
@@ -131,9 +145,10 @@ export const releaseInputs: readonly ImmutableReleaseInput[] = Object.freeze([
     id: "blueprint-image",
     uri: BLUEPRINT_IMAGE,
     digest:
-      "sha256:23416a280ea569ec05e470792bb34a532b8e2931404a48d6abe300ea0cd2d4c8",
+      "sha256:6e74d249c8312fa2dbb3ac9f9db60279cc33723602dc59136011d377a4fe20ee",
   },
   { id: "blueprint-openapi", ...BLUEPRINT_OPENAPI },
+  { id: "blueprint-release-contract", ...BLUEPRINT_RELEASE_CONTRACT },
   {
     id: "casdoor-bootstrap-image",
     uri: CASDOOR_BOOTSTRAP_IMAGE,

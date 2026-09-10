@@ -16,6 +16,7 @@ import {
   rewriteGatewayPrefix,
 } from "./resource-transformations.js";
 import { APPLICATION_METADATA_IMAGE } from "./release.js";
+import { ownedReferenceRuntime } from "./owned-reference-runtime.js";
 import { serviceDeclaration } from "./service-contracts.js";
 import type {
   AdoptionMap,
@@ -56,6 +57,7 @@ export function createApplicationMetadata(args: {
   readonly casdoor: FoundationsServiceOutput;
   readonly meridianRuntime: MeridianRuntimeConfig;
   readonly meridianRuntimeReferences?: readonly RuntimeFileReference[];
+  readonly runtimeDependencies?: readonly pulumi.Resource[];
   readonly observability: ObservabilityGatewayOutput;
   readonly adoption?: AdoptionMap;
   readonly route?: ContractRouteInput;
@@ -165,6 +167,10 @@ export function createApplicationMetadata(args: {
   });
   const references = new RuntimeReferences("application-metadata", {
     environment: [
+      ...ownedReferenceRuntime(
+        "APPLICATION_METADATA_OWNED_REFERENCE_MERIDIAN_CONFIG",
+        args.inputs.ownedReferenceRuntime,
+      ).environment,
       literalValue(
         "APPLICATION_METADATA_CURSOR_SECRET_FILE",
         `${args.inputs.cursorHmac.mountPath}/${args.inputs.cursorHmac.items["hmac-key"]}`,
@@ -222,6 +228,10 @@ export function createApplicationMetadata(args: {
       literalValue("JUNTAI_ENVIRONMENT", args.stage),
     ],
     files: [
+      ...ownedReferenceRuntime(
+        "APPLICATION_METADATA_OWNED_REFERENCE_MERIDIAN_CONFIG",
+        args.inputs.ownedReferenceRuntime,
+      ).files,
       {
         kind: "configMap",
         name: runtimeConfig.metadata.name,
@@ -347,6 +357,7 @@ export function createApplicationMetadata(args: {
             args.inputs.kubernetesApiServer ?? "https://kubernetes.default.svc",
         }),
       ],
+      dependsOn: [...(args.runtimeDependencies ?? [])],
     },
   );
   new GatewayBinding(
