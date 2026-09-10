@@ -10,7 +10,7 @@
 - OpenTelemetry Collector gateway v0.153.0 with durable queueing, bounded resources, TLS/authorization references, and no inline secret bytes.
 - Official unmodified Casdoor 3.125.0, its workload identity, exact public/private routes, public-API bootstrap Job, and idempotent reconciliation schedule. The gated `client_credentials` application is deliberately absent.
 - Account 2.1.5, including its immutable multi-architecture image, discoverable logical-schema provider and PostgreSQL adapter, platform-supplied composition factory, workload identity, platform route, observability binding, and five co-located Meridian structured resources plus transactional audit evidence.
-- Application Metadata 3.2.1 and Blueprint 3.3.0 exact release selections, including the corrected explicit-owner readers, immutable contracts and images, and optional separately projected owned-reference runtime configuration. Their runtime integration is subject to the acceptance gate below.
+- Application Metadata 3.2.1 and Blueprint 3.3.1 exact release selections, native provider/runtime composition, and separately projected application-owned reference readers with PostgreSQL 2.4.0 read-only compatibility.
 - Deployment-selected data engines only through `@zephytiju/meridian-storage-constructs@1.0.0`. KES and Kingbase are rejected.
 - Per-service Meridian deployments/configuration for Account, Application Metadata, and Blueprint, with file-backed engine credentials required to be projected into every consuming workload.
 - State adoption aliases/imports, protected-by-default resources, and rollback metadata.
@@ -49,7 +49,7 @@ Application Metadata is pinned to 3.2.1, including its image, OpenAPI, source co
 
 ## Peer runtime integration acceptance gate
 
-The peer selection and configuration changes are an unreleased integration draft. The existing `src/meridian.ts` primary service recipes still need to be reconciled with the selected peer schema providers and physical layouts. Blueprint 3.3.0's normal dependency set also rejects the ResourceStore physical metadata produced by the older Lattice runtime. These are rollout blockers even when package tests and artifact digest verification pass. Do not publish or deploy this draft as an accepted release set.
+The peer runtime composition is verified against final installed service wheels and real PostgreSQL/MinIO. See [owned-reference runtime composition](docs/owned-reference-runtimes.md) for the supported producer contract, exact physical checks, namespace projections and acceptance boundaries. Full Lattice lifecycle acceptance is completed by the consuming domain integration.
 
 See [the owned-reference configuration contract and compatibility evidence](docs/owned-reference-runtimes.md). Runtime and physical fingerprint checks remain unchanged; a supported Meridian compatibility path and real cross-process lifecycle acceptance are required before release.
 

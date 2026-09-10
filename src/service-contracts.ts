@@ -210,11 +210,11 @@ export const FOUNDATION_SERVICE_CATALOG = Object.freeze({
     Object.freeze({
       id: "platform.blueprint",
       release: Object.freeze({
-        version: "3.3.0",
+        version: "3.3.1",
         image: BLUEPRINT_IMAGE,
         imageDigest:
-          "sha256:30361b7b4c7254d5de8102026499627dcfe88fbf1625aba508cd831e3e69dcce",
-        sourceCommit: "79532df7df91c093254d72f2907e72bf72eb09f4",
+          "sha256:6e74d249c8312fa2dbb3ac9f9db60279cc33723602dc59136011d377a4fe20ee",
+        sourceCommit: "7e3e70bebdfcfc5c5fbd1a39fbdb2cbef8cb48b5",
         manifests: Object.freeze([BLUEPRINT_RELEASE_CONTRACT]),
       }),
       deployment: Object.freeze({
@@ -239,7 +239,7 @@ export const FOUNDATION_SERVICE_CATALOG = Object.freeze({
             format: "openapi",
             documentVersion: "3.1",
             title: "Juntai Blueprint Service",
-            version: "3.3.0",
+            version: "3.3.1",
             requiredPaths: Object.freeze(["/api/blueprints/v1/assets"]),
           }),
         }),

@@ -3,8 +3,13 @@ import type {
   FoundationsInputs,
   MeridianInputs,
   OwnedReferenceRuntimeInput,
+  PeerRuntimeSelection,
 } from "./types.js";
 import { validateDomainRequirements } from "./domain-requirements.js";
+import {
+  peerOwnedReferenceEngines,
+  type FoundationPeer,
+} from "./peer-runtimes.js";
 
 const SECRET_MATERIAL_KEY =
   /^(?:access[-_.]?key|credential|password|private[-_.]?key|secret(?:Bytes|Material|Value)?|token)$/i;
@@ -229,6 +234,7 @@ export function validateFoundationsInputs(inputs: FoundationsInputs): void {
   );
   validateDomainRuntimeSelections(inputs.meridian);
   rejectSecretMaterial(inputs);
+  validatePeerRuntimeSelections(inputs);
   if (
     inputs.legacyAdoptionCompatibility !== undefined &&
     (inputs.legacyAdoptionCompatibility.profile !==
@@ -425,7 +431,10 @@ export function validateFoundationsInputs(inputs: FoundationsInputs): void {
         "/etc/juntai/application-metadata",
         inputs.applicationMetadata.cursorHmac.mountPath,
         inputs.applicationMetadata.policyReaderClientSecret.mountPath,
-        ...runtimeReferences.map(({ mountPath }) => mountPath),
+        ...(
+          inputs.meridian.peerRuntimeSelections?.["application-metadata"]
+            ?.runtimeReferences ?? runtimeReferences
+        ).map(({ mountPath }) => mountPath),
       ],
     },
     {
@@ -434,7 +443,10 @@ export function validateFoundationsInputs(inputs: FoundationsInputs): void {
         "/etc/juntai/meridian",
         inputs.blueprint.cursorHmac.mountPath,
         inputs.blueprint.policyReaderClientSecret.mountPath,
-        ...runtimeReferences.map(({ mountPath }) => mountPath),
+        ...(
+          inputs.meridian.peerRuntimeSelections?.blueprint?.runtimeReferences ??
+          runtimeReferences
+        ).map(({ mountPath }) => mountPath),
       ],
     },
   ];
@@ -546,6 +558,115 @@ export function validateDomainRuntimeSelections(inputs: MeridianInputs): void {
           );
         }
       }
+    }
+  }
+}
+
+/** Validate peer bindings and projections before creating any provider resources. */
+export function validatePeerRuntimeSelections(inputs: FoundationsInputs): void {
+  for (const [id, selection] of Object.entries(
+    inputs.meridian.peerRuntimeSelections ?? {},
+  )) {
+    if (!["application-metadata", "blueprint"].includes(id))
+      throw new Error(`unknown peer runtime '${id}'`);
+    const peer = id as FoundationPeer;
+    if (
+      Object.keys(selection).some(
+        (key) =>
+          !["engines", "runtimeReferences", "ownedReferences"].includes(key),
+      )
+    )
+      throw new Error(`peer '${id}' has unknown runtime selection fields`);
+    const service =
+      peer === "blueprint" ? inputs.blueprint : inputs.applicationMetadata;
+    const mounts =
+      peer === "blueprint"
+        ? [
+            "/etc/juntai/meridian",
+            service.cursorHmac.mountPath,
+            service.policyReaderClientSecret.mountPath,
+          ]
+        : [
+            "/etc/juntai/application-metadata",
+            "/var/run/secrets/juntai",
+            service.cursorHmac.mountPath,
+            service.policyReaderClientSecret.mountPath,
+          ];
+    validatePeerBindings(id, selection, mounts);
+    const owned = selection.ownedReferences;
+    if (owned === undefined) continue;
+    if (service.ownedReferenceRuntime !== undefined)
+      throw new Error(
+        `peer '${id}' cannot select both generated and external owned-reference runtimes`,
+      );
+    if (
+      Object.keys(owned).some(
+        (key) => !["storeId", "engines", "runtimeReferences"].includes(key),
+      )
+    )
+      throw new Error(
+        `peer '${id}' has unknown owned-reference selection fields`,
+      );
+    const store = inputs.meridian.sharedResourceStores?.find(
+      ({ id }) => id === owned.storeId,
+    );
+    if (store === undefined)
+      throw new Error(
+        `peer '${id}' selects an undeclared owned-reference store`,
+      );
+    validatePeerBindings(`${id} owned-reference`, owned, [
+      ...mounts,
+      ...selection.runtimeReferences.map(({ mountPath }) => mountPath),
+    ]);
+    peerOwnedReferenceEngines(peer, store, owned.engines);
+  }
+}
+
+function validatePeerBindings(
+  label: string,
+  selection: Pick<PeerRuntimeSelection, "engines" | "runtimeReferences">,
+  existingMounts: readonly string[],
+): void {
+  const ids = selection.engines.map(({ bindingId }) => bindingId);
+  if (
+    ids.length !== 2 ||
+    !ids.includes("structured") ||
+    !ids.includes("object")
+  )
+    throw new Error(
+      `peer '${label}' requires exactly structured and object Engines`,
+    );
+  // This common projection validator also rejects parent/child shadowing, unknown fields and non-normal paths.
+  validateOwnedReferenceRuntime(
+    label,
+    {
+      configuration: {
+        name: "peer-runtime-validation",
+        mountPath: "/etc/juntai/owned-references",
+        items: { "meridian-config.v1.json": "meridian-config.v1.json" },
+      },
+      runtimeReferences: selection.runtimeReferences,
+    },
+    existingMounts,
+  );
+  const projected = new Set(
+    selection.runtimeReferences
+      .filter(({ kind }) => kind === "secret")
+      .flatMap(projectedFilePaths),
+  );
+  for (const engine of selection.engines) {
+    if (!/^sha256:[a-f0-9]{64}$/.test(engine.requiredPhysicalFingerprint))
+      throw new Error(`peer '${label}' requires exact physical fingerprints`);
+    for (const reference of [
+      engine.identityRef,
+      engine.secretRef,
+      engine.tls.caRef,
+      engine.tls.clientCertificateRef,
+    ]) {
+      if (reference?.provider === "file" && !projected.has(reference.reference))
+        throw new Error(
+          `peer '${label}' Engine '${engine.bindingId}' file reference must be projected by its own runtimeReferences`,
+        );
     }
   }
 }

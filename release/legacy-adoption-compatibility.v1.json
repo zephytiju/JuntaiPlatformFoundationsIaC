@@ -1,6 +1,6 @@
 {
   "schemaVersion": "juntai.platform/legacy-adoption-compatibility/v1",
-  "package": "juntai.platform.substrate@1.6.0",
+  "package": "juntai.platform.substrate@1.7.0",
   "profile": "core-v1.9.0-uid-preserving",
   "behavior": {
     "resourceOption": "ignoreChanges",

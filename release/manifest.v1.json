@@ -1,7 +1,7 @@
 {
   "schemaVersion": "juntai.platform/iac-package-contract/v1",
   "id": "juntai.platform.substrate",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "targetProfiles": [
     "development",
     "development-local",
@@ -80,18 +80,18 @@
     },
     {
       "id": "blueprint-image",
-      "uri": "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:30361b7b4c7254d5de8102026499627dcfe88fbf1625aba508cd831e3e69dcce",
-      "digest": "sha256:30361b7b4c7254d5de8102026499627dcfe88fbf1625aba508cd831e3e69dcce"
+      "uri": "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:6e74d249c8312fa2dbb3ac9f9db60279cc33723602dc59136011d377a4fe20ee",
+      "digest": "sha256:6e74d249c8312fa2dbb3ac9f9db60279cc33723602dc59136011d377a4fe20ee"
     },
     {
       "id": "blueprint-openapi",
-      "uri": "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.3.0/blueprint-service.v1.json",
-      "digest": "sha256:0214ab38ac2d2ac54b657e3a1ce9908ae2cd23294a5a596113144231ae827ff3"
+      "uri": "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.3.1/blueprint-service.v1.json",
+      "digest": "sha256:da9a6b21bc32ac864d3c5f6ff028ec0cc1c453b54eb0885258208039a2ebcdc2"
     },
     {
       "id": "blueprint-release-contract",
-      "uri": "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.3.0/release-contract.json",
-      "digest": "sha256:03719f0b8356715cca56c2d6c317c6379b7f5fe3cf390dcd1efd4c454b55a359"
+      "uri": "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.3.1/release-contract.json",
+      "digest": "sha256:1d3b9d43345c8b0a4f4fc448d13d66076268e778d251c1a8fb2e5f036fd4332a"
     },
     {
       "id": "casdoor-bootstrap-image",

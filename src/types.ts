@@ -124,6 +124,20 @@ export interface MeridianInputs {
   readonly domains?: readonly DomainMeridianRequirements[];
   /** Foundations-selected shared logical Resources; domains reference these without taking ownership. */
   readonly sharedResourceStores?: readonly SharedResourceStoreRequirements[];
+  /** Physical selections for the exact released peer-service dependency inventories. */
+  readonly peerRuntimeSelections?: Readonly<
+    Partial<Record<"application-metadata" | "blueprint", PeerRuntimeSelection>>
+  >;
+}
+
+export interface PeerRuntimeSelection {
+  readonly engines: readonly MeridianEngineSelection[];
+  readonly runtimeReferences: readonly RuntimeFileReference[];
+  readonly ownedReferences?: {
+    readonly storeId: string;
+    readonly engines: readonly MeridianEngineSelection[];
+    readonly runtimeReferences: readonly RuntimeFileReference[];
+  };
 }
 
 /** Physical choices belong to the Platform composition, separately from logical domain requirements. */

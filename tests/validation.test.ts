@@ -101,6 +101,7 @@ describe("Foundations input validation", () => {
         ...base,
         meridian: {
           ...base.meridian,
+          peerRuntimeSelections: undefined,
           runtimeReferences: [
             {
               kind: "secret",

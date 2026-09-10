@@ -57,6 +57,7 @@ export function createApplicationMetadata(args: {
   readonly casdoor: FoundationsServiceOutput;
   readonly meridianRuntime: MeridianRuntimeConfig;
   readonly meridianRuntimeReferences?: readonly RuntimeFileReference[];
+  readonly runtimeDependencies?: readonly pulumi.Resource[];
   readonly observability: ObservabilityGatewayOutput;
   readonly adoption?: AdoptionMap;
   readonly route?: ContractRouteInput;
@@ -356,6 +357,7 @@ export function createApplicationMetadata(args: {
             args.inputs.kubernetesApiServer ?? "https://kubernetes.default.svc",
         }),
       ],
+      dependsOn: [...(args.runtimeDependencies ?? [])],
     },
   );
   new GatewayBinding(

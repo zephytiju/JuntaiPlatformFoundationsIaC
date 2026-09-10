@@ -15,6 +15,7 @@ import {
   secrets,
   structuredEngine,
 } from "./helpers.js";
+import { peerInputs, ownedEngines } from "./peer-fixture.js";
 import { domainRequirements } from "./domain-fixture.js";
 import {
   latticeDomains,
@@ -166,6 +167,112 @@ describe("Pulumi composition", () => {
       registered: [...resources],
     };
   }
+
+  it("generates peer configurations in the service namespace with exact read-only compatibility", async () => {
+    const input = peerInputs();
+    const blueprint = input.meridian.peerRuntimeSelections!.blueprint!;
+    const result = await runDeployment({
+      ...input,
+      meridian: {
+        ...input.meridian,
+        peerRuntimeSelections: {
+          blueprint,
+          "application-metadata": {
+            engines: input.meridian.engines,
+            runtimeReferences: input.meridian.runtimeReferences!,
+            ownedReferences: {
+              ...blueprint.ownedReferences!,
+              engines: ownedEngines(false),
+            },
+          },
+        },
+      },
+    });
+    for (const peer of ["application-metadata", "blueprint"] as const) {
+      for (const suffix of ["", "-owned-references"]) {
+        const name = `juntai-meridian-${peer}${suffix}-config`;
+        const config = result.registered.find(
+          (r) =>
+            r.type === "kubernetes:core/v1:ConfigMap" &&
+            (r.inputs.metadata as { name: string }).name === name,
+        )!;
+        expect(config.inputs.metadata).toMatchObject({
+          name,
+          namespace: suffix ? "juntai-platform" : "juntai-capabilities",
+        });
+        const runtime = JSON.parse(
+          (config.inputs.data as Record<string, string>)[
+            "meridian-config.v1.json"
+          ]!,
+        ) as {
+          bindings: {
+            adapterId: string;
+            compatibilityPins: Record<string, string>;
+            requiredPhysicalFingerprint: string;
+            settings: { readCompatibility?: { resources: unknown[] } };
+          }[];
+        };
+        const structured = runtime.bindings.find(
+          (b: { adapterId: string }) => b.adapterId === "postgresql",
+        )!;
+        if (peer === "blueprint" && suffix) {
+          expect(structured.settings.readCompatibility!.resources).toHaveLength(
+            4,
+          );
+          expect(structured.requiredPhysicalFingerprint).toBe(
+            ownedEngines()[0]!.requiredPhysicalFingerprint,
+          );
+        } else expect(structured.settings.readCompatibility).toBeUndefined();
+      }
+      if (peer === "blueprint") {
+        const projection = result.registered.find(
+          (r) =>
+            r.type === "kubernetes:core/v1:ConfigMap" &&
+            (r.inputs.metadata as { name: string }).name ===
+              "juntai-blueprint-runtime-config",
+        )!;
+        expect(projection.inputs.metadata).toMatchObject({
+          namespace: "juntai-platform",
+        });
+        const source = result.registered.find(
+          (r) =>
+            r.type === "kubernetes:core/v1:ConfigMap" &&
+            (r.inputs.metadata as { name: string }).name ===
+              "juntai-meridian-blueprint-config",
+        )!;
+        expect(projection.inputs.data).toEqual(source.inputs.data);
+      }
+      const deployment = result.registered.find(
+        (r) =>
+          r.type === "kubernetes:apps/v1:Deployment" &&
+          (r.inputs.metadata as { name: string }).name === peer,
+      )!;
+      const pod = (
+        deployment.inputs.spec as {
+          template: {
+            spec: {
+              containers: { env: { name: string; value: string }[] }[];
+              volumes: { configMap?: { name: string } }[];
+            };
+          };
+        }
+      ).template.spec;
+      expect(pod.containers[0]!.env).toContainEqual({
+        name:
+          peer === "blueprint"
+            ? "BLUEPRINT_OWNED_REFERENCE_MERIDIAN_CONFIG"
+            : "APPLICATION_METADATA_OWNED_REFERENCE_MERIDIAN_CONFIG",
+        value: "/etc/juntai/owned-references/meridian-config.v1.json",
+      });
+      expect(
+        pod.volumes.some(
+          (v) =>
+            v.configMap?.name ===
+            `juntai-meridian-${peer}-owned-references-config`,
+        ),
+      ).toBe(true);
+    }
+  });
 
   it("projects owned-reference configuration beside each peer's primary runtime", async () => {
     const base = foundationsInputs();
@@ -517,7 +624,7 @@ describe("Pulumi composition", () => {
       result.registered.filter(
         ({ type }) => type === "meridian:storage:ExternalEngine",
       ),
-    ).toHaveLength(2);
+    ).toHaveLength(6);
     const output = result.published.get("juntai.platform.meridian-runtime") as {
       domainRuntimes: Record<
         string,
@@ -648,7 +755,7 @@ describe("Pulumi composition", () => {
       result.registered.filter(
         ({ type }) => type === "meridian:storage:ExternalEngine",
       ),
-    ).toHaveLength(2);
+    ).toHaveLength(6);
   });
 
   it("rejects a shared ResourceStore's missing object binding before package resources", async () => {

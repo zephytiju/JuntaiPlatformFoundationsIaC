@@ -1,33 +1,34 @@
-# Owned-reference runtime integration
+# Peer and owned-reference runtime composition
 
-Metadata 3.2.1 and Blueprint 3.3.0 accept a separate Meridian runtime for references carrying an explicit application owner. The primary runtime continues to hold tenant-scoped service state and legacy references. Foundations projects the optional input through each peer's public environment variable:
+Foundations 1.7.0 selects Metadata 3.2.1 and Blueprint 3.3.1. Each service uses its own released schema providers, catalog manifests, per-Resource fingerprints and normal Meridian dependency inventory. Provider versions follow their logical contract: Metadata's provider is 3.1.3 and Blueprint's is 3.2.0. They are independent of the service release version.
 
-| Service              | Optional environment variable                          |
-| -------------------- | ------------------------------------------------------ |
-| Application Metadata | `APPLICATION_METADATA_OWNED_REFERENCE_MERIDIAN_CONFIG` |
-| Blueprint            | `BLUEPRINT_OWNED_REFERENCE_MERIDIAN_CONFIG`            |
+The exact image, OpenAPI and release-contract digests are in `src/release.ts`. `src/peer-runtime-contracts.json` contains the public logical definitions exported from the normally installed final wheels. Reproduce that snapshot with `scripts/export-peer-contracts.py --metadata-python /path/to/metadata/python --blueprint-python /path/to/blueprint/python --output /path/to/contracts.json`. Both interpreters must contain the selected releases and their normally resolved dependencies.
 
-Both typed service inputs accept `ownedReferenceRuntime`, with a `configuration` ConfigMap reference and optional `runtimeReferences` for opaque Secret or ConfigMap projections. The configuration must project `meridian-config.v1.json`; its destination filename may differ. Every mount is read-only. Normalized absolute mount paths must not overlap each other, the primary runtime, service credentials, or Metadata's projected workload tokens. Inline credentials and extra configuration fields are rejected before resource registration.
+## Platform composition
 
-Foundations must compose the referenced runtime using the selected released Meridian contracts and own all physical choices. This input does not authorize domain packages or Core to construct a runtime, override an owner, rewrite a provider, or select physical engines. The peer establishes the authorized tenant/application scope from the original request. No owner or identity is injected through this configuration.
+`meridian.peerRuntimeSelections` accepts `application-metadata` and `blueprint`. Each selection supplies exactly one `structured` and one `object` Engine, plus its own opaque `runtimeReferences`. Omitted primary selections use the existing global Engine inputs. Blueprint requires the capabilities of its released PostgreSQL 2.4.0 runtime; an older producer Engine manifest cannot satisfy Blueprint's current write contracts.
 
-## Verified release inputs
+`peerRuntimeRequirements(peer)` exports the selected logical requirements for Foundations-owned physical provisioning. Schema layouts and migration plans are produced with the selected public adapter compiler. Foundations owns these physical choices; domain packages continue to supply logical requirements and receive opaque runtime outputs. Exact package coordinates are planning/distribution locks, while runtime compatibility assertions use Core's separate manifest contract. Normal installation, pinned service images and capability fingerprints enforce the selected runtime inventory.
 
-The service catalog selects Metadata 3.2.1 at source `0be25621317d9f438e728ab9655078e53afa3432` and Blueprint 3.3.0 at source `79532df7df91c093254d72f2907e72bf72eb09f4`. Image and OpenAPI digests, release manifests, and both Metadata migration artifacts are pinned in `src/release.ts`. Public contract resolution verifies the exact fetched bytes before composition.
+Existing primary source ConfigMaps retain their identities and namespaces. Metadata copies its configuration into its existing service configuration; Blueprint now projects the primary payload into `juntai-blueprint-runtime-config` in `juntai-platform`, beside its pods. Generated owned-reference ConfigMaps also live in the peer service namespace. Their resource dependencies precede workload creation.
 
-## Unresolved storage compatibility
+## Reading application-owned producer artifacts
 
-This is an unreleased integration draft. The existing primary service recipes in `src/meridian.ts` are still based on the previous peer providers. They must be updated and tested against the exact selected service wheels before publication.
+A peer selection can include `ownedReferences: { storeId, engines, runtimeReferences }`. The store must be a declared Configuration/Artifact store using the exact plugin 1.0.3 producer bundle and all five Resource fingerprints. Its PostgreSQL selection retains the original physical namespace, layout, physical fingerprint and both `application` and `tenant` scope keys. Provide dedicated read credentials through opaque Secret references. The selection must describe the deployed store; it is not permission to change that store.
 
-The shared-store probe additionally established a runtime boundary that configuration projection alone cannot solve:
+For Blueprint, Foundations constructs PostgreSQL 2.4.0's closed `meridian.postgresql.read-compatibility.v1` proof from the full released producer and reader ResourceDefinitions. Only the supported structured `put` 1.0.0 to 2.0.0 contract difference is admitted by the adapter. All schema, fingerprint, layout and other Resource contract checks remain exact. The compatibility binding is read-only, rejects mutation/activation/import paths and opens read-only database sessions. No migration, DDL or physical metadata rewrite is performed on the older store. Metadata retains its compatible legacy ABI. The producer's own writer runtime is unchanged.
 
-- The Lattice producer uses Core 1.0.0, Configuration/Artifact plugin 1.0.3, and PostgreSQL adapter 1.0.0. Its application-owned publication and restart/read succeed.
-- Blueprint 3.3.0 normally installs Core 1.1.0, plugin 1.1.2, and PostgreSQL adapter 2.3.1. The unchanged producer configuration fails Catalog fingerprint verification.
-- Regenerating the reader configuration from its installed public provider and adapter manifests leaves the existing data untouched, but startup rejects the physical ResourceDefinition fingerprint for `structured:resources.channels`.
-- The original producer still restarts and reads both metadata and object bytes. No reader migration or physical metadata edit was performed.
+The object binding is preserved, and the peer's primary mutable catalog remains separate from the owned-reference reader. Foundations rejects missing or duplicate layouts, changed source fingerprints, tenant-only scope, missing physical pins, pre-existing compatibility overrides, unprojected credentials and overlapping mounts before creating provider resources.
 
-The plugin's [released dependency compatibility](https://github.com/zephytiju/MeridianConfigArtifactPlugin/blob/v1.1.2/docs/dependency-compatibility.md) and [put-mode validation](https://github.com/zephytiju/MeridianConfigArtifactPlugin/blob/v1.1.2/docs/put-mode-validation.md) document the newer operation contract and dependency set. They do not declare compatibility with the older physical ResourceDefinition. Installing plugin 1.0.3 alongside the new Core is also rejected by its exact normal dependency requirements.
+| Service   | Environment variable                                   |
+| --------- | ------------------------------------------------------ |
+| Metadata  | `APPLICATION_METADATA_OWNED_REFERENCE_MERIDIAN_CONFIG` |
+| Blueprint | `BLUEPRINT_OWNED_REFERENCE_MERIDIAN_CONFIG`            |
 
-A supported Meridian migration or explicit compatibility contract must preserve exact schema and physical fingerprint validation, application/tenant isolation, original caller authorization, legacy consumers, and rollback or restore. Do not substitute raw SQL, synthetic schema providers, modified release bytes, dependency overrides, or a fallback to tenant-only reads.
+For an already composed Foundations-owned runtime, the existing service-level `ownedReferenceRuntime` input accepts an opaque configuration ConfigMap plus optional file references. Generated and externally supplied owned-reference configurations are mutually exclusive for each peer. The ConfigMap must contain `meridian-config.v1.json`; all projections are read-only and use normalized, non-overlapping paths. Configuration inputs never supply an application owner or impersonate a caller. The peer obtains owner scope and source authorization from the original authenticated request.
 
-Release acceptance requires real producer-to-peer publish/read/import/association, cross-tenant and cross-application denial, legacy reference readback, restart, and rollback/recovery against the selected immutable artifacts. Pulumi mocks and input hash verification are separate evidence and do not satisfy that gate.
+## Acceptance
+
+The integration was verified with final normally installed Metadata 3.2.1 and Blueprint 3.3.1 wheels, real PostgreSQL 16/PostGIS and MinIO. All four JSON configurations emitted by Foundations started successfully; both owned readers retrieved the existing producer's metadata and exact artifact bytes with unchanged physical pins. Blueprint's ten catalog mutation/rollback/restart probes passed through the generated primary configuration. Metadata's HTTP/generated-client association probe passed 22 checks, including atomic rollback, lost-response replay, three service processes, cross-tenant denial and the 501-contribution aggregate.
+
+`node --import tsx scripts/verify-peer-configs.ts /path/to/fixture-inputs` emits the actual Foundations ConfigMap payloads using Pulumi mocks. The directory contains `application-metadata.json` and `blueprint.json`, each a `PeerRuntimeSelection` for provisioned disposable fixtures. The mock Kubernetes provider performs no deployment; installed-runtime and service probes must run separately against those emitted payloads. The local acceptance uses fixture admission decisions and real IAM context enforcement, not production authentication. Full Lattice lifecycle acceptance remains a separate consumer integration gate.

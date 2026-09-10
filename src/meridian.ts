@@ -17,6 +17,11 @@ import {
 import { adoptionOptions, childMigration } from "./adoption.js";
 import { sha256 } from "./artifacts.js";
 import {
+  peerOwnedReferenceEngines,
+  peerRuntimeRequirements,
+  type FoundationPeer,
+} from "./peer-runtimes.js";
+import {
   composeDomainRequirements,
   validateDomainRequirements,
 } from "./domain-requirements.js";
@@ -28,6 +33,7 @@ import type {
   MeridianInputs,
   MeridianRuntimeOutput,
   MeridianRuntimeDistributionOutput,
+  OwnedReferenceRuntimeInput,
 } from "./types.js";
 
 const ACCOUNT_PROVIDER = Object.freeze({
@@ -37,30 +43,6 @@ const ACCOUNT_PROVIDER = Object.freeze({
   version: "2.1.5",
   requiredFingerprint:
     "sha256:6483e0a226a28a3521136d7099162509274bbc93db9a6106f04e65ca44a69d4b",
-});
-const APPLICATION_METADATA_PROVIDER = Object.freeze({
-  id: "juntai.application-metadata",
-  package: "juntai-application-metadata",
-  contract: "1.0.0",
-  version: "3.1.1",
-  requiredFingerprint:
-    "sha256:900ecd672e8b8b3c61948975aaaf014f782938b607d25e50309ed71795e53f67",
-});
-const BLUEPRINT_PROVIDER = Object.freeze({
-  id: "juntai.blueprint",
-  package: "juntai-blueprint-marketplace",
-  contract: "1.0.0",
-  version: "3.1.0",
-  requiredFingerprint:
-    "sha256:b258e311c641aac58869d00e47cc90dbaf7c34712f5b6fccdcceb09b87c3fca9",
-});
-const CONFIG_ARTIFACT_PROVIDER = Object.freeze({
-  id: "meridian.plugin.config-artifact",
-  package: "meridian-plugin-config-artifact",
-  contract: "1.0.0",
-  version: "1.0.2",
-  requiredFingerprint:
-    "sha256:67ed231448870ac0cdb16aee25b44859ca5ab6bc331d417b5006e8fc2d4189ee",
 });
 const CATALOG_FINGERPRINTS = Object.freeze({
   structured:
@@ -171,17 +153,6 @@ interface ProviderPin {
   readonly version: string;
   readonly requiredFingerprint: string;
 }
-
-const structuredOperation = (method: string): OperationRequirementV1 => ({
-  contract: `meridian.structured.${method}`,
-  version: "1.0.0",
-});
-
-const transactionOperation: OperationRequirementV1 = Object.freeze({
-  contract: "meridian.transaction",
-  version: "1.0.0",
-  guarantees: ["atomic", "no-dirty-reads"],
-});
 
 const accountStructuredOperation = (
   method: string,
@@ -298,131 +269,12 @@ const accountResources = Object.freeze([
   } satisfies MeridianResourceRequirementV1,
 ]);
 
-const applicationMetadataResources = Object.freeze([
-  resourceRequirement({
-    catalog: "structured",
-    namespace: "application-metadata",
-    name: "applications",
-    provider: APPLICATION_METADATA_PROVIDER,
-    operations: [
-      ...["get", "patch", "put", "query"].map(structuredOperation),
-      transactionOperation,
-    ],
-  }),
-  resourceRequirement({
-    catalog: "structured",
-    namespace: "application-metadata",
-    name: "contributions",
-    provider: APPLICATION_METADATA_PROVIDER,
-    operations: [
-      ...["delete", "get", "put", "query"].map(structuredOperation),
-      transactionOperation,
-    ],
-  }),
-  resourceRequirement({
-    catalog: "structured",
-    namespace: "application-metadata",
-    name: "idempotency",
-    provider: APPLICATION_METADATA_PROVIDER,
-    operations: [
-      ...["delete", "get", "put"].map(structuredOperation),
-      transactionOperation,
-    ],
-  }),
-  resourceRequirement({
-    catalog: "structured",
-    namespace: "application-metadata",
-    name: "versions",
-    provider: APPLICATION_METADATA_PROVIDER,
-    operations: [
-      ...["get", "patch", "put", "query"].map(structuredOperation),
-      transactionOperation,
-    ],
-  }),
-]);
-
-const configArtifactResources = Object.freeze([
-  resourceRequirement({
-    catalog: "structured",
-    namespace: "resources",
-    name: "channels",
-    provider: CONFIG_ARTIFACT_PROVIDER,
-    operations: [
-      ...["get", "put", "query"].map(structuredOperation),
-      transactionOperation,
-    ],
-  }),
-  resourceRequirement({
-    catalog: "structured",
-    namespace: "resources",
-    name: "metadata",
-    provider: CONFIG_ARTIFACT_PROVIDER,
-    operations: [
-      ...["get", "patch", "put", "query"].map(structuredOperation),
-      transactionOperation,
-    ],
-  }),
-  resourceRequirement({
-    catalog: "structured",
-    namespace: "resources",
-    name: "orphan-candidates",
-    provider: CONFIG_ARTIFACT_PROVIDER,
-    operations: [
-      ...["get", "patch", "put", "query"].map(structuredOperation),
-      transactionOperation,
-    ],
-  }),
-  resourceRequirement({
-    catalog: "structured",
-    namespace: "resources",
-    name: "provenance",
-    provider: CONFIG_ARTIFACT_PROVIDER,
-    operations: [
-      ...["get", "put", "query"].map(structuredOperation),
-      transactionOperation,
-    ],
-  }),
-  resourceRequirement({
-    catalog: "object",
-    namespace: "resources",
-    name: "objects",
-    provider: CONFIG_ARTIFACT_PROVIDER,
-    operations: [
-      {
-        contract: "meridian.object.get",
-        version: "1.0.0",
-        guarantees: ["object.digest-verification", "object.streaming"],
-      },
-      {
-        contract: "meridian.object.list",
-        version: "1.0.0",
-        guarantees: ["object.bounded-prefix-list"],
-      },
-      {
-        contract: "meridian.object.put",
-        version: "1.0.0",
-        guarantees: [
-          "object.conditional-create",
-          "object.digest-sha256",
-          "object.metadata-after-commit",
-          "object.streaming",
-        ],
-      },
-      {
-        contract: "meridian.object.read_range",
-        version: "1.0.0",
-        guarantees: ["object.digest-verification", "object.range-read"],
-      },
-      { contract: "meridian.object.stat", version: "1.0.0" },
-    ],
-  }),
-]);
-
 function externalEngine(
   selection: MeridianEngineSelection,
   adoption?: AdoptionMap,
   domainId?: string,
   distribution?: ResolvedRuntimeDistribution,
+  compatibilityPins?: Readonly<Record<string, string>>,
 ): EngineBinding {
   const profile = getEngineProfile(selection.profileId);
   if (!profile.allowedModes.includes("external")) {
@@ -453,14 +305,15 @@ function externalEngine(
         topology: selection.topology ?? profile.defaultTopology,
         engineVersion: selection.engineVersion ?? profile.defaultEngineVersion,
         compatibilityPins:
-          distribution === undefined
+          compatibilityPins ??
+          (distribution === undefined
             ? profile.compatibilityPins
             : Object.fromEntries(
                 distribution.descriptor.packages.map(({ name, version }) => [
                   name,
                   version,
                 ]),
-              ),
+              )),
         acl: selection.acl,
         migration: selection.migration,
         observability: selection.observability,
@@ -547,12 +400,13 @@ function createDeployment(args: {
         ),
     )
     .map(({ selector }) => selector);
-  const domainEvidenceResources =
-    args.domain === undefined
-      ? []
-      : args.resources
-          .filter(({ selector }) => selector.catalog === "evidence")
-          .map(({ selector }) => selector);
+  const domainEvidenceResources = args.resources
+    .filter(
+      ({ selector }) =>
+        selector.catalog === "evidence" &&
+        selector.namespace !== "platform.account",
+    )
+    .map(({ selector }) => selector);
   const objectResources = args.resources
     .filter(({ selector }) => selector.catalog === "object")
     .map(({ selector }) => selector);
@@ -564,16 +418,24 @@ function createDeployment(args: {
     args.name,
     {
       profile: "juntai-foundations/open-source-selected/v1",
-      catalogs: args.domain
-        ? (args.catalogs ?? DOMAIN_CATALOGS)
-        : (
-            ["structured", "object", "cache", "evidence", "streaming"] as const
-          ).map((name) => ({
-            name,
-            package: "meridian-storage-core",
-            contract: "1.0.0",
-            requiredFingerprint: CATALOG_FINGERPRINTS[name],
-          })),
+      catalogs:
+        args.catalogs ??
+        (args.domain
+          ? DOMAIN_CATALOGS
+          : (
+              [
+                "structured",
+                "object",
+                "cache",
+                "evidence",
+                "streaming",
+              ] as const
+            ).map((name) => ({
+              name,
+              package: "meridian-storage-core",
+              contract: "1.0.0",
+              requiredFingerprint: CATALOG_FINGERPRINTS[name],
+            }))),
       schemaProviders: [
         ...(args.domain
           ? [args.evidenceProvider ?? DOMAIN_EVIDENCE_PROVIDER]
@@ -694,6 +556,7 @@ export function createMeridianRuntime(args: {
   >;
   readonly provider: k8s.Provider;
   readonly namespace: pulumi.Input<string>;
+  readonly peerNamespace?: pulumi.Input<string>;
   readonly inputs: MeridianInputs;
   readonly adoption?: AdoptionMap;
   readonly dependsOn?: readonly pulumi.Resource[];
@@ -704,6 +567,12 @@ export function createMeridianRuntime(args: {
   readonly runtime: MeridianRuntimeConfig;
   readonly applicationMetadataRuntime: MeridianRuntimeConfig;
   readonly blueprintRuntime: MeridianRuntimeConfig;
+  readonly peerOwnedReferenceInputs: Readonly<
+    Partial<Record<FoundationPeer, OwnedReferenceRuntimeInput>>
+  >;
+  readonly peerOwnedReferenceConfigMaps: Readonly<
+    Partial<Record<FoundationPeer, k8s.core.v1.ConfigMap>>
+  >;
   readonly output: MeridianRuntimeOutput;
 } {
   validateDomainRequirements(
@@ -796,22 +665,29 @@ export function createMeridianRuntime(args: {
     adoptionKey: "meridian/deployment",
     dependsOn: args.dependsOn,
   });
-  const applicationMetadataDeployment = createDeployment({
-    name: "foundations-meridian-application-metadata",
-    schemaProviders: [APPLICATION_METADATA_PROVIDER, CONFIG_ARTIFACT_PROVIDER],
-    resources: [...applicationMetadataResources, ...configArtifactResources],
-    engines,
-    adoption: args.adoption,
-    dependsOn: args.dependsOn,
-  });
-  const blueprintDeployment = createDeployment({
-    name: "foundations-meridian-blueprint",
-    schemaProviders: [BLUEPRINT_PROVIDER, CONFIG_ARTIFACT_PROVIDER],
-    resources: configArtifactResources,
-    engines,
-    adoption: args.adoption,
-    dependsOn: args.dependsOn,
-  });
+  const peerDeployment = (peer: FoundationPeer) => {
+    const requirements = peerRuntimeRequirements(peer);
+    return createDeployment({
+      name: `foundations-meridian-${peer}`,
+      ...requirements,
+      engines: (
+        args.inputs.peerRuntimeSelections?.[peer]?.engines ??
+        args.inputs.engines
+      ).map((engine) =>
+        externalEngine(
+          engine,
+          undefined,
+          peer,
+          undefined,
+          requirements.compatibilityPins,
+        ),
+      ),
+      adoption: args.adoption,
+      dependsOn: args.dependsOn,
+    });
+  };
+  const applicationMetadataDeployment = peerDeployment("application-metadata");
+  const blueprintDeployment = peerDeployment("blueprint");
   const runtime = new MeridianRuntimeConfig("foundations-meridian", {
     namespace: args.namespace,
     provider: args.provider,
@@ -851,6 +727,64 @@ export function createMeridianRuntime(args: {
       ),
     },
   );
+  const peerOwnedReferenceInputs: Partial<
+    Record<FoundationPeer, OwnedReferenceRuntimeInput>
+  > = {};
+  const peerOwnedReferenceConfigMaps: Partial<
+    Record<FoundationPeer, k8s.core.v1.ConfigMap>
+  > = {};
+  for (const peer of ["application-metadata", "blueprint"] as const) {
+    const selection =
+      args.inputs.peerRuntimeSelections?.[peer]?.ownedReferences;
+    if (selection === undefined) continue;
+    const store = args.inputs.sharedResourceStores?.find(
+      ({ id }) => id === selection.storeId,
+    );
+    if (store === undefined)
+      throw new Error(
+        `missing peer owned-reference store '${selection.storeId}'`,
+      );
+    const requirements = peerRuntimeRequirements(peer, true);
+    const ownedDeployment = createDeployment({
+      name: `foundations-meridian-${peer}-owned-references`,
+      ...requirements,
+      engines: peerOwnedReferenceEngines(peer, store, selection.engines).map(
+        (engine) =>
+          externalEngine(
+            engine,
+            undefined,
+            `${peer}-owned-references`,
+            undefined,
+            requirements.compatibilityPins,
+          ),
+      ),
+      dependsOn: args.dependsOn,
+    });
+    const configMapName = `juntai-meridian-${peer}-owned-references-config`;
+    const ownedRuntime = new MeridianRuntimeConfig(
+      `foundations-meridian-${peer}-owned-references`,
+      {
+        namespace: args.peerNamespace ?? args.namespace,
+        provider: args.provider,
+        deployment: ownedDeployment,
+        configMapName,
+        mountPath: "/etc/juntai/owned-references",
+        environmentVariable:
+          peer === "blueprint"
+            ? "BLUEPRINT_OWNED_REFERENCE_MERIDIAN_CONFIG"
+            : "APPLICATION_METADATA_OWNED_REFERENCE_MERIDIAN_CONFIG",
+      },
+    );
+    peerOwnedReferenceInputs[peer] = {
+      configuration: {
+        name: configMapName,
+        mountPath: "/etc/juntai/owned-references",
+        items: { "meridian-config.v1.json": "meridian-config.v1.json" },
+      },
+      runtimeReferences: selection.runtimeReferences,
+    };
+    peerOwnedReferenceConfigMaps[peer] = ownedRuntime.configMap;
+  }
   const domainRuntimes: Record<string, DomainMeridianRuntimeOutput> = {};
   for (const domain of [...(args.inputs.domains ?? [])].sort((a, b) =>
     a.id.localeCompare(b.id),
@@ -1009,6 +943,8 @@ export function createMeridianRuntime(args: {
     runtime,
     applicationMetadataRuntime,
     blueprintRuntime,
+    peerOwnedReferenceInputs,
+    peerOwnedReferenceConfigMaps,
     output: Object.freeze({
       distribution: defaultDistribution,
       runtimeReferences: Object.freeze([
