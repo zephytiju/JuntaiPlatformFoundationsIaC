@@ -12,6 +12,10 @@ import {
   type GatewayManifestOwnership,
 } from "./gateway-manifests.js";
 import { ENVOY_GATEWAY_MANIFEST, GATEWAY_API_MANIFEST } from "./release.js";
+import {
+  composeDomainRequirements,
+  validateDomainRequirements,
+} from "./domain-requirements.js";
 import type { FoundationsInputs, MeridianInputs } from "./types.js";
 import {
   resolveRuntimeDistribution,
@@ -100,6 +104,7 @@ export async function resolveDomainRuntimeDistributions(
   fallback: ResolvedRuntimeDistribution,
   fetcher: ArtifactFetcher = fetchVerifiedArtifact,
 ): Promise<Readonly<Record<string, ResolvedRuntimeDistribution>>> {
+  validateDomainRequirements(inputs.domains, inputs.sharedResourceStores);
   const domains = [...(inputs.domains ?? [])].sort((a, b) =>
     a.id.localeCompare(b.id),
   );
@@ -117,7 +122,10 @@ export async function resolveDomainRuntimeDistributions(
           ? fallback
           : await resolveRuntimeDistribution(declaration, fetcher);
       for (const catalog of new Set(
-        domain.resources.map(({ selector }) => selector.catalog),
+        composeDomainRequirements(
+          domain,
+          inputs.sharedResourceStores,
+        ).resources.map(({ selector }) => selector.catalog),
       )) {
         requireCatalog(distribution, catalog);
       }

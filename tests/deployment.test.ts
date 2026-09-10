@@ -1,3 +1,5 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import * as k8s from "@pulumi/kubernetes";
 import * as pulumi from "@pulumi/pulumi";
 import { beforeAll, describe, expect, it } from "vitest";
@@ -14,6 +16,11 @@ import {
   structuredEngine,
 } from "./helpers.js";
 import { domainRequirements } from "./domain-fixture.js";
+import {
+  latticeDomains,
+  latticeSharedStore,
+  observation,
+} from "./lattice-fixture.js";
 import type { FoundationsInputs, MeridianRuntimeOutput } from "../src/types.js";
 import {
   runtimeDistributionFixture,
@@ -439,6 +446,166 @@ describe("Pulumi composition", () => {
         output.domainRuntimes["prism-build"]!.configMapName,
       ),
     ).toBe(true);
+  });
+
+  it("composes exact released Lattice and shared ResourceStore Resources with namespace-local outputs", async () => {
+    const base = foundationsInputs();
+    const domains = latticeDomains();
+    const result = await runDeployment({
+      ...base,
+      meridian: {
+        ...base.meridian,
+        domains,
+        sharedResourceStores: [latticeSharedStore()],
+      },
+    });
+    const output = result.published.get(
+      "juntai.platform.meridian-runtime",
+    ) as MeridianRuntimeOutput;
+    for (const domain of domains) {
+      const runtime = output.domainRuntimes![domain.id]!;
+      const namespace = await new Promise<string>((resolve) =>
+        runtime.namespace.apply(resolve),
+      );
+      expect(namespace).toBe(
+        await new Promise<string>((resolve) => output.namespace.apply(resolve)),
+      );
+      expect(runtime.runtimeReferences).toEqual(
+        base.meridian.runtimeReferences,
+      );
+      expect(runtime.ownerPackage).toBe("juntai.platform.domain.lattice");
+      expect(runtime.resourceNamespace).toBe(domain.resourceNamespace);
+      const config = result.registered.find(
+        ({ type, inputs }) =>
+          type === "kubernetes:core/v1:ConfigMap" &&
+          (inputs.metadata as { name?: string })?.name ===
+            `juntai-meridian-${domain.id}-config`,
+      )!;
+      const renderedText = (config.inputs.data as Record<string, string>)[
+        "meridian-config.v1.json"
+      ]!;
+      if (process.env.FOUNDATIONS_LATTICE_EVIDENCE_DIR) {
+        mkdirSync(process.env.FOUNDATIONS_LATTICE_EVIDENCE_DIR, {
+          recursive: true,
+        });
+        writeFileSync(
+          resolve(
+            process.env.FOUNDATIONS_LATTICE_EVIDENCE_DIR,
+            `${domain.id}.json`,
+          ),
+          renderedText,
+        );
+      }
+      const body = JSON.parse(renderedText) as {
+        resources: { pins: { ref: unknown; requiredFingerprint: string }[] };
+        bindings: { id: string }[];
+        catalogs: {
+          providers: { name: string; requiredFingerprint: string }[];
+        };
+        schemas: { providers: { id: string; requiredFingerprint: string }[] };
+        extensions: { sharedResourceStores: unknown[] };
+        placements: { id: string; selector: { resources: unknown[] } }[];
+      };
+      expect(body.resources.pins).toHaveLength(domain.resources.length + 5);
+      expect(
+        body.bindings.map((binding: { id: string }) => binding.id),
+      ).toEqual(["object", "structured"]);
+      expect(
+        body.catalogs.providers.find(
+          (catalog: { name: string }) => catalog.name === "object",
+        )!.requiredFingerprint,
+      ).toBe(
+        observation.catalogs.find((catalog) => catalog.name === "object")!
+          .fingerprint,
+      );
+      expect(
+        body.schemas.providers.find(
+          (provider: { id: string }) =>
+            provider.id === "meridian.plugin.config-artifact",
+        )!.requiredFingerprint,
+      ).toBe(latticeSharedStore().provider.requiredFingerprint);
+      expect(body.extensions.sharedResourceStores).toEqual([
+        {
+          id: "configuration-artifact",
+          ownerPackage: "juntai.platform.substrate",
+        },
+      ]);
+      expect(
+        body.placements.find((placement: { id: string }) =>
+          placement.id.endsWith("-object"),
+        )!.selector.resources,
+      ).toEqual([
+        { catalog: "object", namespace: "resources", name: "objects" },
+      ]);
+      for (const resource of [
+        ...domain.resources,
+        ...latticeSharedStore().resources,
+      ]) {
+        const rendered = body.resources.pins.find(
+          (item: { ref: unknown }) =>
+            JSON.stringify(item.ref) === JSON.stringify(resource.selector),
+        );
+        expect(rendered).toBeDefined();
+        expect(rendered!.requiredFingerprint).toBe(
+          resource.schemas[0]!.resourceFingerprint,
+        );
+      }
+      const other = domains.find((other) => other.id !== domain.id)!;
+      expect(JSON.stringify(body)).not.toContain(other.resourceNamespace);
+    }
+    // Shared Engine references are selected once by Foundations, never by a domain namespace declaration.
+    expect(
+      result.registered.filter(
+        ({ type }) => type === "meridian:storage:ExternalEngine",
+      ),
+    ).toHaveLength(2);
+  });
+
+  it("rejects a shared ResourceStore's missing object binding before package resources", async () => {
+    const base = foundationsInputs();
+    const domain = latticeDomains()[0]!;
+    resources.length = 0;
+    await pulumi.runtime.runInPulumiStack(async () => {
+      const provider = new k8s.Provider("missing-object-cluster", {
+        kubeconfig: "apiVersion: v1",
+      });
+      await expect(
+        deployFoundations(
+          {
+            target: {
+              organization: "juntai",
+              project: "platform",
+              stack: "development-local",
+              environment: "development-local",
+              configuration: {},
+            },
+            providers: { kubernetes: provider },
+            capabilities: capabilities().consumer,
+            secrets: secrets(),
+            inputs: {
+              ...base,
+              meridian: {
+                ...base.meridian,
+                domains: [domain],
+                sharedResourceStores: [latticeSharedStore()],
+                domainRuntimeSelections: {
+                  [domain.id]: {
+                    distribution: runtimeDistributionFixture().selection,
+                    engines: [structuredEngine()],
+                    runtimeReferences: base.meridian.runtimeReferences!,
+                  },
+                },
+              },
+            },
+          },
+          { preflight },
+        ),
+      ).rejects.toThrow("requires a Foundations-selected object binding");
+      return {};
+    });
+    expect(
+      resources.filter(({ type }) => !type.startsWith("pulumi:")),
+    ).toHaveLength(0);
   });
 
   it("projects durable metadata bindings independently of the default runtime and Engine locks", async () => {

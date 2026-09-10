@@ -1,3 +1,4 @@
+import { latticeDomains, latticeSharedStore } from "./lattice-fixture.js";
 import { describe, expect, it, vi } from "vitest";
 import { sha256 } from "../src/artifacts.js";
 import { resolveDomainRuntimeDistributions } from "../src/preflight.js";
@@ -115,4 +116,25 @@ describe("explicit Platform-owned domain runtime selection", () => {
       ),
     ).rejects.toThrow("required catalog 'evidence'");
   });
+});
+
+it("requires the shared object Catalog even when a domain owns only structured Resources", async () => {
+  const fallback = runtimeDistributionFixture();
+  const withoutObject = {
+    ...fallback,
+    descriptor: {
+      ...fallback.descriptor,
+      supportedCatalogs: ["structured", "evidence"],
+    },
+  };
+  await expect(
+    resolveDomainRuntimeDistributions(
+      {
+        engines: [],
+        domains: [latticeDomains()[1]!],
+        sharedResourceStores: [latticeSharedStore()],
+      },
+      withoutObject,
+    ),
+  ).rejects.toThrow("required catalog 'object'");
 });

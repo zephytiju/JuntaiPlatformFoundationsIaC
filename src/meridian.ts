@@ -16,7 +16,10 @@ import {
 } from "@zephytiju/meridian-storage-constructs";
 import { adoptionOptions, childMigration } from "./adoption.js";
 import { sha256 } from "./artifacts.js";
-import { validateDomainRequirements } from "./domain-requirements.js";
+import {
+  composeDomainRequirements,
+  validateDomainRequirements,
+} from "./domain-requirements.js";
 import { validateDomainRuntimeSelections } from "./validation.js";
 import type {
   AdoptionMap,
@@ -90,6 +93,14 @@ const DOMAIN_CATALOGS = Object.freeze([
       "sha256:20a4c630f47a9c40377d3a6009e5df1e8f407c8fa14b75ae449d0e37f496acb0",
   },
 ] as const);
+// Native public Object Catalog from meridian-storage-object-common 1.0.1.
+const DOMAIN_OBJECT_CATALOG = Object.freeze({
+  name: "object" as const,
+  package: "meridian-storage-object-common",
+  contract: "1.0.0",
+  requiredFingerprint:
+    "sha256:e6696e6944768e9a42acffa331d91c75fe7222ae331bfbda3640a4a4fe024b1b",
+});
 const DOMAIN_EVIDENCE_PROVIDER = Object.freeze({
   id: "meridian.evidence",
   package: "meridian-storage-evidence",
@@ -516,6 +527,9 @@ function createDeployment(args: {
   readonly domain?: {
     readonly ownerPackage: string;
     readonly resourceNamespace: string;
+    readonly resourceStoreDependencies?: readonly {
+      readonly storeId: string;
+    }[];
   };
 }): MeridianDeployment {
   const accountResourceSelectors = args.resources
@@ -650,6 +664,16 @@ function createDeployment(args: {
         ...(args.domain === undefined
           ? {}
           : { logicalOwnerPackage: args.domain.ownerPackage }),
+        ...(args.domain?.resourceStoreDependencies?.length
+          ? {
+              sharedResourceStores: args.domain.resourceStoreDependencies.map(
+                ({ storeId }) => ({
+                  id: storeId,
+                  ownerPackage: "juntai.platform.substrate",
+                }),
+              ),
+            }
+          : {}),
         engineAuthority: "@zephytiju/meridian-storage-constructs@1.6.1",
       },
     },
@@ -682,7 +706,10 @@ export function createMeridianRuntime(args: {
   readonly blueprintRuntime: MeridianRuntimeConfig;
   readonly output: MeridianRuntimeOutput;
 } {
-  validateDomainRequirements(args.inputs.domains);
+  validateDomainRequirements(
+    args.inputs.domains,
+    args.inputs.sharedResourceStores,
+  );
   validateDomainRuntimeSelections(args.inputs);
   if (args.inputs.engines.length === 0) {
     throw new Error(
@@ -884,30 +911,53 @@ export function createMeridianRuntime(args: {
     ) {
       throw new Error(`domain '${domain.id}' metadata binding is not selected`);
     }
+    const composition = composeDomainRequirements(
+      domain,
+      args.inputs.sharedResourceStores,
+    );
+    const needsObject = composition.resources.some(
+      ({ selector }) => selector.catalog === "object",
+    );
+    if (
+      needsObject &&
+      selection !== undefined &&
+      !selection.engines.some(({ bindingId }) => bindingId === "object")
+    ) {
+      throw new Error(
+        `domain '${domain.id}' shared ResourceStore requires a Foundations-selected object binding`,
+      );
+    }
     const domainEngines =
       selection === undefined
-        ? engines.filter(({ bindingId }) => bindingId === "structured")
+        ? engines.filter(
+            ({ bindingId }) =>
+              bindingId === "structured" ||
+              (needsObject && bindingId === "object"),
+          )
         : selection.engines.map((engine) =>
             externalEngine(engine, undefined, domain.id, selectedDistribution),
           );
     const domainDeployment = createDeployment({
       name: `foundations-meridian-${domain.id}`,
       schemaProviders: [
-        ...domain.schemaProviders,
+        ...composition.schemaProviders,
         ...(selection?.metadataBindingId === undefined
           ? []
           : [METADATA_PROVIDER]),
       ],
       resources: [
-        ...domain.resources,
+        ...composition.resources,
         ...(selection?.metadataBindingId === undefined
           ? []
           : [METADATA_RESOURCE]),
       ],
       engines: domainEngines,
+      catalogs: [
+        ...(durable ? DURABLE_CATALOGS : DOMAIN_CATALOGS),
+        ...(needsObject ? [DOMAIN_OBJECT_CATALOG] : []),
+      ],
       ...(durable
         ? {
-            catalogs: DURABLE_CATALOGS,
             evidenceProvider: DURABLE_EVIDENCE_PROVIDER,
           }
         : {}),

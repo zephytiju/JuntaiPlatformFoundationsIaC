@@ -8,6 +8,7 @@ import type {
   JsonObject,
   MigrationStateV1,
   MeridianResourceRequirementV1,
+  ResourceSelectorV1,
   ObservabilityBindingV1,
   OpaqueIdentityRef,
   OpaqueSecretRef,
@@ -115,6 +116,8 @@ export interface MeridianInputs {
   readonly runtimeReferences?: readonly RuntimeFileReference[];
   /** Domain packages supply logical requirements; Foundations selects physical bindings. */
   readonly domains?: readonly DomainMeridianRequirements[];
+  /** Foundations-selected shared logical Resources; domains reference these without taking ownership. */
+  readonly sharedResourceStores?: readonly SharedResourceStoreRequirements[];
 }
 
 /** Physical choices belong to the Platform composition, separately from logical domain requirements. */
@@ -139,6 +142,32 @@ export interface DomainMeridianRequirements {
   readonly resourceNamespace: string;
   readonly schemaProviders: readonly DomainSchemaProviderPin[];
   readonly resources: readonly MeridianResourceRequirementV1[];
+  /** An exact provider release owns a logical namespace that does not use the legacy owner-dot convention. */
+  readonly namespaceOwnership?: DomainNamespaceOwnership;
+  readonly resourceStoreDependencies?: readonly DomainResourceStoreDependency[];
+}
+
+export interface DomainNamespaceOwnership {
+  readonly namespace: string;
+  readonly provider: DomainSchemaProviderPin;
+}
+
+/** Closed Configuration/Artifact plugin contract, selected by Foundations. No Engine inputs are accepted here. */
+export interface SharedResourceStoreRequirements {
+  readonly id: string;
+  readonly kind: "configuration-artifact";
+  readonly provider: DomainSchemaProviderPin;
+  readonly resources: readonly MeridianResourceRequirementV1[];
+}
+
+export interface DomainResourceStoreDependency {
+  readonly storeId: string;
+  readonly kind: "configuration-artifact";
+  readonly provider: DomainSchemaProviderPin;
+  readonly resourceFingerprints: readonly {
+    readonly selector: ResourceSelectorV1;
+    readonly requiredFingerprint: `sha256:${string}`;
+  }[];
 }
 
 export interface CasdoorInputs {

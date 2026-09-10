@@ -152,7 +152,10 @@ export function validateFoundationsInputs(inputs: FoundationsInputs): void {
       throw new Error("cannot grant access to a disabled Foundation service");
     consumerIds.add(id);
   }
-  validateDomainRequirements(inputs.meridian.domains);
+  validateDomainRequirements(
+    inputs.meridian.domains,
+    inputs.meridian.sharedResourceStores,
+  );
   validateDomainRuntimeSelections(inputs.meridian);
   rejectSecretMaterial(inputs);
   if (
@@ -415,6 +418,15 @@ export function validateDomainRuntimeSelections(inputs: MeridianInputs): void {
     ) {
       throw new Error(
         `domain '${id}' requires unique Engines including structured`,
+      );
+    }
+    const domain = inputs.domains!.find((domain) => domain.id === id)!;
+    if (
+      (domain.resourceStoreDependencies?.length ?? 0) > 0 &&
+      !bindings.includes("object")
+    ) {
+      throw new Error(
+        `domain '${id}' shared ResourceStore requires a Foundations-selected object binding`,
       );
     }
     if (

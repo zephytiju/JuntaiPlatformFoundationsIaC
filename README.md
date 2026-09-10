@@ -57,3 +57,5 @@ npm pack --dry-run
 ```
 
 See [foundation service deployments](docs/foundation-services.md), [adoption and rollback](docs/adoption-and-rollback.md), and [package ownership](docs/package-ownership.md).
+
+Lattice packages can declare release-bound namespaces and typed shared Configuration/Artifact ResourceStore dependencies. See [the Foundations composition and rollback handoff](docs/lattice-resource-stores.md).
