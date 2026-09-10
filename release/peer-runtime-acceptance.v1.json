@@ -8,7 +8,7 @@
     "src/peer-runtimes.ts": "sha256:b8b007f4024289591178e143a0c0e58f64f55c888dd3ed397d1efa1d0363864d",
     "src/peer-runtime-contracts.json": "sha256:109cbf87782608574e46c9c16c166db1144ee0af2d0e08f0e9e79da53791b167",
     "src/meridian.ts": "sha256:0242201523512b6ea6d6d6d7b1ab766d6b9fc3f5c9e1c82e26dc2d1fbbb1f715",
-    "src/blueprint.ts": "sha256:1a5507ed093b72d137fda7151621f4baeaa5f2c9cff27a4859a32d8b7f84135d",
+    "src/blueprint.ts": "sha256:1d5f92ebe9143122364c98ee6e64f60ee9eab2b66d0011871acfc6cda056cf42",
     "src/application-metadata.ts": "sha256:04303fbcfaa26803b0d00a5d516ea85a0fd74dd2f63f0e8d78cb3b1e399bedd8",
     "src/package.ts": "sha256:019f579e6904a47cf018d5a7a9e00055297bc92de3eeeb2d6541f197bf69f509",
     "src/validation.ts": "sha256:a3926d6ed3f1c95f69ff868c638669a2270af131f0221fdf8af2508f3023e672",

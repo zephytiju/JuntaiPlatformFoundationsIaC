@@ -79,7 +79,7 @@ export function createBlueprint(args: {
       },
       data: args.meridianRuntime.configMap.data,
     },
-    { provider: args.provider },
+    { provider: args.provider, protect: true },
   );
   const references = new RuntimeReferences("blueprint", {
     environment: [
