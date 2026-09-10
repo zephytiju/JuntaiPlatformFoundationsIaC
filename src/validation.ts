@@ -182,7 +182,10 @@ function validateOwnedReferenceRuntime(
   const paths = [
     ...existingMounts,
     ...files.map(({ mountPath }) => mountPath),
-  ].map((path) => posix.normalize(path).replace(/\/+$/, ""));
+  ].map((path) => {
+    const normalized = posix.normalize(path);
+    return normalized.endsWith("/") ? normalized.slice(0, -1) : normalized;
+  });
   for (let index = 0; index < paths.length; index++) {
     if (
       paths
