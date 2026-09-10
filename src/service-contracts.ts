@@ -7,12 +7,14 @@ import {
   ACCOUNT_OPENAPI,
   ACCOUNT_RELEASE_MANIFEST,
   APPLICATION_METADATA_IMAGE,
+  APPLICATION_METADATA_ASSOCIATION_MIGRATION,
   APPLICATION_METADATA_MIGRATION,
   APPLICATION_METADATA_OPENAPI,
   APPLICATION_METADATA_RELEASE_CONTRACT,
   APPLICATION_METADATA_RELEASE_MANIFEST,
   BLUEPRINT_IMAGE,
   BLUEPRINT_OPENAPI,
+  BLUEPRINT_RELEASE_CONTRACT,
   CASDOOR_IMAGE,
 } from "./release.js";
 
@@ -159,15 +161,16 @@ export const FOUNDATION_SERVICE_CATALOG = Object.freeze({
     Object.freeze({
       id: "platform.application-metadata",
       release: Object.freeze({
-        version: "3.1.1",
+        version: "3.2.1",
         image: APPLICATION_METADATA_IMAGE,
         imageDigest:
-          "sha256:7d402718fa5c483a2f09f436ebbe28ee25e0a5f6d58b91a711ecdf75bd714327",
-        sourceCommit: "2c6cdf150b9a69879d0a30470cd84d6ceb6a306f",
+          "sha256:7763c22201f6f988cf8db746555fcc4590de08c7385822af8cb837fd471f5ead",
+        sourceCommit: "0be25621317d9f438e728ab9655078e53afa3432",
         manifests: Object.freeze([
           APPLICATION_METADATA_RELEASE_CONTRACT,
           APPLICATION_METADATA_RELEASE_MANIFEST,
           APPLICATION_METADATA_MIGRATION,
+          APPLICATION_METADATA_ASSOCIATION_MIGRATION,
         ]),
       }),
       deployment: Object.freeze({
@@ -195,7 +198,7 @@ export const FOUNDATION_SERVICE_CATALOG = Object.freeze({
             format: "openapi",
             documentVersion: "3.1",
             title: "Juntai Application Metadata",
-            version: "3.1.1",
+            version: "3.2.1",
             requiredPaths: Object.freeze([
               "/v1/applications",
               "/v1/applications/{application_id}/versions",
@@ -207,11 +210,12 @@ export const FOUNDATION_SERVICE_CATALOG = Object.freeze({
     Object.freeze({
       id: "platform.blueprint",
       release: Object.freeze({
-        version: "3.1.0",
+        version: "3.3.0",
         image: BLUEPRINT_IMAGE,
         imageDigest:
-          "sha256:23416a280ea569ec05e470792bb34a532b8e2931404a48d6abe300ea0cd2d4c8",
-        sourceCommit: "410390b349a50490ec9ee5fff4ffc730a08fc27a",
+          "sha256:30361b7b4c7254d5de8102026499627dcfe88fbf1625aba508cd831e3e69dcce",
+        sourceCommit: "79532df7df91c093254d72f2907e72bf72eb09f4",
+        manifests: Object.freeze([BLUEPRINT_RELEASE_CONTRACT]),
       }),
       deployment: Object.freeze({
         namespace: "juntai-platform",
@@ -221,7 +225,8 @@ export const FOUNDATION_SERVICE_CATALOG = Object.freeze({
         gatewaySurface: "platform",
         routePrefix: "/api/blueprints/v1",
         storageBoundary: "in-process-Meridian-config-artifact-plugin",
-        migration: "not-required-by-3.1.0-release-contract",
+        migration:
+          "preserve-catalog-and-legacy-reference-data; require-compatible-runtime-readiness",
         recovery: "Meridian-binding-owned",
       }),
       artifacts: Object.freeze([
@@ -234,7 +239,7 @@ export const FOUNDATION_SERVICE_CATALOG = Object.freeze({
             format: "openapi",
             documentVersion: "3.1",
             title: "Juntai Blueprint Service",
-            version: "3.1.0",
+            version: "3.3.0",
             requiredPaths: Object.freeze(["/api/blueprints/v1/assets"]),
           }),
         }),

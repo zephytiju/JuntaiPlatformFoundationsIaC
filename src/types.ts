@@ -38,6 +38,12 @@ export type RuntimeFileReference =
   | ({ readonly kind: "configMap" } & ConfigFileReference)
   | ({ readonly kind: "secret" } & SecretFileReference);
 
+/** A separately composed runtime for explicit application-owned references. */
+export interface OwnedReferenceRuntimeInput {
+  readonly configuration: ConfigFileReference;
+  readonly runtimeReferences?: readonly RuntimeFileReference[];
+}
+
 export interface AdoptionRule {
   readonly aliases?: readonly pulumi.Alias[];
   readonly import?: string;
@@ -178,6 +184,7 @@ export interface CasdoorInputs {
 }
 
 export interface BlueprintInputs {
+  readonly ownedReferenceRuntime?: OwnedReferenceRuntimeInput;
   readonly enabled?: boolean;
   readonly casdoorIssuer: string;
   readonly casdoorAudience: string;
@@ -204,6 +211,7 @@ export interface ApplicationMetadataWorkloadBinding {
 }
 
 export interface ApplicationMetadataInputs {
+  readonly ownedReferenceRuntime?: OwnedReferenceRuntimeInput;
   readonly enabled?: boolean;
   readonly casdoorIssuer: string;
   readonly casdoorAudience: string;

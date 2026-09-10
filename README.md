@@ -10,8 +10,7 @@
 - OpenTelemetry Collector gateway v0.153.0 with durable queueing, bounded resources, TLS/authorization references, and no inline secret bytes.
 - Official unmodified Casdoor 3.125.0, its workload identity, exact public/private routes, public-API bootstrap Job, and idempotent reconciliation schedule. The gated `client_credentials` application is deliberately absent.
 - Account 2.1.5, including its immutable multi-architecture image, discoverable logical-schema provider and PostgreSQL adapter, platform-supplied composition factory, workload identity, platform route, observability binding, and five co-located Meridian structured resources plus transactional audit evidence.
-- Application Metadata 3.1.1, including projected workload and TokenReview identities, platform-prefix rewrite, immutable workload-binding configuration, four Meridian logical resources, and the platform-managed `juntai.application-metadata/1-to-2` migration.
-- Blueprint 3.0.2, including the package-owned release and deployment declarations, identity, route, policy, immutable OpenAPI composition, observability binding, Casdoor policy-reader inputs, and Meridian structured/object bindings supplied at the deployment boundary.
+- Application Metadata 3.2.1 and Blueprint 3.3.0 exact release selections, including the corrected explicit-owner readers, immutable contracts and images, and optional separately projected owned-reference runtime configuration. Their runtime integration is subject to the acceptance gate below.
 - Deployment-selected data engines only through `@zephytiju/meridian-storage-constructs@1.0.0`. KES and Kingbase are rejected.
 - Per-service Meridian deployments/configuration for Account, Application Metadata, and Blueprint, with file-backed engine credentials required to be projected into every consuming workload.
 - State adoption aliases/imports, protected-by-default resources, and rollback metadata.
@@ -46,7 +45,13 @@ Version 1.3.0 accepts optional `meridian.domains` contributions from installed d
 
 Foundations alone maps these requirements to the reviewed `structured` Engine binding and renders an isolated configuration per contribution. Structured state and audit/lineage share one transaction placement group. The existing `MeridianRuntimeCapability` adds an optional `domainRuntimes` map containing the requirement fingerprint and live Pulumi Outputs for each configuration, namespace, and resolved resource-binding map. Consumers verify their own requirement fingerprint and required bindings before starting workloads; they never deserialize Engine settings, copy another service's configuration, or create a physical storage provider. Existing consumers and foundation resource identities remain compatible.
 
-Application Metadata is pinned to 3.1.1, including its image, OpenAPI, source commit, unchanged logical migration bytes, and the schema-provider fingerprint calculated from the released wheel. This enables exact Configuration/Artifact association with an existing OPEN application version. Sealing and deployment remain with Application Metadata and Vangu.
+Application Metadata is pinned to 3.2.1, including its image, OpenAPI, source commit, historical v2 logical migration and released 3.1.3 association migration. Sealing and deployment remain with Application Metadata and Vangu.
+
+## Peer runtime integration acceptance gate
+
+The peer selection and configuration changes are an unreleased integration draft. The existing `src/meridian.ts` primary service recipes still need to be reconciled with the selected peer schema providers and physical layouts. Blueprint 3.3.0's normal dependency set also rejects the ResourceStore physical metadata produced by the older Lattice runtime. These are rollout blockers even when package tests and artifact digest verification pass. Do not publish or deploy this draft as an accepted release set.
+
+See [the owned-reference configuration contract and compatibility evidence](docs/owned-reference-runtimes.md). Runtime and physical fingerprint checks remain unchanged; a supported Meridian compatibility path and real cross-process lifecycle acceptance are required before release.
 
 ## Development
 

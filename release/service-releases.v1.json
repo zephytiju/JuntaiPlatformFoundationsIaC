@@ -87,22 +87,26 @@
     {
       "id": "platform.application-metadata",
       "release": {
-        "version": "3.1.1",
-        "image": "ghcr.io/zephytiju/juntai-application-metadata@sha256:7d402718fa5c483a2f09f436ebbe28ee25e0a5f6d58b91a711ecdf75bd714327",
-        "imageDigest": "sha256:7d402718fa5c483a2f09f436ebbe28ee25e0a5f6d58b91a711ecdf75bd714327",
-        "sourceCommit": "2c6cdf150b9a69879d0a30470cd84d6ceb6a306f",
+        "version": "3.2.1",
+        "image": "ghcr.io/zephytiju/juntai-application-metadata@sha256:7763c22201f6f988cf8db746555fcc4590de08c7385822af8cb837fd471f5ead",
+        "imageDigest": "sha256:7763c22201f6f988cf8db746555fcc4590de08c7385822af8cb837fd471f5ead",
+        "sourceCommit": "0be25621317d9f438e728ab9655078e53afa3432",
         "manifests": [
           {
-            "uri": "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.1.1/release-contract.v1.json",
-            "digest": "sha256:87938e1bb4d034277e92fa6866fa8ebdabaaba092c97eb5cadc093ccdb466fb7"
+            "uri": "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.2.1/release-contract.v1.json",
+            "digest": "sha256:9b1713ce2b821295e6a60c3ed70cac6261e8a2e62ae2c1c9e566ed84ad877f55"
           },
           {
-            "uri": "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.1.1/release-manifest.json",
-            "digest": "sha256:758d18cca471e764e6831821aad94d516a0ad16bcb29584f3af100e905f944e7"
+            "uri": "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.2.1/release-manifest.json",
+            "digest": "sha256:547a7e7cb44cb9889eeecaca0c6e411a0ffb04e52a3fe32aaded10409999e23a"
           },
           {
-            "uri": "https://raw.githubusercontent.com/zephytiju/JuntaiApplicationMetadata/2c6cdf150b9a69879d0a30470cd84d6ceb6a306f/migrations/application-metadata.v2.json",
+            "uri": "https://raw.githubusercontent.com/zephytiju/JuntaiApplicationMetadata/0be25621317d9f438e728ab9655078e53afa3432/migrations/application-metadata.v2.json",
             "digest": "sha256:a66d986e8b7e663b37275f1be39bb7cd6e87582abe315eca720c218ebe3f79a1"
+          },
+          {
+            "uri": "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.2.1/application-metadata.v3.1.3.json",
+            "digest": "sha256:4633cb192af349b0db9cec1cc384492fa0a073729527f3f1a4927931fa16bc79"
           }
         ]
       },
@@ -123,13 +127,13 @@
           "id": "application-metadata-openapi",
           "format": "openapi",
           "mediaType": "application/json",
-          "uri": "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.1.1/application-metadata.v1.json",
-          "digest": "sha256:43ba2240f410cbc87fb38b4fa15d2746aca8ed8fbcea0c8e0f9d01a8edebc6a8",
+          "uri": "https://github.com/zephytiju/JuntaiApplicationMetadata/releases/download/v3.2.1/application-metadata.v1.json",
+          "digest": "sha256:d1955f256e9e93a46a2fbb249fa15e4372d66634bf0b69f444ed7245f4910343",
           "compatibility": {
             "format": "openapi",
             "documentVersion": "3.1",
             "title": "Juntai Application Metadata",
-            "version": "3.1.1",
+            "version": "3.2.1",
             "requiredPaths": [
               "/v1/applications",
               "/v1/applications/{application_id}/versions"
@@ -141,10 +145,16 @@
     {
       "id": "platform.blueprint",
       "release": {
-        "version": "3.1.0",
-        "image": "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:23416a280ea569ec05e470792bb34a532b8e2931404a48d6abe300ea0cd2d4c8",
-        "imageDigest": "sha256:23416a280ea569ec05e470792bb34a532b8e2931404a48d6abe300ea0cd2d4c8",
-        "sourceCommit": "410390b349a50490ec9ee5fff4ffc730a08fc27a"
+        "version": "3.3.0",
+        "image": "ghcr.io/zephytiju/juntai-blueprint-marketplace@sha256:30361b7b4c7254d5de8102026499627dcfe88fbf1625aba508cd831e3e69dcce",
+        "imageDigest": "sha256:30361b7b4c7254d5de8102026499627dcfe88fbf1625aba508cd831e3e69dcce",
+        "sourceCommit": "79532df7df91c093254d72f2907e72bf72eb09f4",
+        "manifests": [
+          {
+            "uri": "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.3.0/release-contract.json",
+            "digest": "sha256:03719f0b8356715cca56c2d6c317c6379b7f5fe3cf390dcd1efd4c454b55a359"
+          }
+        ]
       },
       "deployment": {
         "namespace": "juntai-platform",
@@ -154,7 +164,7 @@
         "gatewaySurface": "platform",
         "routePrefix": "/api/blueprints/v1",
         "storageBoundary": "in-process-Meridian-config-artifact-plugin",
-        "migration": "not-required-by-3.1.0-release-contract",
+        "migration": "preserve-catalog-and-legacy-reference-data; require-compatible-runtime-readiness",
         "recovery": "Meridian-binding-owned"
       },
       "artifacts": [
@@ -162,13 +172,13 @@
           "id": "blueprint-openapi",
           "format": "openapi",
           "mediaType": "application/json",
-          "uri": "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.1.0/blueprint-service.v1.json",
-          "digest": "sha256:413bb1d84c780416266d7b576b8accc1f47330b03171199c09ddc776cda34135",
+          "uri": "https://github.com/zephytiju/JuntaiBlueprintMarketplace/releases/download/v3.3.0/blueprint-service.v1.json",
+          "digest": "sha256:0214ab38ac2d2ac54b657e3a1ce9908ae2cd23294a5a596113144231ae827ff3",
           "compatibility": {
             "format": "openapi",
             "documentVersion": "3.1",
             "title": "Juntai Blueprint Service",
-            "version": "3.1.0",
+            "version": "3.3.0",
             "requiredPaths": ["/api/blueprints/v1/assets"]
           }
         }

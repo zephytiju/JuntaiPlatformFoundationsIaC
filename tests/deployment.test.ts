@@ -167,6 +167,96 @@ describe("Pulumi composition", () => {
     };
   }
 
+  it("projects owned-reference configuration beside each peer's primary runtime", async () => {
+    const base = foundationsInputs();
+    const ownedReferenceRuntime = {
+      configuration: {
+        name: "owned-artifact-runtime",
+        mountPath: "/etc/juntai/owned-artifacts",
+        items: { "meridian-config.v1.json": "runtime.json" },
+      },
+      runtimeReferences: [
+        {
+          kind: "secret" as const,
+          name: "owned-artifact-credentials",
+          mountPath: "/var/run/juntai/owned-artifacts",
+          items: { connection: "connection" },
+        },
+      ],
+    };
+    const result = await runDeployment({
+      ...base,
+      applicationMetadata: {
+        ...base.applicationMetadata,
+        ownedReferenceRuntime,
+      },
+      blueprint: { ...base.blueprint, ownedReferenceRuntime },
+    });
+    for (const [name, variable, primary] of [
+      [
+        "application-metadata",
+        "APPLICATION_METADATA_OWNED_REFERENCE_MERIDIAN_CONFIG",
+        "/etc/juntai/application-metadata/meridian-config.v1.json",
+      ],
+      [
+        "blueprint",
+        "BLUEPRINT_OWNED_REFERENCE_MERIDIAN_CONFIG",
+        "/etc/juntai/meridian/meridian-config.v1.json",
+      ],
+    ]) {
+      const deployment = result.registered.find(
+        (r) =>
+          r.type === "kubernetes:apps/v1:Deployment" &&
+          (r.inputs.metadata as { name: string }).name === name,
+      )!;
+      const pod = (
+        deployment.inputs.spec as {
+          template: {
+            spec: {
+              containers: {
+                env: { name: string; value: string }[];
+                volumeMounts: { mountPath: string; readOnly: boolean }[];
+              }[];
+              volumes: {
+                configMap?: { name: string; items: unknown[] };
+                secret?: { secretName: string };
+              }[];
+            };
+          };
+        }
+      ).template.spec;
+      expect(pod.containers[0]!.env).toEqual(
+        expect.arrayContaining([
+          { name: "MERIDIAN_CONFIG", value: primary },
+          { name: variable, value: "/etc/juntai/owned-artifacts/runtime.json" },
+        ]),
+      );
+      for (const mountPath of [
+        "/etc/juntai/owned-artifacts",
+        "/var/run/juntai/owned-artifacts",
+      ])
+        expect(pod.containers[0]!.volumeMounts).toContainEqual(
+          expect.objectContaining({ mountPath, readOnly: true }),
+        );
+      expect(pod.volumes).toContainEqual(
+        expect.objectContaining({
+          configMap: {
+            name: "owned-artifact-runtime",
+            optional: false,
+            items: [{ key: "meridian-config.v1.json", path: "runtime.json" }],
+          },
+        }),
+      );
+      expect(pod.volumes).toContainEqual(
+        expect.objectContaining({
+          secret: expect.objectContaining({
+            secretName: "owned-artifact-credentials",
+          }),
+        }),
+      );
+    }
+  });
+
   it("owns shared resources and publishes only typed opaque outputs", async () => {
     const result = await runDeployment(foundationsInputs());
     const types = new Set(resources.map((entry) => entry.type));

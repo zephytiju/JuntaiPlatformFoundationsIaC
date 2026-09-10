@@ -11,6 +11,7 @@ import {
 import { childMigration } from "./adoption.js";
 import type { ContractRouteInput } from "./contract-composition.js";
 import { BLUEPRINT_IMAGE } from "./release.js";
+import { ownedReferenceRuntime } from "./owned-reference-runtime.js";
 import { serviceDeclaration } from "./service-contracts.js";
 import type {
   AdoptionMap,
@@ -69,6 +70,10 @@ export function createBlueprint(args: {
   });
   const references = new RuntimeReferences("blueprint", {
     environment: [
+      ...ownedReferenceRuntime(
+        "BLUEPRINT_OWNED_REFERENCE_MERIDIAN_CONFIG",
+        args.inputs.ownedReferenceRuntime,
+      ).environment,
       literalValue(
         "MERIDIAN_CONFIG",
         "/etc/juntai/meridian/meridian-config.v1.json",
@@ -97,6 +102,10 @@ export function createBlueprint(args: {
       literalValue("DEPLOYMENT_ENVIRONMENT", args.stage),
     ],
     files: [
+      ...ownedReferenceRuntime(
+        "BLUEPRINT_OWNED_REFERENCE_MERIDIAN_CONFIG",
+        args.inputs.ownedReferenceRuntime,
+      ).files,
       {
         kind: "configMap",
         name: args.meridianRuntime.configMap.metadata.name,

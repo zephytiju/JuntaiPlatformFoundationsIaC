@@ -1,13 +1,13 @@
 # Foundation service deployments
 
-The package deploys exactly the service inventory in `release/service-releases.v1.json`. Every image and release artifact is immutable and digest-pinned. OpenAPI contracts are fetched and verified before any package-owned resource is registered.
+The package selects exactly the service inventory in `release/service-releases.v1.json`. Every image and release artifact is immutable and digest-pinned. OpenAPI contracts are fetched and verified before any package-owned resource is registered. The current peer integration is an unreleased draft subject to the [runtime acceptance gate](owned-reference-runtimes.md).
 
 | Service              | Release   | Platform route                                                  | Runtime contract                                                                                                                                      | Recovery boundary                                                |
 | -------------------- | --------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
 | Casdoor / IAM        | `3.125.0` | `/api/identity` plus reviewed operator and policy-reader routes | Official image and public-API desired-state reconciliation                                                                                            | Re-run bounded reconciliation; data recovery belongs to Meridian |
 | Account              | `2.1.5`   | `/api/platform.account/v1`                                      | Platform mounts reviewed composition, provider discovery, and adapter distribution; the service owns no runtime activation, endpoint, or credentials  | Disable route and workload; retain Meridian-managed data         |
-| Application Metadata | `3.0.2`   | `/api/platform/applications/v1`, rewritten to internal `/v1`    | Platform supplies Meridian structured/object bindings, workload bindings, Casdoor settings, projected workload and TokenReview tokens, and cluster CA | Retain the v1 export read-only until cutover acceptance          |
-| Blueprint            | `3.0.2`   | `/api/blueprints/v1`                                            | Platform supplies Meridian structured/object bindings and Casdoor policy-reader settings                                                              | Meridian binding owns recovery                                   |
+| Application Metadata | `3.2.1`   | `/api/platform/applications/v1`, rewritten to internal `/v1`    | Platform supplies Meridian structured/object bindings, workload bindings, Casdoor settings, projected workload and TokenReview tokens, and cluster CA | Retain the v1 export read-only until cutover acceptance          |
+| Blueprint            | `3.3.0`   | `/api/blueprints/v1`                                            | Platform supplies Meridian structured/object bindings and Casdoor policy-reader settings                                                              | Meridian binding owns recovery                                   |
 
 ## Required deployment inputs
 

@@ -1,4 +1,9 @@
-import type { FoundationsInputs, MeridianInputs } from "./types.js";
+import { posix } from "node:path";
+import type {
+  FoundationsInputs,
+  MeridianInputs,
+  OwnedReferenceRuntimeInput,
+} from "./types.js";
 import { validateDomainRequirements } from "./domain-requirements.js";
 
 const SECRET_MATERIAL_KEY =
@@ -127,6 +132,69 @@ function projectedFilePaths(reference: {
 function assertNoMountCollision(label: string, paths: readonly string[]): void {
   if (new Set(paths).size !== paths.length) {
     throw new Error(`${label} mount paths must be unique`);
+  }
+}
+
+function validateOwnedReferenceRuntime(
+  label: string,
+  input: OwnedReferenceRuntimeInput | undefined,
+  existingMounts: readonly string[],
+): void {
+  if (input === undefined) return;
+  if (
+    Object.keys(input).some(
+      (key) => !["configuration", "runtimeReferences"].includes(key),
+    )
+  )
+    throw new Error(`${label} owned-reference runtime has unknown fields`);
+  assertFileReference(
+    `${label} owned-reference configuration`,
+    input.configuration,
+    ["meridian-config.v1.json"],
+  );
+  const files = [input.configuration, ...(input.runtimeReferences ?? [])];
+  for (const file of files) {
+    const keys =
+      file === input.configuration
+        ? ["name", "items", "mountPath"]
+        : ["kind", "name", "items", "mountPath"];
+    if (Object.keys(file).some((key) => !keys.includes(key)))
+      throw new Error(`${label} owned-reference file has unknown fields`);
+    if (
+      file !== input.configuration &&
+      (!("kind" in file) ||
+        !["secret", "configMap"].includes(String(file.kind)))
+    )
+      throw new Error(`${label} owned-reference file kind is invalid`);
+    assertFileReference(`${label} owned-reference file`, file, []);
+    if (
+      file.mountPath === "/" ||
+      posix.normalize(file.mountPath) !== file.mountPath ||
+      [...file.mountPath].some((char) => char.charCodeAt(0) < 32) ||
+      Object.values(file.items).some(
+        (path) =>
+          posix.normalize(path) !== path ||
+          [...path].some((char) => char.charCodeAt(0) < 32),
+      )
+    )
+      throw new Error(`${label} owned-reference paths must be normalized`);
+  }
+  const paths = [
+    ...existingMounts,
+    ...files.map(({ mountPath }) => mountPath),
+  ].map((path) => posix.normalize(path).replace(/\/+$/, ""));
+  for (let index = 0; index < paths.length; index++) {
+    if (
+      paths
+        .slice(index + 1)
+        .some(
+          (other) =>
+            paths[index] === other ||
+            paths[index]!.startsWith(`${other}/`) ||
+            other.startsWith(`${paths[index]}/`),
+        )
+    )
+      throw new Error(`${label} owned-reference mount paths collide`);
   }
 }
 
@@ -369,6 +437,16 @@ export function validateFoundationsInputs(inputs: FoundationsInputs): void {
   ];
   serviceMounts.forEach(({ label, paths }) =>
     assertNoMountCollision(label, paths),
+  );
+  validateOwnedReferenceRuntime(
+    "Application Metadata",
+    inputs.applicationMetadata.ownedReferenceRuntime,
+    [...serviceMounts[1]!.paths, "/var/run/secrets/juntai"],
+  );
+  validateOwnedReferenceRuntime(
+    "Blueprint",
+    inputs.blueprint.ownedReferenceRuntime,
+    serviceMounts[2]!.paths,
   );
   for (const engine of inputs.meridian.engines) {
     for (const [label, reference] of [

@@ -49,13 +49,13 @@ describe("package boundary", () => {
       /^docker\.io\/casbin\/casdoor@sha256:[0-9a-f]{64}$/,
     );
     expect(BLUEPRINT_IMAGE).toContain("@sha256:");
-    expect(BLUEPRINT_OPENAPI.uri).toContain("/v3.1.0/");
+    expect(BLUEPRINT_OPENAPI.uri).toContain("/v3.3.0/");
     expect(ACCOUNT_IMAGE).toContain("@sha256:");
     expect(ACCOUNT_OPENAPI.uri).toContain("/account-service-v2.1.5/");
     expect(APPLICATION_METADATA_IMAGE).toContain("@sha256:");
-    expect(APPLICATION_METADATA_OPENAPI.uri).toContain("/v3.1.1/");
+    expect(APPLICATION_METADATA_OPENAPI.uri).toContain("/v3.2.1/");
     expect(APPLICATION_METADATA_MIGRATION.uri).toContain(
-      "2c6cdf150b9a69879d0a30470cd84d6ceb6a306f",
+      "0be25621317d9f438e728ab9655078e53afa3432",
     );
     expect(FOUNDATION_SERVICE_CATALOG.services.map(({ id }) => id)).toEqual([
       "foundation.iam",
@@ -68,14 +68,14 @@ describe("package boundary", () => {
       deployment: { routePrefix: "/api/platform.account/v1" },
     });
     expect(serviceDeclaration("platform.application-metadata")).toMatchObject({
-      release: { version: "3.1.1", image: APPLICATION_METADATA_IMAGE },
+      release: { version: "3.2.1", image: APPLICATION_METADATA_IMAGE },
       deployment: {
         routePrefix: "/api/platform/applications/v1",
         contractPathPrefix: "/v1",
       },
     });
     expect(serviceDeclaration("platform.blueprint")).toMatchObject({
-      release: { version: "3.1.0", image: BLUEPRINT_IMAGE },
+      release: { version: "3.3.0", image: BLUEPRINT_IMAGE },
       deployment: {
         namespace: "juntai-platform",
         routePrefix: "/api/blueprints/v1",
