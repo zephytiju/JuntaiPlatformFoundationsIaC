@@ -273,13 +273,17 @@ export interface GatewaySetOutput {
   readonly namespace: pulumi.Output<string>;
 }
 
-export interface MeridianRuntimeOutput {
-  readonly distribution: MeridianRuntimeDistributionOutput;
-  readonly runtimeReferences: readonly RuntimeFileReference[];
+/** Original 1.0.0 capability retained for independently released consumers. */
+export interface LegacyMeridianRuntimeOutput {
   readonly configFingerprint: pulumi.Output<string>;
   readonly configMapName: pulumi.Output<string>;
   readonly namespace: pulumi.Output<string>;
   readonly resourceBindings: pulumi.Output<Readonly<Record<string, unknown>>>;
+}
+
+export interface MeridianRuntimeOutput extends LegacyMeridianRuntimeOutput {
+  readonly distribution: MeridianRuntimeDistributionOutput;
+  readonly runtimeReferences: readonly RuntimeFileReference[];
   readonly domainRuntimes?: Readonly<
     Record<string, DomainMeridianRuntimeOutput>
   >;
