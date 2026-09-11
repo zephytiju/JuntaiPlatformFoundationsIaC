@@ -121,8 +121,29 @@ const preflight: FoundationPreflightResolver = async (inputs) => {
 };
 
 describe("Pulumi composition", () => {
+  it("publishes exact 1.0.0 fields from the same runtime alongside 1.1.0", async () => {
+    const result = await runDeployment(foundationsInputs());
+    const legacy = result.publishedVersions.get(
+      "juntai.platform.meridian-runtime@1.0.0",
+    ) as Record<string, unknown>;
+    const current = result.publishedVersions.get(
+      "juntai.platform.meridian-runtime@1.1.0",
+    ) as Record<string, unknown>;
+    expect(Object.keys(legacy).sort()).toEqual([
+      "configFingerprint",
+      "configMapName",
+      "namespace",
+      "resourceBindings",
+    ]);
+    for (const key of Object.keys(legacy))
+      expect(legacy[key]).toBe(current[key]);
+    expect(current.distribution).toBeDefined();
+    expect(legacy).not.toHaveProperty("domainRuntimes");
+  });
+
   async function runDeployment(inputs: FoundationsInputs): Promise<{
     readonly published: Map<string, unknown>;
+    readonly publishedVersions: Map<string, unknown>;
     readonly registered: readonly RegisteredResource[];
   }> {
     resources.length = 0;
@@ -164,6 +185,7 @@ describe("Pulumi composition", () => {
     }
     return {
       published: capabilityState.published,
+      publishedVersions: capabilityState.publishedVersions,
       registered: [...resources],
     };
   }

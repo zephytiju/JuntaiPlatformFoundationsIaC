@@ -210,15 +210,18 @@ export function foundationsInputs(): FoundationsInputs {
 
 export function capabilities(): {
   readonly published: Map<string, unknown>;
+  readonly publishedVersions: Map<string, unknown>;
   readonly consumer: {
     require<T>(_capability: unknown): T;
     requireAll<T>(_capability: unknown): readonly T[];
-    provide<T>(capability: { id: string }, value: T): unknown;
+    provide<T>(capability: { id: string; version?: string }, value: T): unknown;
   };
 } {
   const published = new Map<string, unknown>();
+  const publishedVersions = new Map<string, unknown>();
   return {
     published,
+    publishedVersions,
     consumer: {
       require<T>(_capability: unknown): T {
         throw new Error("no required capabilities");
@@ -226,8 +229,12 @@ export function capabilities(): {
       requireAll<T>(_capability: unknown): readonly T[] {
         return [];
       },
-      provide<T>(capability: { id: string }, value: T): unknown {
+      provide<T>(
+        capability: { id: string; version?: string },
+        value: T,
+      ): unknown {
         published.set(capability.id, value);
+        publishedVersions.set(`${capability.id}@${capability.version}`, value);
         return { capability, value };
       },
     },

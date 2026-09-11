@@ -24,7 +24,7 @@ describe("package boundary", () => {
   it("implements the released thin-Core contract", () => {
     expect(foundationsPackage).toMatchObject({
       id: "juntai.platform.substrate",
-      version: "1.7.0",
+      version: "1.7.1",
       compatibility: {
         coreContract: "^1.1.0",
         capabilityContracts: "^1.0.0",
@@ -32,6 +32,7 @@ describe("package boundary", () => {
     });
     expect(foundationsPackage.provides.map((value) => value.id)).toEqual([
       "juntai.platform.gateway-set",
+      "juntai.platform.meridian-runtime",
       "juntai.platform.meridian-runtime",
       "juntai.platform.observability-gateway",
       "juntai.platform.foundation-services",

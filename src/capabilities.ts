@@ -2,6 +2,7 @@ import type { CapabilityKey } from "./contract.js";
 import type {
   FoundationServicesOutput,
   GatewaySetOutput,
+  LegacyMeridianRuntimeOutput,
   MeridianRuntimeOutput,
   ObservabilityGatewayOutput,
 } from "./types.js";
@@ -17,6 +18,12 @@ export const MeridianRuntimeCapability = Object.freeze({
   version: "1.1.0",
   multiplexed: false,
 }) satisfies CapabilityKey<MeridianRuntimeOutput>;
+
+export const LegacyMeridianRuntimeCapability = Object.freeze({
+  id: "juntai.platform.meridian-runtime",
+  version: "1.0.0",
+  multiplexed: false,
+}) satisfies CapabilityKey<LegacyMeridianRuntimeOutput>;
 
 export const ObservabilityGatewayCapability = Object.freeze({
   id: "juntai.platform.observability-gateway",

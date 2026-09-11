@@ -6,6 +6,7 @@ import { createBlueprint } from "./blueprint.js";
 import {
   FoundationServicesCapability,
   GatewaySetCapability,
+  LegacyMeridianRuntimeCapability,
   MeridianRuntimeCapability,
   ObservabilityGatewayCapability,
 } from "./capabilities.js";
@@ -228,6 +229,15 @@ export async function deployFoundations(
     );
   }
   context.capabilities.provide(GatewaySetCapability, gatewaySet);
+  context.capabilities.provide(
+    LegacyMeridianRuntimeCapability,
+    Object.freeze({
+      configFingerprint: meridian.output.configFingerprint,
+      configMapName: meridian.output.configMapName,
+      namespace: meridian.output.namespace,
+      resourceBindings: meridian.output.resourceBindings,
+    }),
+  );
   context.capabilities.provide(MeridianRuntimeCapability, meridian.output);
   context.capabilities.provide(
     ObservabilityGatewayCapability,
@@ -274,6 +284,7 @@ const foundationsPackage: PlatformIacPackage<
   requires: [],
   provides: [
     GatewaySetCapability,
+    LegacyMeridianRuntimeCapability,
     MeridianRuntimeCapability,
     ObservabilityGatewayCapability,
     FoundationServicesCapability,
