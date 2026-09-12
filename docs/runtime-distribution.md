@@ -1,5 +1,11 @@
 # Typed Meridian runtime distribution
 
+The Foundation runtime image builders and their release workflows are retired.
+This document describes the compatibility API for previously published
+descriptor artifacts that existing consumers may still select. New consumers
+should install their exact Python package closure from their own lock; Lattice
+does this and no longer selects or projects a Foundation descriptor.
+
 Foundations IaC 1.4.0 publishes `MeridianRuntimeCapability` at contract 1.1.0.
 Its default selection is the immutable `meridian-runtime-python-v1.1.0`
 descriptor exported as `MERIDIAN_RUNTIME_DISTRIBUTION`. Foundations may select a
