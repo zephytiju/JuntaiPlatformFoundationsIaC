@@ -15,3 +15,13 @@ export * from "./release.js";
 export * from "./service-contracts.js";
 export type * from "./contract.js";
 export type * from "./types.js";
+export {
+  deployModelProvider,
+  deployModelVerificationClient,
+  LOCAL_MODEL_DEFAULTS,
+} from "./local-model.js";
+export type {
+  ModelProviderBinding,
+  ModelProviderDeployment,
+  LocalModelArtifact,
+} from "./local-model.js";
