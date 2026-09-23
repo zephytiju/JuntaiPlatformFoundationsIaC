@@ -25,3 +25,6 @@ export type {
   ModelProviderDeployment,
   LocalModelArtifact,
 } from "./local-model.js";
+
+export * from "./m4-native-reader.js";
+export * from "./native-verification-substrate.js";
