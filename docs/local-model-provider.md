@@ -11,7 +11,7 @@ llama.cpp b11118 image and Qwen2.5 0.5B Instruct Q4_K_M model are digest-pinned.
 The model is Apache-2.0; llama.cpp is MIT. Public model acquisition runs in an
 initialization container and verifies SHA-256 before activation, including on
 restart. Inference uses offline mode, a read-only model mount, one slot, 4096
-context tokens, a 512-token default completion ceiling, four CPU threads and a
+context tokens, greedy sampling with a fixed seed, a 512-token default completion ceiling, four CPU threads and a
 2 GiB memory limit. Server inference is real; this is not a response stub.
 
 By default, Pulumi Random and TLS resources generate the API key, CA and server
