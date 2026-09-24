@@ -1,0 +1,189 @@
+{
+  "$comment": "Compiler also enforces allocation-derived names, exact synthetic owners, dedicated enforcer, exact image, exact SAN and no ambiguous selection. Certificate digests are DER; CA/JWKS digests cover raw public file bytes. Native tests NOT RUN.",
+  "$id": "urn:juntai:platform:m4-native-reader:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "allocation": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "isolatedSyntheticOnly": {
+          "const": true
+        },
+        "organizations": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "profile": {
+          "const": "native-casdoor-delegation/v1"
+        },
+        "proxyImage": {
+          "const": "envoyproxy/envoy:v1.37.0@sha256:d9b4a70739d92b3e28cd407f106b0e90d55df453d7d87773efd22b4429777fe8"
+        }
+      },
+      "required": [
+        "id",
+        "profile",
+        "isolatedSyntheticOnly",
+        "organizations",
+        "proxyImage"
+      ],
+      "type": "object"
+    },
+    "exactSelection": {
+      "additionalProperties": false,
+      "properties": {
+        "applications": {
+          "items": {
+            "pattern": "^[A-Za-z0-9_-]+/[A-Za-z0-9_-]+$",
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "enforcer": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "enforcerTenant": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "host": {
+          "enum": ["nous", "lattice"]
+        },
+        "permissions": {
+          "items": {
+            "pattern": "^[A-Za-z0-9_-]+/[A-Za-z0-9_-]+$",
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "reader": {
+          "additionalProperties": false,
+          "properties": {
+            "groups": {
+              "maxItems": 0,
+              "type": "array"
+            },
+            "id": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "isAdmin": {
+              "const": false
+            },
+            "isGlobalAdmin": {
+              "const": false
+            },
+            "kind": {
+              "const": "User"
+            },
+            "name": {
+              "enum": ["nous-reader", "lattice-reader"]
+            },
+            "owner": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "roles": {
+              "maxItems": 0,
+              "type": "array"
+            }
+          },
+          "required": [
+            "kind",
+            "owner",
+            "name",
+            "id",
+            "isAdmin",
+            "isGlobalAdmin",
+            "groups",
+            "roles"
+          ],
+          "type": "object"
+        },
+        "readerAudience": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "users": {
+          "items": {
+            "pattern": "^[A-Za-z0-9_-]+/[A-Za-z0-9_-]+$",
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "host",
+        "users",
+        "applications",
+        "permissions",
+        "enforcer",
+        "enforcerTenant",
+        "reader",
+        "readerAudience"
+      ],
+      "type": "object"
+    },
+    "publicTrust": {
+      "additionalProperties": false,
+      "properties": {
+        "caSha256": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "clientCertificateSha256": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "clientSan": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "jwksSha256": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "serverCertificateSha256": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "serverName": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "caSha256",
+        "jwksSha256",
+        "serverCertificateSha256",
+        "clientCertificateSha256",
+        "clientSan",
+        "serverName"
+      ],
+      "type": "object"
+    }
+  },
+  "required": ["allocation", "exactSelection", "publicTrust"],
+  "type": "object"
+}

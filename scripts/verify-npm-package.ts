@@ -333,6 +333,12 @@ try {
     "README.md",
     "dist/index.d.ts",
     "dist/index.js",
+    "dist/m4-native-reader.js",
+    "dist/m4-native-reader-cli.js",
+    "dist/native-verification-substrate.js",
+    "release/m4-native-reader.v1.json",
+    "release/verify-m4-public-trust.py",
+    "docs/native-full-host.md",
     "docs/adoption-and-rollback.md",
     "docs/foundation-services.md",
     "docs/npm-release.md",
@@ -423,7 +429,7 @@ try {
   );
   await writeFile(
     resolve(consumer, "verify.mts"),
-    `import foundationsPackage, { FOUNDATION_SERVICE_CATALOG, FOUNDATIONS_PACKAGE_VERSION, resolveAndComposeServiceContracts, MeridianRuntimeCapability, MERIDIAN_RUNTIME_DISTRIBUTION, MERIDIAN_DURABLE_RUNTIME_DISTRIBUTION, resolveRuntimeDistribution, validateDomainRequirements, composeDomainRequirements, type DomainRuntimeSelection } from "${packageJson.name}";\n\n` +
+    `import foundationsPackage, { compile_reader_exposures, deployNativeVerificationSubstrate, FOUNDATION_SERVICE_CATALOG, FOUNDATIONS_PACKAGE_VERSION, resolveAndComposeServiceContracts, MeridianRuntimeCapability, MERIDIAN_RUNTIME_DISTRIBUTION, MERIDIAN_DURABLE_RUNTIME_DISTRIBUTION, resolveRuntimeDistribution, validateDomainRequirements, composeDomainRequirements, type DomainRuntimeSelection } from "${packageJson.name}";\n\n` +
       `if (foundationsPackage.id !== "juntai.platform.substrate") throw new Error("unexpected package id");\n` +
       `if (foundationsPackage.version !== FOUNDATIONS_PACKAGE_VERSION) throw new Error("version mismatch");\n` +
       `if (foundationsPackage.version !== "${packageJson.version}") throw new Error("unexpected package version");\n` +
@@ -441,6 +447,8 @@ try {
       `validateDomainRequirements(domains, stores);\n` +
       `for (const domain of domains) { const composed = composeDomainRequirements(domain, stores); if (composed.resources.length !== domain.resources.length + 5 || !composed.resources.some(r => r.selector.catalog === "object")) throw new Error("packed Lattice shared ResourceStore composition incomplete"); }\n` +
       `let missingRejected = false; try { validateDomainRequirements(domains); } catch { missingRejected = true; } if (!missingRejected) throw new Error("packed consumer accepted missing shared dependency");\n` +
+      `if (typeof deployNativeVerificationSubstrate !== "function") throw new Error("missing bounded substrate entrypoint");\n` +
+      `let readerRejected = false; try { compile_reader_exposures({} as never, [], []); } catch { readerRejected = true; } if (!readerRejected) throw new Error("packed consumer accepted absent independent reader lanes");\n` +
       `if (typeof resolveRuntimeDistribution !== "function") throw new Error("missing runtime resolver");\n`,
   );
 
