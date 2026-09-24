@@ -20,8 +20,17 @@ control and evidence collection.
 
 Startup has three ordered phases:
 
-1. Download the existing pinned Qwen model and verify its exact SHA-256. This
-   container has no credential mounts. Image pulls are performed by Kubernetes.
+1. Download the existing pinned Qwen model and verify its exact SHA-256.
+   Version 1.10.2 also stages the unchanged MinIO April 22, 2025 binary from its
+   official GitHub release, using the architecture-specific SHA-256 and byte length
+   in `release/minio-official-artifact.v1.json`. Both amd64 and arm64 binaries match
+   the original official image byte-for-byte. The staging containers have no
+   credential mounts; Kubernetes pulls their immutable public base images.
+   The Object executable occupies a separate bounded 128Mi volume, owned only by
+   its service UID and mounted read-only by that service. Its base is pinned Python
+   Debian; no MinIO fork, source rebuild or registry mirror is involved. Startup
+   fails before network sealing if the download, checksum or architecture is invalid.
+   The older standalone bootstrap helper keeps its existing image contract.
 2. The network init process installs the combined default-deny nft policy and
    reads back every kernel chain and rule. It removes non-loopback interfaces.
    Linux may retain unconfigured tunnel templates; only the enumerated kernel

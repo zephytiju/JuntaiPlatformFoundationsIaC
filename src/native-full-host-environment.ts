@@ -21,6 +21,24 @@ import { compileNativeFullHostServiceExposures } from "./native-full-host-exposu
 export const FULL_HOST_SEALER_IMAGE =
   "docker.io/nicolaka/netshoot@sha256:7f08c4aff13ff61a35d30e30c5c1ea8396eac6ab4ce19fd02d5a4b3b5d0d09a2";
 
+/** Exact public binaries match the previously pinned official OCI image. */
+export const FULL_HOST_MINIO_ARTIFACT = JSON.parse(
+  readFileSync(
+    new URL("../release/minio-official-artifact.v1.json", import.meta.url),
+    "utf8",
+  ),
+) as {
+  readonly release: string;
+  readonly originalImage: string;
+  readonly baseImage: string;
+  readonly architectures: Readonly<
+    Record<
+      "amd64" | "arm64",
+      { readonly url: string; readonly sha256: string; readonly bytes: number }
+    >
+  >;
+};
+
 type Role = keyof typeof FULL_HOST_UIDS;
 export interface NativeFullHostWorkload {
   readonly image: string;
@@ -45,7 +63,7 @@ export const FULL_HOST_FOUNDATION_IMAGES = Object.freeze({
   casdoor: M4_CASDOOR_IMAGE,
   domainDatabase: NATIVE_VERIFICATION_IMAGES.postgres,
   casdoorDatabase: NATIVE_VERIFICATION_IMAGES.postgres,
-  objects: NATIVE_VERIFICATION_IMAGES.objects,
+  objects: FULL_HOST_MINIO_ARTIFACT.baseImage,
   collector:
     "ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib@sha256:f2f01157055a9b2aab9df7118e1f1c9abf345e99b23bc7a2bc791db374a7d0f6",
   telemetryDatabase:
@@ -118,6 +136,10 @@ export function deployNativeFullHostEnvironment(args: {
       throw new Error(
         "Foundation-owned proxy execution and routing cannot be overridden",
       );
+    if (role === "objects" && workload.command)
+      throw new Error(
+        "Foundation-owned Object executable cannot be overridden",
+      );
     const publicFiles = workload.publicFiles ?? {};
     if (
       Object.keys(publicFiles).some((key) => !keyPattern.test(key)) ||
@@ -186,6 +208,11 @@ export function deployNativeFullHostEnvironment(args: {
       immutable: true,
       data: {
         "network.json": JSON.stringify(network),
+        "objects-artifact.json": JSON.stringify(FULL_HOST_MINIO_ARTIFACT),
+        "stage-objects.py": readFileSync(
+          new URL("../release/stage-official-minio.py", import.meta.url),
+          "utf8",
+        ),
         "seal.py": readFileSync(
           new URL("../release/seal-full-host-network.py", import.meta.url),
           "utf8",
@@ -250,6 +277,16 @@ export function deployNativeFullHostEnvironment(args: {
           return files;
         }),
     },
+    objects: {
+      ...args.workloads.objects,
+      command: ["/objects-binary/verified/minio"],
+      args: args.workloads.objects.args ?? [
+        "server",
+        "/data",
+        "--address",
+        "127.0.0.1:19000",
+      ],
+    },
     model,
   };
   const resources: pulumi.Resource[] = [namespace, control, quota];
@@ -257,6 +294,7 @@ export function deployNativeFullHostEnvironment(args: {
     { name: "control", configMap: { name: control.metadata.name } },
     { name: "network-state", emptyDir: { sizeLimit: "1Mi" } },
     { name: "models", emptyDir: { sizeLimit: "1Gi" } },
+    { name: "objects-binary", emptyDir: { sizeLimit: "128Mi" } },
   ];
   const dataDirectories: Partial<Record<Role, string>> = {
     domainDatabase: "/var/lib/postgresql/data",
@@ -364,6 +402,12 @@ export function deployNativeFullHostEnvironment(args: {
     ];
     if (role === "model")
       mounts.push({ name: "models", mountPath: "/models", readOnly: true });
+    if (role === "objects")
+      mounts.push({
+        name: "objects-binary",
+        mountPath: "/objects-binary",
+        readOnly: true,
+      });
     const dataPath = dataDirectories[role];
     if (dataPath) {
       volumes.push({
@@ -480,6 +524,31 @@ export function deployNativeFullHostEnvironment(args: {
                   limits: { cpu: "1", memory: "256Mi" },
                 },
                 volumeMounts: [{ name: "models", mountPath: "/models" }],
+              },
+              {
+                name: "stage-objects",
+                image: FULL_HOST_MINIO_ARTIFACT.baseImage,
+                command: ["python3", "-B", "/control/stage-objects.py"],
+                args: [
+                  "--manifest",
+                  "/control/objects-artifact.json",
+                  "--destination",
+                  "/objects-binary/verified",
+                ],
+                securityContext: {
+                  ...security,
+                  runAsNonRoot: true,
+                  runAsUser: FULL_HOST_UIDS.objects,
+                  runAsGroup: FULL_HOST_UIDS.objects,
+                },
+                resources: {
+                  requests: { cpu: "100m", memory: "64Mi" },
+                  limits: { cpu: "1", memory: "128Mi" },
+                },
+                volumeMounts: [
+                  { name: "control", mountPath: "/control", readOnly: true },
+                  { name: "objects-binary", mountPath: "/objects-binary" },
+                ],
               },
               {
                 name: "seal-network",

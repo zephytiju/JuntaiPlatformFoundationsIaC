@@ -1,3 +1,14 @@
+## 1.10.2
+
+The disposable full-host Object service fetches the exact unchanged MinIO
+RELEASE.2025-04-22T22-12-26Z binary from the official public GitHub release because
+the former official image registry denies access. Both architecture hashes and
+byte lengths are pinned and match the original image. A credential-free init
+stages the executable before network isolation; only Object storage receives its
+bounded readonly binary volume. Its UID, data custody and network policy remain
+unchanged. No MinIO code, custom MinIO image or mirror is published. The standalone
+bootstrap helper retains its previous image contract.
+
 ## 1.10.1
 
 Restricts packaged release assets to JSON contracts and Python source. Python
