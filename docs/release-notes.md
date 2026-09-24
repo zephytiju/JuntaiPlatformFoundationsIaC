@@ -1,3 +1,9 @@
+## 1.10.3
+
+Allow bounded 180-second Nous start/resume requests to return through the
+full-host Nous and Console proxies. Their response and idle limits are now
+200 seconds; issuer/Lattice limits and request-body deadlines remain unchanged.
+
 ## 1.10.2
 
 The disposable full-host Object service fetches the exact unchanged MinIO

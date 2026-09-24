@@ -51,13 +51,19 @@ export function compileNativeFullHostServiceExposures(
     const hcm = chain.filters[0]!.typed_config;
     hcm.stat_prefix = "full_host_" + service.name;
     hcm.request_timeout = "10s";
-    hcm.stream_idle_timeout = "60s";
+    // Runtime start/resume return after execution. Allow its bounded 180s run
+    // plus response overhead through both the Nous and Console proxy hops.
+    const responseTimeout =
+      service.role === "nousProxy" || service.role === "consoleProxy"
+        ? "200s"
+        : "60s";
+    hcm.stream_idle_timeout = responseTimeout;
     hcm.route_config.name = "full-host-" + service.name;
     const virtualHost = hcm.route_config.virtual_hosts[0]!;
     virtualHost.name = service.name;
     virtualHost.domains = [`${service.name}.m4.invalid:${service.port}`];
     virtualHost.routes[0]!.route.cluster = service.name + "_private";
-    virtualHost.routes[0]!.route.timeout = "60s";
+    virtualHost.routes[0]!.route.timeout = responseTimeout;
     hcm.http_filters = [
       {
         name: "envoy.filters.http.buffer",
