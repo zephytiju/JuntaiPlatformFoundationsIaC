@@ -27,3 +27,5 @@ through the independently exported `deployModelProvider` API.
 The selected-reader implementation retains its qualified upstream image/source
 coordinates; packaging is not a new source-to-image attestation. No production,
 external paid inference or M5 allocation is authorized by package availability.
+
+The 1.10.0 [full-host environment](native-full-host-environment.md) composes these reader outputs with the isolated physical service inventory. The 1.9.0 bootstrap helper remains independently scoped and does not provide this combined isolation.

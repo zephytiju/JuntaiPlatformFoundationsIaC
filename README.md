@@ -66,3 +66,5 @@ See [foundation service deployments](docs/foundation-services.md), [adoption and
 Lattice packages can declare release-bound namespaces and typed shared Configuration/Artifact ResourceStore dependencies. See [the Foundations composition and rollback handoff](docs/lattice-resource-stores.md).
 
 See [native full-host deployment inputs](docs/native-full-host.md) for the separately approved selected-reader and disposable bootstrap building blocks.
+
+See [disposable full-host environment](docs/native-full-host-environment.md) for the opt-in isolated 19-service composition, generated proxy and telemetry configuration, and its separate live admission gates.
