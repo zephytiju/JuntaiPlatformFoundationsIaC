@@ -8,6 +8,7 @@ import {
   deployNativeFullHostEnvironment,
   FULL_HOST_FOUNDATION_IMAGES,
   FULL_HOST_SEALER_IMAGE,
+  FULL_HOST_MINIO_ARTIFACT,
   type NativeFullHostWorkload,
 } from "../src/native-full-host-environment.js";
 
@@ -143,17 +144,57 @@ it("stages before isolation and constrains every service to its own UID and priv
   ]).toEqual([false, false, false, false]);
   expect(pod.initContainers.map((c) => c.name)).toEqual([
     "stage-model",
+    "stage-objects",
     "seal-network",
     "stage-private-files",
   ]);
-  expect(pod.initContainers[1]!.securityContext.capabilities).toEqual({
+  expect(pod.initContainers[2]!.securityContext.capabilities).toEqual({
     drop: ["ALL"],
     add: ["NET_ADMIN"],
   });
-  expect(pod.initContainers[2]!.securityContext.capabilities).toEqual({
+  expect(pod.initContainers[3]!.securityContext.capabilities).toEqual({
     drop: ["ALL"],
     add: ["CHOWN"],
   });
+  const objectStage = pod.initContainers[1]!;
+  expect(objectStage.image).toBe(FULL_HOST_MINIO_ARTIFACT.baseImage);
+  expect(objectStage.securityContext).toMatchObject({
+    runAsUser: FULL_HOST_UIDS.objects,
+    runAsNonRoot: true,
+    readOnlyRootFilesystem: true,
+    capabilities: { drop: ["ALL"] },
+  });
+  expect(objectStage.volumeMounts.map((mount) => mount.name)).toEqual([
+    "control",
+    "objects-binary",
+  ]);
+  expect(
+    pod.volumes.find((volume) => volume.name === "objects-binary")!.emptyDir
+      .sizeLimit,
+  ).toBe("128Mi");
+  const objectContainer = pod.containers.find(
+    (container) => container.name === "objects",
+  )!;
+  expect(objectContainer.command).toEqual(["/objects-binary/verified/minio"]);
+  expect(
+    objectContainer.volumeMounts.find(
+      (mount) => mount.name === "objects-binary",
+    )!.readOnly,
+  ).toBe(true);
+  expect(
+    pod.containers
+      .filter((container) =>
+        container.volumeMounts.some((mount) => mount.name === "objects-binary"),
+      )
+      .map((container) => container.name),
+  ).toEqual(["objects"]);
+  expect(FULL_HOST_MINIO_ARTIFACT.release).toBe("RELEASE.2025-04-22T22-12-26Z");
+  expect(FULL_HOST_MINIO_ARTIFACT.architectures.amd64.sha256).toBe(
+    "53e2a2cb16c5366ea6fbbc479c19ddb4c6a0948273e752f740fb1fbf27bb817c",
+  );
+  expect(FULL_HOST_MINIO_ARTIFACT.architectures.arm64.sha256).toBe(
+    "6c2f3142c94240206123177f4ba1e360daa5d1e0a4962e90757ef4f92c3ab57c",
+  );
   const normalize = (name: string) =>
     name.replace(/[A-Z]/g, (v) => "-" + v.toLowerCase());
   expect(pod.containers).toHaveLength(Object.keys(FULL_HOST_UIDS).length);
@@ -278,4 +319,12 @@ it("rejects telemetry routing, command and credential overrides", () => {
       },
     }),
   ).toThrow(/private environment/);
+});
+
+it("rejects replacement of the verified Object executable", () => {
+  const args = input(new k8s.Provider("object-command-override"));
+  args.workloads.objects = { ...args.workloads.objects, command: ["sh"] };
+  expect(() => deployNativeFullHostEnvironment(args)).toThrow(
+    "Object executable cannot be overridden",
+  );
 });

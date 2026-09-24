@@ -347,6 +347,8 @@ try {
     "dist/native-full-host-exposure.js",
     "release/seal-full-host-network.py",
     "release/stage-full-host-files.py",
+    "release/stage-official-minio.py",
+    "release/minio-official-artifact.v1.json",
     "release/m4-native-reader.v1.json",
     "release/verify-m4-public-trust.py",
     "docs/native-full-host.md",

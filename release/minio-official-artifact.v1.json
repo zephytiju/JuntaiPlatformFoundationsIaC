@@ -1,0 +1,17 @@
+{
+  "release": "RELEASE.2025-04-22T22-12-26Z",
+  "originalImage": "quay.io/minio/minio@sha256:a1ea29fa28355559ef137d71fc570e508a214ec84ff8083e39bc5428980b015e",
+  "baseImage": "python:3.12-slim-bookworm@sha256:32e2c347413bae52d567e2cc3eef31cd617a83dcac51644caadc0bbac131395a",
+  "architectures": {
+    "amd64": {
+      "url": "https://github.com/minio/minio/releases/download/RELEASE.2025-04-22T22-12-26Z/minio.linux-amd64.RELEASE.2025-04-22T22-12-26Z",
+      "sha256": "53e2a2cb16c5366ea6fbbc479c19ddb4c6a0948273e752f740fb1fbf27bb817c",
+      "bytes": 118849720
+    },
+    "arm64": {
+      "url": "https://github.com/minio/minio/releases/download/RELEASE.2025-04-22T22-12-26Z/minio.linux-arm64.RELEASE.2025-04-22T22-12-26Z",
+      "sha256": "6c2f3142c94240206123177f4ba1e360daa5d1e0a4962e90757ef4f92c3ab57c",
+      "bytes": 113115320
+    }
+  }
+}
