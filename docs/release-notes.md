@@ -1,3 +1,10 @@
+## 1.10.1
+
+Restricts packaged release assets to JSON contracts and Python source. Python
+bytecode created by isolation tests is excluded, and the packed-consumer gate
+rejects cache files. The 1.10.0 runtime/configuration payload is unchanged; its
+published tarball had one test-generated Python 3.12 cache file.
+
 ## 1.10.0
 
 Adds the explicit disposable full-host environment: staged local model, sealed

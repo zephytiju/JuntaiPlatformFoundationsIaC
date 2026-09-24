@@ -1,6 +1,6 @@
 import type { ImmutableReleaseInput } from "./contract.js";
 
-export const FOUNDATIONS_PACKAGE_VERSION = "1.10.0" as const;
+export const FOUNDATIONS_PACKAGE_VERSION = "1.10.1" as const;
 
 export const MERIDIAN_RUNTIME_DISTRIBUTION = Object.freeze({
   id: "meridian-runtime-distribution",
