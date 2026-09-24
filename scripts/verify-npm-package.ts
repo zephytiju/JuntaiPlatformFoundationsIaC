@@ -328,6 +328,12 @@ try {
   }
 
   const files = new Set(result.files.map(({ path }) => path));
+  if (
+    [...files].some(
+      (path) => path.includes("__pycache__/") || /\.py[co]$/.test(path),
+    )
+  )
+    throw new Error("Python test caches must not enter the release package");
   const required = [
     "NOTICE",
     "README.md",
