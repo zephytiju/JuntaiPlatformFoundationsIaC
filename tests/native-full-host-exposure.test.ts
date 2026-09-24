@@ -29,6 +29,21 @@ it("keeps private readers exact while assigning one dedicated origin per public 
       tls_maximum_protocol_version: "TLSv1_3",
     });
     const http = listener.filter_chains[0]!.filters[0]!.typed_config;
+    const responseSeconds = Number(
+      http.route_config.virtual_hosts[0]!.routes[0]!.route.timeout.slice(0, -1),
+    );
+    const idleSeconds = Number(http.stream_idle_timeout.slice(0, -1));
+    if (["nousProxy", "consoleProxy"].includes(service.role)) {
+      // A real synchronous Runtime call may be silent for its 180s budget.
+      // Both hops must leave response overhead, with a finite upper bound.
+      expect(responseSeconds).toBeGreaterThanOrEqual(180 + 20);
+      expect(responseSeconds).toBeLessThanOrEqual(200);
+      expect(idleSeconds).toBeGreaterThanOrEqual(responseSeconds);
+    } else {
+      expect(responseSeconds).toBe(60);
+      expect(idleSeconds).toBe(60);
+    }
+    expect(http.request_timeout).toBe("10s");
     expect(http.route_config.virtual_hosts).toHaveLength(1);
     expect(http.route_config.virtual_hosts[0]!.domains).toEqual([
       new URL(service.origin).host,

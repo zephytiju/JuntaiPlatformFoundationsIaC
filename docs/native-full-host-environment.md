@@ -53,6 +53,13 @@ origins and one combined policy. It does not install the old C2 `publicEnvoy` or
 standalone `network.nft` alongside them. Native issuer and domain authorization
 remain mandatory; reaching an origin is not permission to perform an operation.
 
+Version 1.10.3 gives the Nous and Console public proxies a bounded 200-second
+upstream response and stream-idle window. Runtime start/resume calls wait for
+their result, so the verification host's 180-second run budget needs this window
+through both proxy hops. Issuer and Lattice keep their 60-second response limits;
+all request-body receive deadlines remain 10 seconds. The application must still
+enforce its run deadline, cancellation and unknown-outcome reconciliation.
+
 Kernel UID rules transparently send Nous, Lattice and the independent client from
 the logical issuer port 9443 to its restricted loopback listener on 19443. That
 listener retains the original C2 token/JWKS-only HTTP gate, rejecting reader
