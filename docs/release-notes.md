@@ -1,3 +1,12 @@
+## 1.10.0
+
+Adds the explicit disposable full-host environment: staged local model, sealed
+Linux network namespace, exact process UIDs, independent private reader lanes,
+dedicated service origins and private file custody. Kernel and pinned Envoy
+qualification are required in CI and release. Ordinary local model behavior and
+existing shared-platform composition remain unchanged. Registry readback now
+allows five minutes for npm's asynchronous processing. See native-full-host-environment.md.
+
 ## 1.9.0
 
 Publishes the qualified native selected-reader compiler and bounded disposable

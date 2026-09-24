@@ -28,3 +28,6 @@ export type {
 
 export * from "./m4-native-reader.js";
 export * from "./native-verification-substrate.js";
+export * from "./native-full-host-network.js";
+export * from "./native-full-host-exposure.js";
+export * from "./native-full-host-environment.js";

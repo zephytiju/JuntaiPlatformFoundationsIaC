@@ -1,0 +1,362 @@
+{
+  "schemaVersion": "juntai.platform/native-full-host-network/v1",
+  "allocationId": "33c0cb57-a3c6-4309-aa48-82e937522d7d",
+  "externalInterfaces": false,
+  "credentialForwardingBridges": false,
+  "listeners": {
+    "casdoor": 8000,
+    "issuer": 9443,
+    "issuerRestricted": 19443,
+    "lattice": 9444,
+    "nous": 9445,
+    "nousReader": 9446,
+    "latticeReader": 9447,
+    "console": 9448,
+    "model": 9843,
+    "domainDatabase": 15432,
+    "casdoorDatabase": 15433,
+    "objects": 19000,
+    "collectorHttp": 4318,
+    "collectorGrpc": 4317,
+    "collectorRelay": 18180,
+    "telemetryDatabase": 8443,
+    "latticeUpstream": 18044,
+    "nousUpstream": 18045,
+    "consoleUpstream": 18048
+  },
+  "uids": {
+    "nousReader": 21001,
+    "nous": 21002,
+    "casdoor": 21003,
+    "latticeReader": 21004,
+    "lattice": 21005,
+    "issuerProxy": 21007,
+    "console": 21008,
+    "browser": 21009,
+    "operator": 21010,
+    "independentClient": 21012,
+    "nousProxy": 21013,
+    "latticeProxy": 21014,
+    "consoleProxy": 21015,
+    "model": 21020,
+    "objects": 21022,
+    "collector": 21023,
+    "domainDatabase": 21030,
+    "casdoorDatabase": 21031,
+    "telemetryDatabase": 21032
+  },
+  "edges": [
+    {
+      "role": "nousReader",
+      "uid": 21001,
+      "target": "casdoor",
+      "address": "127.0.0.1",
+      "port": 8000
+    },
+    {
+      "role": "nous",
+      "uid": 21002,
+      "target": "issuerRestricted",
+      "address": "127.0.0.1",
+      "port": 19443
+    },
+    {
+      "role": "nous",
+      "uid": 21002,
+      "target": "nousReader",
+      "address": "127.0.0.1",
+      "port": 9446
+    },
+    {
+      "role": "nous",
+      "uid": 21002,
+      "target": "lattice",
+      "address": "127.0.0.1",
+      "port": 9444
+    },
+    {
+      "role": "nous",
+      "uid": 21002,
+      "target": "model",
+      "address": "127.0.0.1",
+      "port": 9843
+    },
+    {
+      "role": "nous",
+      "uid": 21002,
+      "target": "domainDatabase",
+      "address": "127.0.0.1",
+      "port": 15432
+    },
+    {
+      "role": "nous",
+      "uid": 21002,
+      "target": "objects",
+      "address": "127.0.0.1",
+      "port": 19000
+    },
+    {
+      "role": "nous",
+      "uid": 21002,
+      "target": "collectorHttp",
+      "address": "127.0.0.1",
+      "port": 4318
+    },
+    {
+      "role": "nous",
+      "uid": 21002,
+      "target": "collectorGrpc",
+      "address": "127.0.0.1",
+      "port": 4317
+    },
+    {
+      "role": "nous",
+      "uid": 21002,
+      "target": "telemetryDatabase",
+      "address": "127.0.0.1",
+      "port": 8443
+    },
+    {
+      "role": "casdoor",
+      "uid": 21003,
+      "target": "casdoorDatabase",
+      "address": "127.0.0.1",
+      "port": 15433
+    },
+    {
+      "role": "latticeReader",
+      "uid": 21004,
+      "target": "casdoor",
+      "address": "127.0.0.1",
+      "port": 8000
+    },
+    {
+      "role": "lattice",
+      "uid": 21005,
+      "target": "issuerRestricted",
+      "address": "127.0.0.1",
+      "port": 19443
+    },
+    {
+      "role": "lattice",
+      "uid": 21005,
+      "target": "latticeReader",
+      "address": "127.0.0.1",
+      "port": 9447
+    },
+    {
+      "role": "lattice",
+      "uid": 21005,
+      "target": "domainDatabase",
+      "address": "127.0.0.1",
+      "port": 15432
+    },
+    {
+      "role": "issuerProxy",
+      "uid": 21007,
+      "target": "casdoor",
+      "address": "127.0.0.1",
+      "port": 8000
+    },
+    {
+      "role": "console",
+      "uid": 21008,
+      "target": "issuer",
+      "address": "127.0.0.1",
+      "port": 9443
+    },
+    {
+      "role": "console",
+      "uid": 21008,
+      "target": "nous",
+      "address": "127.0.0.1",
+      "port": 9445
+    },
+    {
+      "role": "console",
+      "uid": 21008,
+      "target": "lattice",
+      "address": "127.0.0.1",
+      "port": 9444
+    },
+    {
+      "role": "browser",
+      "uid": 21009,
+      "target": "issuer",
+      "address": "127.0.0.1",
+      "port": 9443
+    },
+    {
+      "role": "browser",
+      "uid": 21009,
+      "target": "console",
+      "address": "127.0.0.1",
+      "port": 9448
+    },
+    {
+      "role": "browser",
+      "uid": 21009,
+      "target": "nous",
+      "address": "127.0.0.1",
+      "port": 9445
+    },
+    {
+      "role": "operator",
+      "uid": 21010,
+      "target": "issuer",
+      "address": "127.0.0.1",
+      "port": 9443
+    },
+    {
+      "role": "operator",
+      "uid": 21010,
+      "target": "nous",
+      "address": "127.0.0.1",
+      "port": 9445
+    },
+    {
+      "role": "operator",
+      "uid": 21010,
+      "target": "lattice",
+      "address": "127.0.0.1",
+      "port": 9444
+    },
+    {
+      "role": "operator",
+      "uid": 21010,
+      "target": "domainDatabase",
+      "address": "127.0.0.1",
+      "port": 15432
+    },
+    {
+      "role": "operator",
+      "uid": 21010,
+      "target": "objects",
+      "address": "127.0.0.1",
+      "port": 19000
+    },
+    {
+      "role": "operator",
+      "uid": 21010,
+      "target": "collectorHttp",
+      "address": "127.0.0.1",
+      "port": 4318
+    },
+    {
+      "role": "operator",
+      "uid": 21010,
+      "target": "telemetryDatabase",
+      "address": "127.0.0.1",
+      "port": 8443
+    },
+    {
+      "role": "independentClient",
+      "uid": 21012,
+      "target": "issuerRestricted",
+      "address": "127.0.0.1",
+      "port": 19443
+    },
+    {
+      "role": "independentClient",
+      "uid": 21012,
+      "target": "nous",
+      "address": "127.0.0.1",
+      "port": 9445
+    },
+    {
+      "role": "independentClient",
+      "uid": 21012,
+      "target": "lattice",
+      "address": "127.0.0.1",
+      "port": 9444
+    },
+    {
+      "role": "independentClient",
+      "uid": 21012,
+      "target": "model",
+      "address": "127.0.0.1",
+      "port": 9843
+    },
+    {
+      "role": "independentClient",
+      "uid": 21012,
+      "target": "collectorHttp",
+      "address": "127.0.0.1",
+      "port": 4318
+    },
+    {
+      "role": "nousProxy",
+      "uid": 21013,
+      "target": "nousUpstream",
+      "address": "127.0.0.1",
+      "port": 18045
+    },
+    {
+      "role": "latticeProxy",
+      "uid": 21014,
+      "target": "latticeUpstream",
+      "address": "127.0.0.1",
+      "port": 18044
+    },
+    {
+      "role": "consoleProxy",
+      "uid": 21015,
+      "target": "consoleUpstream",
+      "address": "127.0.0.1",
+      "port": 18048
+    },
+    {
+      "role": "collector",
+      "uid": 21023,
+      "target": "collectorRelay",
+      "address": "127.0.0.1",
+      "port": 18180
+    },
+    {
+      "role": "collector",
+      "uid": 21023,
+      "target": "telemetryDatabase",
+      "address": "127.0.0.1",
+      "port": 8443
+    }
+  ],
+  "issuerRedirects": [
+    {
+      "role": "nous",
+      "uid": 21002,
+      "address": "127.0.0.1",
+      "port": 9443,
+      "targetPort": 19443
+    },
+    {
+      "role": "lattice",
+      "uid": 21005,
+      "address": "127.0.0.1",
+      "port": 9443,
+      "targetPort": 19443
+    },
+    {
+      "role": "independentClient",
+      "uid": 21012,
+      "address": "127.0.0.1",
+      "port": 9443,
+      "targetPort": 19443
+    }
+  ],
+  "nft": "table inet nous_full_host {\n chain issuer_select { type nat hook output priority -100; policy accept;\n  meta skuid 21002 ip daddr 127.0.0.1 tcp dport 9443 redirect to :19443\n  meta skuid 21005 ip daddr 127.0.0.1 tcp dport 9443 redirect to :19443\n  meta skuid 21012 ip daddr 127.0.0.1 tcp dport 9443 redirect to :19443\n }\n chain output { type filter hook output priority 0; policy drop;\n  ct state established,related accept\n  meta skuid 21001 ip daddr 127.0.0.1 tcp dport 8000 accept\n  meta skuid 21002 ip daddr 127.0.0.1 tcp dport 19443 accept\n  meta skuid 21002 ip daddr 127.0.0.1 tcp dport 9446 accept\n  meta skuid 21002 ip daddr 127.0.0.1 tcp dport 9444 accept\n  meta skuid 21002 ip daddr 127.0.0.1 tcp dport 9843 accept\n  meta skuid 21002 ip daddr 127.0.0.1 tcp dport 15432 accept\n  meta skuid 21002 ip daddr 127.0.0.1 tcp dport 19000 accept\n  meta skuid 21002 ip daddr 127.0.0.1 tcp dport 4318 accept\n  meta skuid 21002 ip daddr 127.0.0.1 tcp dport 4317 accept\n  meta skuid 21002 ip daddr 127.0.0.1 tcp dport 8443 accept\n  meta skuid 21003 ip daddr 127.0.0.1 tcp dport 15433 accept\n  meta skuid 21004 ip daddr 127.0.0.1 tcp dport 8000 accept\n  meta skuid 21005 ip daddr 127.0.0.1 tcp dport 19443 accept\n  meta skuid 21005 ip daddr 127.0.0.1 tcp dport 9447 accept\n  meta skuid 21005 ip daddr 127.0.0.1 tcp dport 15432 accept\n  meta skuid 21007 ip daddr 127.0.0.1 tcp dport 8000 accept\n  meta skuid 21008 ip daddr 127.0.0.1 tcp dport 9443 accept\n  meta skuid 21008 ip daddr 127.0.0.1 tcp dport 9445 accept\n  meta skuid 21008 ip daddr 127.0.0.1 tcp dport 9444 accept\n  meta skuid 21009 ip daddr 127.0.0.1 tcp dport 9443 accept\n  meta skuid 21009 ip daddr 127.0.0.1 tcp dport 9448 accept\n  meta skuid 21009 ip daddr 127.0.0.1 tcp dport 9445 accept\n  meta skuid 21010 ip daddr 127.0.0.1 tcp dport 9443 accept\n  meta skuid 21010 ip daddr 127.0.0.1 tcp dport 9445 accept\n  meta skuid 21010 ip daddr 127.0.0.1 tcp dport 9444 accept\n  meta skuid 21010 ip daddr 127.0.0.1 tcp dport 15432 accept\n  meta skuid 21010 ip daddr 127.0.0.1 tcp dport 19000 accept\n  meta skuid 21010 ip daddr 127.0.0.1 tcp dport 4318 accept\n  meta skuid 21010 ip daddr 127.0.0.1 tcp dport 8443 accept\n  meta skuid 21012 ip daddr 127.0.0.1 tcp dport 19443 accept\n  meta skuid 21012 ip daddr 127.0.0.1 tcp dport 9445 accept\n  meta skuid 21012 ip daddr 127.0.0.1 tcp dport 9444 accept\n  meta skuid 21012 ip daddr 127.0.0.1 tcp dport 9843 accept\n  meta skuid 21012 ip daddr 127.0.0.1 tcp dport 4318 accept\n  meta skuid 21013 ip daddr 127.0.0.1 tcp dport 18045 accept\n  meta skuid 21014 ip daddr 127.0.0.1 tcp dport 18044 accept\n  meta skuid 21015 ip daddr 127.0.0.1 tcp dport 18048 accept\n  meta skuid 21023 ip daddr 127.0.0.1 tcp dport 18180 accept\n  meta skuid 21023 ip daddr 127.0.0.1 tcp dport 8443 accept\n }\n chain input { type filter hook input priority 0; policy drop;\n  iifname \"lo\" accept\n }\n}\n",
+  "policySha256": "sha256:7c761dda1482d447f8a513fb95ac4d173976a3050bd3556b27a77be2e132cae0",
+  "readerConfigSha256": [
+    "sha256:53d765650cf815d239035880e4b32843f0dd9919cd6c9cfd17922bbee696efbe",
+    "sha256:b2003d463bbfe62d9d2e41711015bfbdf741645bbd4812638488ce728eafe9c4"
+  ],
+  "nativeAdmission": false,
+  "requiredLiveGates": [
+    "stage immutable images and model before sealing",
+    "remove every non-loopback interface before starting services",
+    "load and read back the exact default-deny nft policy",
+    "drop all capabilities and disallow privilege escalation in every service",
+    "prove source UIDs, cross-reader denial and direct-upstream denial",
+    "verify original C2 mTLS, native User proofs and exact object ACLs",
+    "verify each service trust, storage admission and application authorization"
+  ]
+}
